@@ -57,7 +57,7 @@ export const saveBusiness = async (req, res) => {
 
 
 
-
+//Save The outlet Information
 export const saveOutlet = async (req, res) => {
   try {
     const {
@@ -70,42 +70,46 @@ export const saveOutlet = async (req, res) => {
       email,
       business_owned, // Corrected spelling
     } = req.body;
-    let businessId;
 
-    // Extract business ID
-    if (business) {
-      // Use the provided business ID
-      businessId = business;
+    // Check if business ID is provided
+   if (business_owned && !business) {
+     return res.status(400).json({ message: "Business ID is required" });
+   }
+
+    let newOutlet;
+
+    // If the outlet is owned by a business
+    if (business_owned) {
+      newOutlet = new Outlet({
+        branch_name,
+        business,
+        private_company: null, // Corrected syntax
+      });
     } else {
-      // Return error if business ID is missing
-      return res.status(400).json({ message: "Business ID is required" });
-    }
+      // If the outlet is owned by a private company
+      newOutlet = new Outlet({
+        branch_name,
+        business,
+      });
 
-    // Save the outlet, including the branch name
-    const newOutlet = new Outlet({
-      branch_name, // Include branch name in the outlet data
-      business: businessId,
-    });
-    await newOutlet.save();
-
-    // If the outlet is not owned by a business, save the private company and associate its ObjectId with the outlet
-    if (!business_owned) {
-      // Save the private company without including branch name
+      // Save private company data
       const privateCompanyData = {
-        business: businessId,
         name,
         gst_number,
         address,
         primary_contact_number,
         email,
+        business,
       };
       const newPrivateCompany = new PrivateCompany(privateCompanyData);
       await newPrivateCompany.save();
 
       // Associate the ObjectId of the private company with the outlet
       newOutlet.private_company = newPrivateCompany._id;
-      await newOutlet.save();
     }
+
+    // Save the outlet
+    await newOutlet.save();
 
     return res
       .status(201)

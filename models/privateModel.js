@@ -3,11 +3,6 @@ import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const privateCompanySchema = new Schema({
-  business: {
-    type: Schema.Types.ObjectId,
-    ref: "Business",
-    required: true,
-  },
   name: {
     type: String,
     required: true,

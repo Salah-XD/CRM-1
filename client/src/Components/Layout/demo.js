@@ -39,6 +39,16 @@ const AdminDashboard = ({ children }) => {
       </div>
       <Layout style={{ minHeight: "100vh" }}>
         <Sider
+          width={200}
+          style={{
+            overflow: "auto",
+            height: "100vh",
+            position: "fixed",
+            left: 0,
+            transition: "width 0.3s ease", // Adjust transition duration
+            willChange: "width", // Optimize for transition
+            zIndex: 1000, // Ensure the Sider stays above other content during transition
+          }}
           collapsible
           collapsed={collapsed}
           onCollapse={setCollapsed}
@@ -55,15 +65,7 @@ const AdminDashboard = ({ children }) => {
           </div>
           <Menu defaultSelectedKeys={["1"]} mode="inline">
             {items.map((item) => (
-              <Menu.Item
-                key={item.key}
-                icon={item.icon}
-                className={
-                  item.key === "1"
-                    ? "selected-menu-item"
-                    : "unselected-menu-item"
-                }
-              >
+              <Menu.Item key={item.key} icon={item.icon}>
                 <NavLink to={item.link} className="text-white">
                   {item.label}
                 </NavLink>
@@ -71,7 +73,14 @@ const AdminDashboard = ({ children }) => {
             ))}
           </Menu>
         </Sider>
-        <Layout className="bg-white">
+        <Layout
+          style={{
+            marginLeft: collapsed ? 80 : 200,
+            transition: "margin-left 0.3s ease", // Adjust transition duration
+            willChange: "margin-left", // Optimize for transition
+          }}
+          className="bg-white"
+        >
           <Content>{children}</Content>
         </Layout>
       </Layout>
