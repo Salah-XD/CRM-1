@@ -1,6 +1,7 @@
 import React from 'react'
 import AdminHeader from '../Layout/AdminHeader'
-import AddClient from './AddClient'
+import AddClient from './AddClient';
+
 function ClientOnboarding() {
   return (
     <div>

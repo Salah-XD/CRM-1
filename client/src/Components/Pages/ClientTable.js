@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Table, Radio, Button, Input, Checkbox, Tag } from "antd";
 import {
-  DownloadOutlined,
   DeleteOutlined,
   PlusOutlined,
   FilterOutlined,
-  CloudDownloadOutlined 
+  CloudDownloadOutlined,
 } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
 import axios from "axios";
@@ -14,65 +13,61 @@ import { NavLink } from "react-router-dom";
 const { Search } = Input;
 
 const ClientTable = () => {
-  const [size, setSize] = useState("default");
   const [selectedRows, setSelectedRows] = useState([]);
   const [tableData, setTableData] = useState([]);
+  const [sortData, setSortData] = useState("alllist");
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 4,
+    total: 2,
+  });
 
   useEffect(() => {
     fetchData(); // Fetch initial data when component mounts
-  }, []);
+  }, [pagination.current, sortData]); // Reload data when pagination or sorting changes
 
-  const fetchData = () => {
-    // Dummy data for demonstration
-    const dummyData = [
-      {
-        key: "1",
-        name: "John Brown",
-        age: 32,
-        address: "New York No. 1 Lake Park",
-        businessName: "ABC Corp",
-        contactPerson: "Alice",
-        phoneNumber: "1234567890",
-        mailId: "alice@example.com",
-        outlet: "Outlet 1",
-        addedBy: "Manual",
-        createOn: "2022-05-01",
-      },
-      {
-        key: "2",
-        name: "Jim Green",
-        age: 42,
-        address: "London No. 1 Lake Park",
-        businessName: "XYZ Inc",
-        contactPerson: "Bob",
-        phoneNumber: "9876543210",
-        mailId: "bob@example.com",
-        outlet: "Outlet 2",
-        addedBy: "Web Enquiry",
-        createOn: "2022-05-02",
-      },
-      {
-        key: "3",
-        name: "Joe Black",
-        age: 32,
-        address: "Sidney No. 1 Lake Park",
-        businessName: "PQR Ltd",
-        contactPerson: "Charlie",
-        phoneNumber: "5555555555",
-        mailId: "charlie@example.com",
-        outlet: "Outlet 3",
-        addedBy: "Manual",
-        createOn: "2022-05-03",
-      },
-    ];
+const fetchData = () => {
+  axios
+    .get(
+      `getAllBussinesDetails?page=${pagination.current}&pageSize=${pagination.pageSize}&sort=${sortData}`
+    )
+    .then((response) => {
+      const { businesses, totalPages, currentPage } = response.data;
 
-    setTableData(dummyData); // Set table data
-  };
+      setTableData(businesses); // Set table data
+      setPagination((prevPagination) => ({
+        ...prevPagination,
+        current: currentPage,
+        total: totalPages,
+      }));
+      console.log(totalPages); // Log totalPages
+    })
+    .catch((error) => {
+      console.error("Error fetching data:", error);
+    });
+
+};
+
+useEffect(() => {
+  console.log(pagination.total);
+}, [pagination.total]);
+
 
   const onSearch = (value) => console.log(value);
 
-  const handleRowSelect = (selectedRowKeys) => {
-    setSelectedRows(selectedRowKeys);
+  const handleRowSelect = (selectedRowKey) => {
+    const isSelected = selectedRows.includes(selectedRowKey);
+    let updatedSelectedRows;
+
+    if (isSelected) {
+      updatedSelectedRows = selectedRows.filter(
+        (key) => key !== selectedRowKey
+      );
+    } else {
+      updatedSelectedRows = [...selectedRows, selectedRowKey];
+    }
+
+    setSelectedRows(updatedSelectedRows);
   };
 
   const handleDelete = () => {
@@ -106,36 +101,64 @@ const ClientTable = () => {
         />
       ),
     },
-  
     {
-      title: "Business Name",
-      dataIndex: "businessName",
-      key: "businessName",
+      title: (
+        <span className="text-gray-600 font-semibold text-gray-700">
+          Business Name
+        </span>
+      ),
+      dataIndex: "name",
+      key: "name",
+      render: (text) => <span className="text-gray-700">{text}</span>,
     },
     {
-      title: "Contact Person",
-      dataIndex: "contactPerson",
-      key: "contactPerson",
+      title: (
+        <span className="text-gray-600 font-semibold text-gray-700">
+          Contact Person
+        </span>
+      ),
+      dataIndex: "contact_person",
+      key: "contact_person",
+      render: (text) => <span className="text-gray-700">{text}</span>,
     },
     {
-      title: "Phone Number",
-      dataIndex: "phoneNumber",
-      key: "phoneNumber",
+      title: (
+        <span className="text-gray-600 font-semibold text-gray-700">
+          Phone Number
+        </span>
+      ),
+      dataIndex: "phone",
+      key: "phone",
+      render: (text) => <span className="text-gray-700">{text}</span>,
     },
     {
-      title: "Mail ID",
-      dataIndex: "mailId",
-      key: "mailId",
+      title: (
+        <span className="text-gray-600 font-semibold text-gray-700">
+          Mail ID
+        </span>
+      ),
+      dataIndex: "email",
+      key: "email",
+      render: (text) => <span className="text-gray-700">{text}</span>,
     },
     {
-      title: "Outlet",
-      dataIndex: "outlet",
-      key: "outlet",
+      title: (
+        <span className="text-gray-600 font-semibold text-gray-700">
+          Outlet
+        </span>
+      ),
+      dataIndex: "outletCount",
+      key: "outletCount",
+      render: (text) => <span className="text-gray-700">{text}</span>,
     },
     {
-      title: "Added By",
-      dataIndex: "addedBy",
-      key: "addedBy",
+      title: (
+        <span className="text-gray-600 font-semibold text-gray-700">
+          Added By
+        </span>
+      ),
+      dataIndex: "added_by",
+      key: "added_by",
       render: (addedBy) => {
         let color =
           addedBy === "Manual"
@@ -147,9 +170,16 @@ const ClientTable = () => {
       },
     },
     {
-      title: "Create On",
-      dataIndex: "createOn",
-      key: "createOn",
+      title: (
+        <span className="text-gray-600 font-semibold text-gray-700">
+          Created On
+        </span>
+      ),
+      dataIndex: "created_at",
+      key: "created_at",
+      render: (text) => (
+        <span className="text-primary  underline">{text}</span>
+      ),
     },
   ];
 
@@ -157,7 +187,7 @@ const ClientTable = () => {
     <AdminDashboard>
       <div className="bg-white m-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold">Client List</h2>
+          <h2 className="text-xl font-semibold">Client List</h2>
           <div className="space-x-2">
             <Button
               type="text"
@@ -166,7 +196,7 @@ const ClientTable = () => {
               size="default"
               onClick={handleDelete}
             >
-              Delete
+              <span className="text-gray-600 font-semibold"> Delete</span>
             </Button>
             <Button
               type="text"
@@ -174,17 +204,21 @@ const ClientTable = () => {
               icon={<FilterOutlined />}
               size="default"
             >
-              Filters
+              <span className="text-gray-600 font-semibold">Filters</span>
             </Button>
-            <Button shape="round" icon={<CloudDownloadOutlined />} size={size}>
-              Export
+            <Button
+              shape="round"
+              icon={<CloudDownloadOutlined />}
+              size="default"
+            >
+              <span className="text-gray-600 font-semibold">Export</span>
             </Button>
             <NavLink to="/add-client">
               <Button
                 type="primary"
                 shape="round"
                 icon={<PlusOutlined />}
-                size={size}
+                size="default"
               >
                 Add New
               </Button>
@@ -193,17 +227,34 @@ const ClientTable = () => {
               type="primary"
               shape="round"
               icon={<PlusOutlined />}
-              size={size}
+              size="default"
             >
               Send Form Link
             </Button>
           </div>
         </div>
 
-        <div className="flex justify-between mb-4">
-          <Radio.Group value={size} onChange={(e) => setSize(e.target.value)}>
-            <Radio.Button value="large">All List</Radio.Button>
-            <Radio.Button value="default">Newly Added</Radio.Button>
+        <div className="flex justify-between my-4">
+          <Radio.Group
+            value={sortData}
+            onChange={(e) => setSortData(e.target.value)}
+          >
+            <Radio.Button
+              value="alllist"
+              className={`${
+                sortData === "alllist" ? "bg-gray-300" : ""
+              }  text-gray-600 font-semibold`}
+            >
+              All List
+            </Radio.Button>
+            <Radio.Button
+              value="newlyadded"
+              className={`${
+                sortData === "newlyadded" ? "bg-gray-300" : ""
+              }  text-gray-600 font-semibold`}
+            >
+              Newly Added
+            </Radio.Button>
           </Radio.Group>
 
           <div className="space-x-2">
@@ -212,7 +263,21 @@ const ClientTable = () => {
         </div>
 
         <div>
-          <Table columns={columns} dataSource={tableData} />
+          <Table
+            columns={columns}
+            dataSource={tableData}
+            pagination={{
+              current: pagination.current,
+              pageSize: pagination.pageSize,
+              total: pagination.total,
+              showLessItems: false, // Ensure all pagination buttons are visible
+              onChange: (page) =>
+                setPagination((prevPagination) => ({
+                  ...prevPagination,
+                  current: page,
+                })),
+            }}
+          />
         </div>
       </div>
     </AdminDashboard>

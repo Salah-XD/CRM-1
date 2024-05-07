@@ -1,11 +1,32 @@
-import React, { useState } from "react";
-import { Table, Button, Modal, Form, Input, Checkbox, Radio } from "antd";
+import React, { useState,useEffect } from "react";
+import { Table, Button, Modal, Form, Input, Checkbox, Radio ,Select} from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import axios from "axios";
+
 
 const OutletDetail = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [data, setData] = useState([]);
   const [ownership, setOwnership] = useState("yes");
+  const [bussinessList,setBussinessList]=useState([]);
+
+
+ useEffect(() => {
+   const fetchBusinessNames = async () => {
+     try {
+       const response = await axios.get("/getAllBussinessName");
+       setBussinessList(response.data.businesses);
+       console.log(response.data.businesses);
+     } catch (error) {
+       console.error("Error fetching business names:", error);
+     }
+   };
+   fetchBusinessNames();
+ }, []);
+
+   
+
 
   const columns = [
     {
@@ -40,29 +61,6 @@ const OutletDetail = () => {
     },
   ];
 
-  const data = [
-    {
-      key: "1",
-      clientName: "Client A",
-      branchName: "Branch A",
-      ownedBy: "Owner A",
-      gstnNo: "GSTN123",
-      city: "City A",
-      location: "Location A",
-    },
-    {
-      key: "2",
-      clientName: "Client B",
-      branchName: "Branch B",
-      ownedBy: "Owner B",
-      gstnNo: "GSTN456",
-      city: "City B",
-      location: "Location B",
-    },
-    // Add more demo data as needed
-  ];
-
-  
   const handleDelete = () => {
     // Implement API request to delete selected clients
   };
@@ -72,7 +70,6 @@ const OutletDetail = () => {
   };
 
   const handleOk = () => {
-    // Implement logic to add basic fields
     setIsModalVisible(false);
   };
 
@@ -85,77 +82,141 @@ const OutletDetail = () => {
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center m-6">
-        <h2 className="text-lg font-semibold">Client List</h2>
-        <div className="space-x-2">
-          <Button
-            type="danger"
-            icon={<DeleteOutlined />}
-            onClick={handleDelete}
-          >
-            Delete
-          </Button>
-          <Button
-            type="primary"
-            shape="round"
-            icon={<PlusOutlined />}
-            onClick={showModal}
-          >
-            Add Outlet
-          </Button>
-        </div>
-      </div>
-      <div className="m-6">
-        <Table
-          rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
-          columns={columns}
-          dataSource={data}
-        />
-      </div>
-      <Modal
-        title="Add Outlet"
-        visible={isModalVisible}
-        onOk={handleOk}
-        onCancel={handleCancel}
-      >
-        <Form layout="vertical">
-          <Form.Item label="Client Name">
-            <Input />
-          </Form.Item>
-          <Form.Item label="Branch Name">
-            <Input />
-          </Form.Item>
-          <Form.Item label="Is the branch/outlet owned by others?">
-            <Radio.Group onChange={handleOwnershipChange} value={ownership}>
-              <Radio value="yes">Yes</Radio>
-              <Radio value="no">No</Radio>
-            </Radio.Group>
-          </Form.Item>
-          <div
-            className={
-              ownership === "no" ? "opacity-50 pointer-events-none" : ""
-            }
-          >
-            <Form.Item label="Outlet Owned By">
-              <Input disabled={ownership === "no"} />
-            </Form.Item>
-            <Form.Item label="GST Number">
-              <Input disabled={ownership === "no"} />
-            </Form.Item>
-            <Form.Item label="Address">
-              <Input.TextArea disabled={ownership === "no"} />
-            </Form.Item>
-            <Form.Item label="Primary Contact Number">
-              <Input disabled={ownership === "no"} />
-            </Form.Item>
-            <Form.Item label="Email">
-              <Input disabled={ownership === "no"} />
-            </Form.Item>
+ 
+        <div>
+          <div className="flex justify-between items-center m-6">
+            <h2 className="text-lg font-semibold">Client List</h2>
+            <div className="space-x-2">
+              <Button
+                type="danger"
+                icon={<DeleteOutlined />}
+                onClick={handleDelete}
+              >
+                Delete
+              </Button>
+              <Button
+                type="primary"
+                shape="round"
+                icon={<PlusOutlined />}
+                onClick={showModal}
+              >
+                Add Outlet
+              </Button>
+            </div>
           </div>
-        </Form>
-      </Modal>
-    </div>
+          <div className="m-6">
+            <Table
+              rowSelection={{ selectedRowKeys, onChange: setSelectedRowKeys }}
+              columns={columns}
+              dataSource={data}
+            />
+          </div>
+          <Modal
+            className="h-80vh overflow-hidden"
+            title={<span className="text-xl">Add Outlet</span>}
+            visible={isModalVisible}
+            onOk={handleOk}
+            onCancel={handleCancel}
+          >
+            <Form layout="vertical">
+              <Form.Item
+                label={
+                  <span className="text-gray-600 font-semibold">
+                    Branch Name
+                  </span>
+                }
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                label={
+                  <span className="text-gray-600 font-semibold">
+                    Business Name
+                  </span>
+                }
+                name="businessName" // Make sure this matches the name in your form data
+                rules={[
+                  { required: true, message: "Please select a business name" },
+                ]}
+              >
+                <Select>
+                  {bussinessList.map((business) => (
+                    <Select.Option key={business.id} value={business.name}>
+                      {business.name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+              <Form.Item
+                label={
+                  <span className="text-gray-600 font-semibold">
+                    Is the branch/outlet owned by others?
+                  </span>
+                }
+              >
+                <Radio.Group
+                  onChange={handleOwnershipChange}
+                  value={ownership}
+                  className="flex justify-center"
+                >
+                  <Radio value="yes" className="rounded-full px-4 py-2 mr-4">
+                    <span className="text-gray-600 font-semibold">Yes</span>
+                  </Radio>
+                  <Radio value="no" className="rounded-full px-4 py-2">
+                    <span className="text-gray-600 font-semibold">No</span>
+                  </Radio>
+                </Radio.Group>
+              </Form.Item>
+              <div
+                className={
+                  ownership === "no" ? "opacity-50 pointer-events-none" : ""
+                }
+              >
+                <Form.Item
+                  label={
+                    <span className="text-gray-600 font-semibold">
+                      Outlet Owned By
+                    </span>
+                  }
+                >
+                  <Input disabled={ownership === "no"} />
+                </Form.Item>
+                <Form.Item
+                  label={
+                    <span className="text-gray-600 font-semibold">
+                      GST Number
+                    </span>
+                  }
+                >
+                  <Input disabled={ownership === "no"} />
+                </Form.Item>
+                <Form.Item
+                  label={
+                    <span className="text-gray-600 font-semibold">Address</span>
+                  }
+                >
+                  <Input.TextArea disabled={ownership === "no"} />
+                </Form.Item>
+                <Form.Item
+                  label={
+                    <span className="text-gray-600 font-semibold">
+                      Primary Contact Number
+                    </span>
+                  }
+                >
+                  <Input disabled={ownership === "no"} />
+                </Form.Item>
+                <Form.Item
+                  label={
+                    <span className="text-gray-600 font-semibold">Email</span>
+                  }
+                >
+                  <Input disabled={ownership === "no"} />
+                </Form.Item>
+              </div>
+            </Form>
+          </Modal>
+        </div>
   );
 };
 
