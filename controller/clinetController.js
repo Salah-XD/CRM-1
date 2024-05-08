@@ -1,7 +1,8 @@
-import Business from "../models/BussinessModel.js";
+import Business from "../models/bussinessModel.js";
 import Outlet from "../models/outletModel.js";
 import PrivateCompany from "../models/privateModel.js";
 import moment from "moment";
+import nodemailer from "nodemailer";
 
 // Controller function to handle saving client data
 export const saveBusiness = async (req, res) => {
@@ -62,7 +63,6 @@ export const saveBusiness = async (req, res) => {
   }
 };
 
-
 //Save The outlet Information
 export const saveOutlet = async (req, res) => {
   try {
@@ -78,9 +78,9 @@ export const saveOutlet = async (req, res) => {
     } = req.body;
 
     // Check if business ID is provided
-   if (business_owned && !business) {
-     return res.status(400).json({ message: "Business ID is required" });
-   }
+    if (business_owned && !business) {
+      return res.status(400).json({ message: "Business ID is required" });
+    }
 
     let newOutlet;
 
@@ -136,7 +136,6 @@ export const getBusinesses = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 //Fetch bussiness detail to show in table
 
@@ -209,7 +208,6 @@ export const getAllBusinessDetails = async (req, res) => {
   }
 };
 
-
 export const countOutletsForBusinesses = async (req, res) => {
   try {
     // Aggregate outlets to count the number of outlets for each business
@@ -227,5 +225,60 @@ export const countOutletsForBusinesses = async (req, res) => {
   } catch (error) {
     console.error("Error counting outlets for businesses:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteFields = async (req, res) => {
+  try {
+    const arrayOfFieldIds = req.body; // Assuming an array of arrays of IDs is sent in the request body
+    // Validate the arrayOfFieldIds here if necessary
+
+    // Assuming Business is your Mongoose model
+    const deletionPromises = arrayOfFieldIds.map((fieldIds) => {
+      return Business.deleteMany({ _id: { $in: fieldIds } });
+    });
+
+    // Wait for all deletion operations to complete
+    await Promise.all(deletionPromises);
+
+    res.status(200).json({ message: "Fields deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting fields:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+//Controller to send logic to
+export const sendEmail = async (req, res) => {
+
+  const { to, message, formLink } = req.body;
+
+  try {
+    if (!to || !message || !formLink) {
+      throw new Error("Missing parameters");
+    }
+
+  const transporter = nodemailer.createTransport({
+    host: "smtp.ethereal.email",
+    port: 587,
+    auth: {
+      user: "delores.bernhard54@ethereal.email",
+      pass: "tvGFRfFhAaG6xq6Q48",
+    },
+  });
+
+    const mailOptions = {
+      from: "<arunsh.streamtroops@gmail.com>",
+      to,
+      subject: "Client Onboarding Form",
+      text: `${message}\n\nClient Onboarding Form: ${formLink}`,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent:", info.response);
+    res.status(200).json({ message: "Email sent successfully" });
+  } catch (error) {
+    console.error("Error occurred:", error);
+    res.status(500).json({ error: "Failed to send email" });
   }
 };

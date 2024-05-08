@@ -6,7 +6,7 @@ function ClientOnboarding() {
   return (
     <div>
       <AdminHeader />
-      This is client on boarding form
+      <AddClient/>
     </div>
   );
 }

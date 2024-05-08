@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Table, Radio, Button, Input, Checkbox, Tag } from "antd";
+import { Table, Radio, Button, Input, Checkbox, Tag, Space, Modal } from "antd";
 import {
   DeleteOutlined,
   PlusOutlined,
@@ -9,95 +9,123 @@ import {
 import AdminDashboard from "../Layout/AdminDashboard";
 import axios from "axios";
 import { NavLink } from "react-router-dom";
+import toast from "react-hot-toast";
+import SendMailModal from "./SendMail";
+import { ExclamationCircleFilled } from "@ant-design/icons";
+const { confirm } = Modal;
 
 const { Search } = Input;
 
 const ClientTable = () => {
   const [selectedRows, setSelectedRows] = useState([]);
-  const [tableData, setTableData] = useState([]);
+  const [flattenedTableData, setFlattenedTableData] = useState([]);
   const [sortData, setSortData] = useState("alllist");
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 4,
     total: 2,
   });
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [loading,setLoading]=useState(false);
+
+  const toggleModal = () => {
+    setIsModalVisible(!isModalVisible);
+  };
 
   useEffect(() => {
-    fetchData(); // Fetch initial data when component mounts
-  }, [pagination.current, sortData]); // Reload data when pagination or sorting changes
+    fetchData();
+  }, [pagination.current, sortData]);
 
-const fetchData = () => {
-  axios
-    .get(
-      `getAllBussinesDetails?page=${pagination.current}&pageSize=${pagination.pageSize}&sort=${sortData}`
-    )
-    .then((response) => {
-      const { businesses, totalPages, currentPage } = response.data;
-
-      setTableData(businesses); // Set table data
-      setPagination((prevPagination) => ({
-        ...prevPagination,
-        current: currentPage,
-        total: totalPages,
-      }));
-      console.log(totalPages); // Log totalPages
-    })
-    .catch((error) => {
-      console.error("Error fetching data:", error);
-    });
-
-};
-
-useEffect(() => {
-  console.log(pagination.total);
-}, [pagination.total]);
+ const fetchData = () => {
+   setLoading(true);
+   axios
+     .get(
+       `getAllBussinesDetails?page=${pagination.current}&pageSize=${pagination.pageSize}&sort=${sortData}`
+     )
+     .then((response) => {
+       const { businesses, totalPages, currentPage } = response.data;
+       setFlattenedTableData(businesses.flatMap((row) => row)); // Flatten the table data
+       setPagination((prevPagination) => ({
+         ...prevPagination,
+         current: currentPage,
+         total: totalPages,
+       }));
+     })
+     .catch((error) => {
+       console.error("Error fetching data:", error);
+     })
+     .finally(() => {
+       setLoading(false);
+     });
+ };
 
 
   const onSearch = (value) => console.log(value);
 
-  const handleRowSelect = (selectedRowKey) => {
-    const isSelected = selectedRows.includes(selectedRowKey);
+  const handleRowSelect = (selectedRowId) => {
     let updatedSelectedRows;
 
-    if (isSelected) {
-      updatedSelectedRows = selectedRows.filter(
-        (key) => key !== selectedRowKey
-      );
+    if (selectedRowId === "all") {
+      // If "all" is selected, select all rows
+      updatedSelectedRows = flattenedTableData.map((item) => item._id);
+    } else if (selectedRowId === null) {
+      // If selectedRowId is null, remove all IDs
+      updatedSelectedRows = [];
+    } else if (selectedRows.includes(selectedRowId)) {
+      // If the row is already selected, remove it from selectedRows
+      updatedSelectedRows = selectedRows.filter((id) => id !== selectedRowId);
     } else {
-      updatedSelectedRows = [...selectedRows, selectedRowKey];
+      // If the row is not selected, add it to selectedRows
+      updatedSelectedRows = [...selectedRows, selectedRowId];
     }
 
     setSelectedRows(updatedSelectedRows);
+    console.log(updatedSelectedRows);
   };
 
-  const handleDelete = () => {
-    console.log(selectedRows);
-    axios
-      .delete("your_delete_api_endpoint", { data: selectedRows })
-      .then((response) => {
-        fetchData(); // Fetch updated data after deletion
-        setSelectedRows([]); // Clear selected rows
-      })
-      .catch((error) => {
-        console.error("Error deleting rows:", error);
-      });
+  const showDeleteConfirm = () => {
+    confirm({
+      title: "Are you sure delete?",
+      icon: <ExclamationCircleFilled />,
+      okText: "Yes",
+      okType: "danger",
+      cancelText: "No",
+      onOk() {
+        axios
+          .delete("deleteSelectedFields", { data: selectedRows })
+          .then((response) => {
+            fetchData(); // Fetch updated data after deletion
+            setSelectedRows([]); // Clear selected rows
+            toast.success("Successfully Deleted");
+          })
+          .catch((error) => {
+            console.error("Error deleting rows:", error);
+          });
+      },
+      onCancel() {
+        console.log("Cancel");
+      },
+    });
   };
+
+  const  handelDelete=()=>{
+    if(!selectedRows){
+      toast.error("Please Select Rows tod delete");
+    }
+  }
+
 
   const columns = [
     {
       title: (
         <Checkbox
-          onChange={(e) =>
-            handleRowSelect(
-              e.target.checked ? tableData.map((item) => item.key) : []
-            )
-          }
+          onChange={(e) => handleRowSelect(e.target.checked ? "all" : null)}
         />
       ),
       render: (_, record) => (
         <Checkbox
-          onChange={(e) => handleRowSelect([...selectedRows, record.key])}
-          checked={selectedRows.includes(record.key)}
+          onChange={(e) => handleRowSelect(record._id)}
+          checked={selectedRows.includes(record._id)}
         />
       ),
     },
@@ -144,7 +172,7 @@ useEffect(() => {
     {
       title: (
         <span className="text-gray-600 font-semibold text-gray-700">
-          Outlet
+          Outlets
         </span>
       ),
       dataIndex: "outletCount",
@@ -177,9 +205,7 @@ useEffect(() => {
       ),
       dataIndex: "created_at",
       key: "created_at",
-      render: (text) => (
-        <span className="text-primary  underline">{text}</span>
-      ),
+      render: (text) => <span className="text-primary underline">{text}</span>,
     },
   ];
 
@@ -189,15 +215,15 @@ useEffect(() => {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Client List</h2>
           <div className="space-x-2">
-            <Button
-              type="text"
-              shape="round"
-              icon={<DeleteOutlined />}
-              size="default"
-              onClick={handleDelete}
-            >
-              <span className="text-gray-600 font-semibold"> Delete</span>
-            </Button>
+            <Space wrap>
+              <Button
+                onClick={showDeleteConfirm}
+                icon={<DeleteOutlined />}
+                type="text"
+              >
+                <span className="text-gray-600 font-semibold"> Delete</span>
+              </Button>
+            </Space>
             <Button
               type="text"
               shape="round"
@@ -223,7 +249,9 @@ useEffect(() => {
                 Add New
               </Button>
             </NavLink>
+
             <Button
+              onClick={toggleModal}
               type="primary"
               shape="round"
               icon={<PlusOutlined />}
@@ -243,7 +271,7 @@ useEffect(() => {
               value="alllist"
               className={`${
                 sortData === "alllist" ? "bg-gray-300" : ""
-              }  text-gray-600 font-semibold`}
+              } text-gray-600 font-semibold`}
             >
               All List
             </Radio.Button>
@@ -251,7 +279,7 @@ useEffect(() => {
               value="newlyadded"
               className={`${
                 sortData === "newlyadded" ? "bg-gray-300" : ""
-              }  text-gray-600 font-semibold`}
+              } text-gray-600 font-semibold`}
             >
               Newly Added
             </Radio.Button>
@@ -264,8 +292,9 @@ useEffect(() => {
 
         <div>
           <Table
+          loading={loading}
             columns={columns}
-            dataSource={tableData}
+            dataSource={flattenedTableData}
             pagination={{
               current: pagination.current,
               pageSize: pagination.pageSize,
@@ -280,6 +309,7 @@ useEffect(() => {
           />
         </div>
       </div>
+      <SendMailModal visible={isModalVisible} onCancel={toggleModal} />
     </AdminDashboard>
   );
 };

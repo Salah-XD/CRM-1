@@ -13,7 +13,7 @@ const businessSchema = new Schema({
   },
   business_type: {
     type: String,
-    enum: ["Temple", "Hostel", "Canteen"],
+    enum: ["Temple", "Hotel", "Canteen"],
     required: true,
   },
   fssai_license_number: {

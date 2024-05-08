@@ -19,7 +19,7 @@ const AddClient = () => {
   };
 
   return (
-    <AdminDashboard>
+    <>
       <div className="top-0 z-50 bg-white">
         <div className="mb-4 border shadow-bottom px-4 py-4">
           <h2 className="text-2xl font-semibold">New Client</h2>
@@ -58,7 +58,7 @@ const AddClient = () => {
       </div>
 
       <div className="mt-8">{renderComponent()}</div>
-    </AdminDashboard>
+    </>
   );
 };
 
