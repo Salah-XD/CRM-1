@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Radio } from "antd";
-import AdminDashboard from "../Layout/AdminDashboard";
 import BusinessDetail from "./BussinessDetail";
 import OutletDetail from "./OutletDetail";
 

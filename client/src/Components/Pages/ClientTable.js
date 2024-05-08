@@ -23,10 +23,10 @@ const ClientTable = () => {
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 4,
-    total: 2,
+total:0
   });
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [loading,setLoading]=useState(false);
+  const [loading, setLoading] = useState(false);
 
   const toggleModal = () => {
     setIsModalVisible(!isModalVisible);
@@ -36,29 +36,36 @@ const ClientTable = () => {
     fetchData();
   }, [pagination.current, sortData]);
 
- const fetchData = () => {
-   setLoading(true);
-   axios
-     .get(
-       `getAllBussinesDetails?page=${pagination.current}&pageSize=${pagination.pageSize}&sort=${sortData}`
-     )
-     .then((response) => {
-       const { businesses, totalPages, currentPage } = response.data;
-       setFlattenedTableData(businesses.flatMap((row) => row)); // Flatten the table data
-       setPagination((prevPagination) => ({
-         ...prevPagination,
-         current: currentPage,
-         total: totalPages,
-       }));
-     })
-     .catch((error) => {
-       console.error("Error fetching data:", error);
-     })
-     .finally(() => {
-       setLoading(false);
-     });
- };
+  const fetchData = () => {
+    setLoading(true);
+    axios
+      .get(
+        `getAllBussinesDetails?page=${pagination.current}&pageSize=${pagination.pageSize}&sort=${sortData}`
+      )
+      .then((response) => {
+        const { businesses, totalPages, currentPage } = response.data;
+        setFlattenedTableData(businesses.flatMap((row) => row)); // Flatten the table data
+        setPagination((prevPagination) => ({
+          ...prevPagination,
+          current: currentPage,
+          total: totalPages*2,
+        }));
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
 
+  const handlePageChange = (page, pageSize) => {
+    setPagination((prevPagination) => ({
+      ...prevPagination,
+      current: page,
+      pageSize: pageSize,
+    }));
+  };
 
   const onSearch = (value) => console.log(value);
 
@@ -82,6 +89,9 @@ const ClientTable = () => {
     setSelectedRows(updatedSelectedRows);
     console.log(updatedSelectedRows);
   };
+
+  console.log("Pagination:", pagination.total);
+  console.log("Flattened Table Data:", flattenedTableData);
 
   const showDeleteConfirm = () => {
     confirm({
@@ -108,12 +118,11 @@ const ClientTable = () => {
     });
   };
 
-  const  handelDelete=()=>{
-    if(!selectedRows){
+  const handelDelete = () => {
+    if (!selectedRows) {
       toast.error("Please Select Rows tod delete");
     }
-  }
-
+  };
 
   const columns = [
     {
@@ -172,7 +181,7 @@ const ClientTable = () => {
     {
       title: (
         <span className="text-gray-600 font-semibold text-gray-700">
-          Outlets
+          Outlet
         </span>
       ),
       dataIndex: "outletCount",
@@ -292,19 +301,16 @@ const ClientTable = () => {
 
         <div>
           <Table
-          loading={loading}
+            loading={loading}
             columns={columns}
             dataSource={flattenedTableData}
             pagination={{
               current: pagination.current,
               pageSize: pagination.pageSize,
               total: pagination.total,
-              showLessItems: false, // Ensure all pagination buttons are visible
-              onChange: (page) =>
-                setPagination((prevPagination) => ({
-                  ...prevPagination,
-                  current: page,
-                })),
+              onChange: handlePageChange,
+              showSizeChanger: true,
+              showQuickJumper: true,
             }}
           />
         </div>
