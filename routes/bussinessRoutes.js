@@ -8,6 +8,7 @@ import {
   countOutletsForBusinesses,
   deleteFields,
   sendEmail,
+  getOutletDetails,
 } from "../controller/clinetController.js";
 const router = express.Router();
  
@@ -35,6 +36,9 @@ router.get("/getTotalOutlet",countOutletsForBusinesses);
 
 //Route to save outlet
 router.post("/saveOutlet", saveOutlet);
+
+//Route to get Outlet Detail
+router.get("/getOutletDetails", getOutletDetails);
 
 
 

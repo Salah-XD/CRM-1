@@ -8,6 +8,7 @@ const SendMailModal = ({ visible, onCancel }) => {
   const [form] = Form.useForm();
   const defaultFormLink = "http://localhost:3000/client-onboarding";
   const [formLink, setFormLink] = useState(defaultFormLink);
+  const [loading, setLoading] = useState(false); // State for loading
 
   // Function to copy the form link
   const copyFormLink = () => {
@@ -17,6 +18,7 @@ const SendMailModal = ({ visible, onCancel }) => {
 
   const handleSend = async () => {
     try {
+      setLoading(true); // Set loading to true when sending email
       const formData = await form.validateFields();
       const { mailId, message } = formData;
 
@@ -31,6 +33,8 @@ const SendMailModal = ({ visible, onCancel }) => {
     } catch (error) {
       console.error("Error sending form link:", error);
       toast.error("Failed to send form link");
+    } finally {
+      setLoading(false); // Set loading back to false when email sending is done
     }
   };
 
@@ -77,7 +81,6 @@ const SendMailModal = ({ visible, onCancel }) => {
           rules={[{ message: "Please input form link" }]}
         >
           <Input
-    
             placeholder="Client Onboarding Form Link"
             defaultValue={defaultFormLink}
             onChange={(e) => setFormLink(e.target.value)}
@@ -87,12 +90,17 @@ const SendMailModal = ({ visible, onCancel }) => {
           />
         </Form.Item>
         <div className="flex justify-center">
-          <Button type="primary" htmlType="submit" className="mr-6">
+          <Button
+            type="primary"
+            htmlType="submit"
+            className="mr-6"
+            loading={loading}
+          >
             Send Mail
           </Button>
           <Button
             className="border-primary  text-primary border-2 font-semibold"
-             onClick={onCancel}
+            onClick={onCancel}
           >
             Cancel
           </Button>

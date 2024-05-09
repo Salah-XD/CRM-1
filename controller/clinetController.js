@@ -74,18 +74,31 @@ export const saveOutlet = async (req, res) => {
       address,
       primary_contact_number,
       email,
-      business_owned, // Corrected spelling
+      private_owned, // Corrected spelling
     } = req.body;
 
-    // Check if business ID is provided
-    if (business_owned && !business) {
-      return res.status(400).json({ message: "Business ID is required" });
+    // Check if branch_name and private_owned are provided and have valid values
+    if (
+      !branch_name ||
+      !private_owned ||
+      !["yes", "no"].includes(private_owned)
+    ) {
+      return res.status(400).json({ message: "Invalid request data" });
+    }
+
+    // Check if business ID is provided when the outlet is privately owned
+    if (private_owned === "yes" && !business) {
+      return res
+        .status(400)
+        .json({
+          message: "Business ID is required when the outlet is privately owned",
+        });
     }
 
     let newOutlet;
 
     // If the outlet is owned by a business
-    if (business_owned) {
+    if (private_owned === "no") {
       newOutlet = new Outlet({
         branch_name,
         business,
@@ -125,6 +138,7 @@ export const saveOutlet = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 //Fetch Bussiness name to show in outlets
 export const getBusinesses = async (req, res) => {
@@ -250,7 +264,6 @@ export const deleteFields = async (req, res) => {
 
 //Controller to send logic to
 export const sendEmail = async (req, res) => {
-
   const { to, message, formLink } = req.body;
 
   try {
@@ -258,17 +271,19 @@ export const sendEmail = async (req, res) => {
       throw new Error("Missing parameters");
     }
 
-  const transporter = nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
-    auth: {
-      user: "delores.bernhard54@ethereal.email",
-      pass: "tvGFRfFhAaG6xq6Q48",
-    },
-  });
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 587,
+      auth: {
+        user: process.env.EMAIL_USERNAME,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+    
 
     const mailOptions = {
-      from: "<arunsh.streamtroops@gmail.com>",
+      from: `<${process.env.EMAIL_USERNAME}>`,
       to,
       subject: "Client Onboarding Form",
       text: `${message}\n\nClient Onboarding Form: ${formLink}`,
@@ -280,5 +295,54 @@ export const sendEmail = async (req, res) => {
   } catch (error) {
     console.error("Error occurred:", error);
     res.status(500).json({ error: "Failed to send email" });
+  }
+};
+
+//Controlle to get Outelet Table
+export const getOutletDetails = async (req, res) => {
+  try {
+    const outlets = await Outlet.find({})
+      .populate("business")
+      .populate("private_company");
+
+    const populatedData = [];
+
+    for (const outlet of outlets) {
+      let data;
+
+      if (outlet.private_company) {
+        // If private_company is not null, extract data from Private model
+        const privateCompany = outlet.private_company;
+        data = {
+          branch_name: outlet.branch_name,
+          name: privateCompany.name,
+          gst_number: privateCompany.gst_number,
+          address: privateCompany.address,
+          email: privateCompany.email,
+          source: "PrivateCompany", // Indicate the source of data
+        };
+      } else if (outlet.business) {
+        // If business is not null, extract data from Business model
+        const business = outlet.business;
+        data = {
+          branch_name: outlet.branch_name,
+          name: business.name,
+          gst_number: business.gst_number,
+          address: business.address,
+          email: outlet.email,
+          source: "Business", // Indicate the source of data
+        };
+      }
+
+      // Add extracted data to the populatedData array
+      if (data) populatedData.push(data);
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Data populated successfully", data: populatedData });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
