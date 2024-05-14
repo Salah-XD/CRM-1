@@ -7,6 +7,7 @@ import BusinessDetail from "./Components/Pages/BussinessDetail";
 import OutletDetail from "./Components/Pages/OutletDetail";
 import ClientOnboarding from "./Components/Pages/ClientOnboarding";
 import AdminDashboard from "./Components/Layout/AdminDashboard";
+import ClientOnboardingSuccess from "./Components/Pages/ClientOnboardingSuccess";
 
 function App() {
   return (
@@ -18,12 +19,13 @@ function App() {
           path="/add-client"
           element={
             <AdminDashboard>
-              <AddClientForm />
+              <AddClientForm newClientTitle="New Client" />
             </AdminDashboard>
           }
         />
         <Route path="/add-outlet" element={<OutletDetail />} />
         <Route path="/client-onboarding" element={<ClientOnboarding />} />
+        <Route path="/client-success" element={<ClientOnboardingSuccess />} />
       </Routes>
       <Toaster />
     </>

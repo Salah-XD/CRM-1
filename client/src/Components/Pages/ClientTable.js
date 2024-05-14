@@ -309,8 +309,7 @@ total:0
               pageSize: pagination.pageSize,
               total: pagination.total,
               onChange: handlePageChange,
-              showSizeChanger: true,
-              showQuickJumper: true,
+              
             }}
           />
         </div>

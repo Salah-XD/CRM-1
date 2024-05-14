@@ -1,34 +1,52 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, Input, Button, Typography, Form, message } from "antd";
-import { CopyOutlined } from "@ant-design/icons";
+import { CopyOutlined, CheckOutlined } from "@ant-design/icons";
 import toast from "react-hot-toast";
 import axios from "axios";
 
-const SendMailModal = ({ visible, onCancel }) => {
+const SendMailModal = ({ visible, onCancel, onCloseMainModal }) => {
   const [form] = Form.useForm();
-  const defaultFormLink = "http://localhost:3000/client-onboarding";
-  const [formLink, setFormLink] = useState(defaultFormLink);
-  const [loading, setLoading] = useState(false); // State for loading
+  const [defaultFormLink, setDefaultFormLink] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
+  const [sentTo, setSentTo] = useState("");
+
+  useEffect(() => {
+    // Dynamically set defaultFormLink based on current URL
+    const currentURL = window.location.href;
+    const baseURL = currentURL.split("/").slice(0, 3).join("/");
+    setDefaultFormLink(`${baseURL}/client-onboarding`);
+  }, []);
 
   // Function to copy the form link
   const copyFormLink = () => {
-    navigator.clipboard.writeText(formLink);
+    navigator.clipboard.writeText(defaultFormLink);
     toast.success("Link copied to clipboard");
+  };
+
+  const handleSuccessModalClose = () => {
+    setSuccessModalVisible(false);
+    onCancel();
   };
 
   const handleSend = async () => {
     try {
-      setLoading(true); // Set loading to true when sending email
+      setLoading(true);
+
       const formData = await form.validateFields();
       const { mailId, message } = formData;
+
+      // Use the latest form link value
+      const formLink = formData.formLink || defaultFormLink;
 
       const response = await axios.post("/sendFormlink", {
         to: mailId,
         message: message,
         formLink: formLink,
       });
-
+      setSentTo(mailId);
       console.log("Response:", response);
+      setSuccessModalVisible(true);
       toast.success("Form link sent successfully");
     } catch (error) {
       console.error("Error sending form link:", error);
@@ -39,74 +57,106 @@ const SendMailModal = ({ visible, onCancel }) => {
   };
 
   return (
-    <Modal
-      title="Send Mail"
-      visible={visible}
-      onCancel={onCancel}
-      footer={null}
-    >
-      <Form form={form} onFinish={handleSend} layout="vertical">
-        <Form.Item
-          name="mailId"
-          label={
-            <Typography.Text className="text-gray-600 font-semibold">
-              Mail ID
-            </Typography.Text>
-          }
-          rules={[{ required: true, message: "Please input mail ID" }]}
-        >
-          <Input placeholder="Mail ID" />
-        </Form.Item>
-        <Form.Item
-          name="message"
-          label={
-            <Typography.Text className="text-gray-600 font-semibold">
-              Custom Message
-            </Typography.Text>
-          }
-          rules={[{ required: true, message: "Please input custom message" }]}
-        >
-          <Input.TextArea
-            placeholder="Custom Message"
-            autoSize={{ minRows: 3, maxRows: 6 }}
-          />
-        </Form.Item>
-        <Form.Item
-          name="formLink"
-          label={
-            <Typography.Text className="text-gray-600 font-semibold">
-              Client Onboarding Form Link
-            </Typography.Text>
-          }
-          rules={[{ message: "Please input form link" }]}
-        >
-          <Input
-            placeholder="Client Onboarding Form Link"
-            defaultValue={defaultFormLink}
-            onChange={(e) => setFormLink(e.target.value)}
-            addonAfter={
-              <Button icon={<CopyOutlined />} onClick={copyFormLink} />
+    <>
+      <Modal
+        title="Send Mail"
+        visible={visible}
+        onCancel={onCancel}
+        footer={null}
+      >
+        <Form form={form} onFinish={handleSend} layout="vertical">
+          <Form.Item
+            name="mailId"
+            label={
+              <Typography.Text className="text-gray-600 font-semibold">
+                Mail ID
+              </Typography.Text>
             }
-          />
-        </Form.Item>
-        <div className="flex justify-center">
-          <Button
-            type="primary"
-            htmlType="submit"
-            className="mr-6"
-            loading={loading}
+            rules={[{ required: true, message: "Please input mail ID" }]}
           >
-            Send Mail
-          </Button>
-          <Button
-            className="border-primary  text-primary border-2 font-semibold"
-            onClick={onCancel}
+            <Input placeholder="Mail ID" />
+          </Form.Item>
+          <Form.Item
+            name="message"
+            label={
+              <Typography.Text className="text-gray-600 font-semibold">
+                Custom Message
+              </Typography.Text>
+            }
+            rules={[{ required: true, message: "Please input custom message" }]}
           >
-            Cancel
-          </Button>
+            <Input.TextArea
+              placeholder="Custom Message"
+              autoSize={{ minRows: 3, maxRows: 6 }}
+            />
+          </Form.Item>
+          <Form.Item
+            name="formLink"
+            label={
+              <Typography.Text className="text-gray-600 font-semibold">
+                Client Onboarding Form Link
+              </Typography.Text>
+            }
+            rules={[{ message: "Please input form link" }]}
+          >
+            <Input
+              placeholder="Client Onboarding Form Link"
+              defaultValue={defaultFormLink}
+              addonAfter={
+                <Button icon={<CopyOutlined />} onClick={copyFormLink} />
+              }
+            />
+          </Form.Item>
+          <div className="flex justify-center">
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="mr-6"
+              loading={loading}
+            >
+              Send Mail
+            </Button>
+            <Button
+              className="border-primary  text-primary border-2 font-semibold"
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+          </div>
+        </Form>
+      </Modal>
+      <Modal
+        visible={successModalVisible}
+        onCancel={handleSuccessModalClose}
+        footer={null}
+      >
+        <div className="flex items-center justify-center">
+          <CheckOutlined className="text-green-500 text-4xl" />
         </div>
-      </Form>
-    </Modal>
+        <div className="text-center mb-4">
+          <Typography.Text strong>Mail Sent To:</Typography.Text>
+          <Typography.Text className="block my-2">{sentTo}</Typography.Text>
+        </div>
+        <div className="text-center mb-4">
+          <Typography.Text strong>
+            Copy formlink:{" "}
+            <Typography.Link
+              href={defaultFormLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:underline"
+              onClick={(e) => {
+                e.preventDefault();
+                navigator.clipboard.writeText(defaultFormLink);
+                message.success("Form link copied to clipboard");
+              }}
+            >
+              {defaultFormLink}
+            </Typography.Link>
+          </Typography.Text>
+        </div>
+      </Modal>
+    </>
   );
 };
 

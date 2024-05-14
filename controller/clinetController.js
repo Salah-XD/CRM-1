@@ -264,6 +264,7 @@ export const deleteFields = async (req, res) => {
 
 //Controller to send logic to
 export const sendEmail = async (req, res) => {
+  console.log(req.body);
   const { to, message, formLink } = req.body;
 
   try {

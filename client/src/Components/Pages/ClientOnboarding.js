@@ -6,7 +6,7 @@ function ClientOnboarding() {
   return (
     <div>
       <AdminHeader />
-      <AddClient/>
+      <AddClient newClientTitle="Client Onboarding Form" />
     </div>
   );
 }
