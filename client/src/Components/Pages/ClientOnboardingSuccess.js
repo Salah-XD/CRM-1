@@ -1,11 +1,12 @@
 import React from "react";
 import AdminHeader from "../Layout/AdminHeader";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { CheckCircleOutlined } from "@ant-design/icons";
 
 function ClientOnboardingSuccess() {
   const location = useLocation();
-  const formLink = `${location.origin}/client-onboarding`;
+  const { formId } = useParams();
+  const updateLink = `/update-business/formId/${formId}`;
 
   return (
     <div>
@@ -19,7 +20,7 @@ function ClientOnboardingSuccess() {
           <p className="text-gray-600">
             In case of any issues, you can update the form by clicking this
           </p>
-          <Link to={formLink} className="text-blue-500 ml-1 underline">
+          <Link to={updateLink} className="text-blue-500 ml-1 underline">
             Client onboarding form
           </Link>
         </div>

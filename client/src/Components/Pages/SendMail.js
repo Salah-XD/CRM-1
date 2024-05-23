@@ -3,6 +3,7 @@ import { Modal, Input, Button, Typography, Form, message } from "antd";
 import { CopyOutlined, CheckOutlined } from "@ant-design/icons";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { v4 as uuidv4 } from "uuid";
 
 const SendMailModal = ({ visible, onCancel, onCloseMainModal }) => {
   const [form] = Form.useForm();
@@ -11,14 +12,21 @@ const SendMailModal = ({ visible, onCancel, onCloseMainModal }) => {
   const [successModalVisible, setSuccessModalVisible] = useState(false);
   const [sentTo, setSentTo] = useState("");
 
-  useEffect(() => {
-    // Dynamically set defaultFormLink based on current URL
+  const generateFormLink = () => {
     const currentURL = window.location.href;
     const baseURL = currentURL.split("/").slice(0, 3).join("/");
-    setDefaultFormLink(`${baseURL}/client-onboarding`);
-  }, []);
+    const uniqueId = uuidv4();
+    const newFormLink = `${baseURL}/client-onboarding/${uniqueId}`;
+    setDefaultFormLink(newFormLink);
+    form.setFieldsValue({ formLink: newFormLink }); // Update form field value
+  };
 
-  // Function to copy the form link
+  useEffect(() => {
+    if (visible) {
+      generateFormLink();
+    }
+  }, [visible]);
+
   const copyFormLink = () => {
     navigator.clipboard.writeText(defaultFormLink);
     toast.success("Link copied to clipboard");
@@ -35,8 +43,6 @@ const SendMailModal = ({ visible, onCancel, onCloseMainModal }) => {
 
       const formData = await form.validateFields();
       const { mailId, message } = formData;
-
-      // Use the latest form link value
       const formLink = formData.formLink || defaultFormLink;
 
       const response = await axios.post("/sendFormlink", {
@@ -44,7 +50,9 @@ const SendMailModal = ({ visible, onCancel, onCloseMainModal }) => {
         message: message,
         formLink: formLink,
       });
+
       setSentTo(mailId);
+      generateFormLink();
       console.log("Response:", response);
       setSuccessModalVisible(true);
       toast.success("Form link sent successfully");
@@ -52,7 +60,7 @@ const SendMailModal = ({ visible, onCancel, onCloseMainModal }) => {
       console.error("Error sending form link:", error);
       toast.error("Failed to send form link");
     } finally {
-      setLoading(false); // Set loading back to false when email sending is done
+      setLoading(false);
     }
   };
 
@@ -97,11 +105,11 @@ const SendMailModal = ({ visible, onCancel, onCloseMainModal }) => {
                 Client Onboarding Form Link
               </Typography.Text>
             }
-            rules={[{ message: "Please input form link" }]}
           >
             <Input
               placeholder="Client Onboarding Form Link"
-              defaultValue={defaultFormLink}
+              value={defaultFormLink}
+              readOnly
               addonAfter={
                 <Button icon={<CopyOutlined />} onClick={copyFormLink} />
               }
@@ -117,7 +125,7 @@ const SendMailModal = ({ visible, onCancel, onCloseMainModal }) => {
               Send Mail
             </Button>
             <Button
-              className="border-primary  text-primary border-2 font-semibold"
+              className="border-primary text-primary border-2 font-semibold"
               onClick={onCancel}
             >
               Cancel

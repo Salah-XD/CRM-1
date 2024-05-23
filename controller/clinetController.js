@@ -4,10 +4,14 @@ import PrivateCompany from "../models/privateModel.js";
 import moment from "moment";
 import nodemailer from "nodemailer";
 
+
 // Controller function to handle saving client data
 export const saveBusiness = async (req, res) => {
+
+  console.log(req.body);
   try {
     const {
+      form_id,
       name,
       contact_person,
       business_type,
@@ -43,6 +47,7 @@ export const saveBusiness = async (req, res) => {
 
     // Create a new business instance
     const newBusiness = new Business({
+      form_id,
       name,
       contact_person,
       business_type,
@@ -52,16 +57,139 @@ export const saveBusiness = async (req, res) => {
       gst_number,
       address: { line1, line2, city, state, pincode },
       added_by,
+      status: "approved", // Set status to "approved" for a new form
+      created_at: new Date(), // Record creation timestamp
     });
 
-    // Save the business data to the database
+    // Save the new form to the database
     await newBusiness.save();
-    return res.status(201).send({ success: true });
+
+    return res.status(201).send({ success: true, data: newBusiness });
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+//Controller function to handle update of client data 
+export const updateBusiness = async (req, res) => {
+  try {
+    const {
+      form_id,
+      _id, // Assuming you have an _id field for the business object
+      name,
+      contact_person,
+      business_type,
+      fssai_license_number,
+      phone,
+      email,
+      gst_number,
+      "address.line1": line1,
+      "address.line2": line2,
+      "address.city": city,
+      "address.state": state,
+      "address.pincode": pincode,
+      added_by,
+    } = req.body;
+
+    // Determine the search criteria (form_id or _id)
+    let searchCriteria;
+    if (form_id) {
+      searchCriteria = { form_id };
+    } else if (_id) {
+      searchCriteria = { _id };
+    } else {
+      return res
+        .status(400)
+        .json({ message: "Either form_id or _id is required" });
+    }
+
+    // Find the existing business record by form_id or _id
+    const existingBusiness = await Business.findOne(searchCriteria);
+
+    if (!existingBusiness) {
+      return res.status(404).json({ message: "Business not found" });
+    }
+
+    // Update only the provided fields
+    if (name) existingBusiness.name = name;
+    if (contact_person) existingBusiness.contact_person = contact_person;
+    if (business_type) existingBusiness.business_type = business_type;
+    if (fssai_license_number)
+      existingBusiness.fssai_license_number = fssai_license_number;
+    if (phone) existingBusiness.phone = phone;
+    if (email) existingBusiness.email = email;
+    if (gst_number) existingBusiness.gst_number = gst_number;
+    if (line1) existingBusiness.address.line1 = line1;
+    if (line2) existingBusiness.address.line2 = line2;
+    if (city) existingBusiness.address.city = city;
+    if (state) existingBusiness.address.state = state;
+    if (pincode) existingBusiness.address.pincode = pincode;
+    if (added_by) existingBusiness.added_by = added_by;
+
+    existingBusiness.updated_at = new Date(); // Record update timestamp
+
+    // Save the updated business record to the database
+    await existingBusiness.save();
+
+    // Return the updated business record in the response
+    return res.status(200).send({ success: true, data: existingBusiness });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+//Controller to check if the form id exist or not 
+export const checkFormId = async (req, res) => {
+  try {
+    const { formId } = req.params;
+    const existingBusiness = await Business.findOne({ form_id: formId });
+
+    if (existingBusiness) {
+      // Form ID exists in the Business Model
+      res.status(200).json({ success: true, message: "Form ID exists" });
+    } else {
+      // Form ID does not exist in the Business Model
+      res
+        .status(404)
+        .json({ success: false, message: "Form ID does not exist" });
+    }
+  } catch (error) {
+    console.error("Error checking Form ID:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+
+// Controller to fetch business details by form ID or ID
+export const getBusinessDetailsById = async (req, res) => {
+  try {
+    const { formId, id } = req.params;
+
+    let business;
+    if (formId) {
+      // Fetch business details by form ID
+      business = await Business.findOne({ form_id: formId });
+    } else if (id) {
+      // Fetch business details by ID
+      business = await Business.findById(id);
+    }
+
+    if (!business) {
+      return res.status(404).json({ message: 'Business not found' });
+    }
+
+    res.status(200).json({ success: true, data: business });
+  } catch (error) {
+    console.error('Error fetching business details:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
 
 //Save The outlet Information
 export const saveOutlet = async (req, res) => {

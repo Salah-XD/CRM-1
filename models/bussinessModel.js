@@ -3,6 +3,11 @@ import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const businessSchema = new Schema({
+  form_id: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
   name: {
     type: String,
     required: true,
@@ -18,7 +23,7 @@ const businessSchema = new Schema({
   },
   fssai_license_number: {
     type: String,
-    default: false,
+    required: true,
   },
   phone: {
     type: String,
@@ -43,6 +48,11 @@ const businessSchema = new Schema({
     type: String,
     enum: ["Manual", "Web Enquiry", "Client Form", "Form"],
     required: true,
+  },
+  status: {
+    type: String,
+    enum: ["pending", "approved", "rejected"],
+    default: "approved",
   },
   created_at: {
     type: Date,
