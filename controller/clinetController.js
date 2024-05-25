@@ -428,51 +428,130 @@ export const sendEmail = async (req, res) => {
   }
 };
 
+
+//Controller to get the outlet details of particular outlet only
+ export const getOutletDetailsById = async (req, res) => {
+   try {
+     const { businessId } = req.params; // Extract businessId from request parameters
+
+     // Find outlets with the specified business ID
+     const outlets = await Outlet.find({ business: businessId })
+       .populate("business")
+       .populate("private_company");
+
+     const populatedData = [];
+
+     for (const outlet of outlets) {
+       let data;
+
+       if (outlet.private_company) {
+         // If private_company is not null, extract data from Private model
+         const privateCompany = outlet.private_company;
+         data = {
+           branch_name: outlet.branch_name,
+           name: privateCompany.name,
+           gst_number: privateCompany.gst_number,
+           address: privateCompany.address,
+           email: privateCompany.email,
+           source: "PrivateCompany", // Indicate the source of data
+         };
+       } else if (outlet.business) {
+         // If business is not null, extract data from Business model
+         const business = outlet.business;
+         data = {
+           branch_name: outlet.branch_name,
+           name: business.name,
+           gst_number: business.gst_number,
+           address: business.address,
+           email: outlet.email,
+           source: "Business", // Indicate the source of data
+         };
+       }
+
+       // Add extracted data to the populatedData array
+       if (data) populatedData.push(data);
+     }
+
+     return res
+       .status(200)
+       .json({ message: "Data populated successfully", data: populatedData });
+   } catch (error) {
+     console.error("Error:", error);
+     return res.status(500).json({ message: "Internal server error" });
+   }
+ };
+
+
+//Controller to deltet the array of fields of outlet
+ export const deleteOutlets = async (req, res) => {
+  console.log(req.body);
+   try {
+     const arrayOfOutletIds = req.body; // Assuming an array of arrays of IDs is sent in the request body
+     // Validate the arrayOfOutletIds here if necessary
+
+     // Assuming Outlet is your Mongoose model
+     const deletionPromises = arrayOfOutletIds.map((outletIds) => {
+       return Outlet.deleteMany({ _id: { $in: outletIds } });
+     });
+
+     // Wait for all deletion operations to complete
+     await Promise.all(deletionPromises);
+
+     res.status(200).json({ message: "Outlets deleted successfully" });
+   } catch (err) {
+     console.error("Error deleting outlets:", err);
+     res.status(500).json({ error: "Internal server error" });
+   }
+ };
+
+
+
+
 //Controlle to get Outelet Table
-export const getOutletDetails = async (req, res) => {
-  try {
-    const outlets = await Outlet.find({})
-      .populate("business")
-      .populate("private_company");
+// export const getOutletDetails = async (req, res) => {
+//   try {
+//     const outlets = await Outlet.find({})
+//       .populate("business")
+//       .populate("private_company");
 
-    const populatedData = [];
+//     const populatedData = [];
 
-    for (const outlet of outlets) {
-      let data;
+//     for (const outlet of outlets) {
+//       let data;
 
-      if (outlet.private_company) {
-        // If private_company is not null, extract data from Private model
-        const privateCompany = outlet.private_company;
-        data = {
-          branch_name: outlet.branch_name,
-          name: privateCompany.name,
-          gst_number: privateCompany.gst_number,
-          address: privateCompany.address,
-          email: privateCompany.email,
-          source: "PrivateCompany", // Indicate the source of data
-        };
-      } else if (outlet.business) {
-        // If business is not null, extract data from Business model
-        const business = outlet.business;
-        data = {
-          branch_name: outlet.branch_name,
-          name: business.name,
-          gst_number: business.gst_number,
-          address: business.address,
-          email: outlet.email,
-          source: "Business", // Indicate the source of data
-        };
-      }
+//       if (outlet.private_company) {
+//         // If private_company is not null, extract data from Private model
+//         const privateCompany = outlet.private_company;
+//         data = {
+//           branch_name: outlet.branch_name,
+//           name: privateCompany.name,
+//           gst_number: privateCompany.gst_number,
+//           address: privateCompany.address,
+//           email: privateCompany.email,
+//           source: "PrivateCompany", // Indicate the source of data
+//         };
+//       } else if (outlet.business) {
+//         // If business is not null, extract data from Business model
+//         const business = outlet.business;
+//         data = {
+//           branch_name: outlet.branch_name,
+//           name: business.name,
+//           gst_number: business.gst_number,
+//           address: business.address,
+//           email: outlet.email,
+//           source: "Business", // Indicate the source of data
+//         };
+//       }
 
-      // Add extracted data to the populatedData array
-      if (data) populatedData.push(data);
-    }
+//       // Add extracted data to the populatedData array
+//       if (data) populatedData.push(data);
+//     }
 
-    return res
-      .status(200)
-      .json({ message: "Data populated successfully", data: populatedData });
-  } catch (error) {
-    console.error("Error:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
+//     return res
+//       .status(200)
+//       .json({ message: "Data populated successfully", data: populatedData });
+//   } catch (error) {
+//     console.error("Error:", error);
+//     return res.status(500).json({ message: "Internal server error" });
+//   }
+// };

@@ -8,14 +8,18 @@ import {
   countOutletsForBusinesses,
   deleteFields,
   sendEmail,
-  getOutletDetails,
+  getOutletDetailsById,
   updateBusiness,
   getBusinessDetailsById,
   checkFormId,
+  deleteOutlets
 } from "../controller/clinetController.js";
 const router = express.Router();
  
+import { generateInvoice } from "../controller/InvoiceController.js";
 
+
+router.post("/invoicesGenrate", generateInvoice); 
 
 // Route to save Client data
 router.post("/saveClientData", saveBusiness);
@@ -42,8 +46,11 @@ router.get("/getBusinessDataByFormId/:formId", getBusinessDetailsById);
 router.get("/getBusinessDataById/:id", getBusinessDetailsById);
 
 
-//Route to get all Bussiness deatils
+//Route to get delete Bussiness details
 router.delete("/deleteSelectedFields", deleteFields);
+
+//Route to delete the outlet 
+router.delete("/deleteOutletFields", deleteOutlets);
 
 //Route to send the mail
 router.post("/sendFormlink", sendEmail);
@@ -56,7 +63,7 @@ router.get("/getTotalOutlet",countOutletsForBusinesses);
 router.post("/saveOutlet", saveOutlet);
 
 //Route to get Outlet Detail
-router.get("/getOutletDetails", getOutletDetails);
+router.get("/getOutletDetails/:businessId", getOutletDetailsById);
 
 
 

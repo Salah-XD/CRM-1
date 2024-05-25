@@ -1,34 +1,125 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
-import OutletForm from "./OutletForm";
+import { Table, Button, Modal, Checkbox, Space } from "antd";
+import {
+  PlusOutlined,
+  DeleteOutlined,
+  ExclamationCircleFilled,
+} from "@ant-design/icons";
+import { useNavigate, useLocation } from "react-router-dom"; // Import useLocation
 import axios from "axios";
 import { NavLink } from "react-router-dom";
+import OutletForm from "./OutletForm";
+import toast from "react-hot-toast";
+
+const { confirm } = Modal;
 
 const OutletDetail = ({ businessId }) => {
-  // Receive businessId as a prop
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [flattenedTableData, setFlattenedTableData] = useState([]);
+  const [selectedRows, setSelectedRows] = useState([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation(); // Get the current location
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [businessId]);
 
   const fetchData = () => {
+    setLoading(true);
     axios
-      .get("/getOutletDetails") // Replace '/your-api-endpoint' with your actual API endpoint
+      .get(`/getOutletDetails/${businessId}`)
       .then((response) => {
-        const flattenedData = response.data.data.flatMap((row) => row);
+        const flattenedData = response.data.data.map((row) => ({
+          ...row,
+          key: row._id, // Ensure each row has a unique key
+        }));
         setFlattenedTableData(flattenedData);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
-  // Log the businessId
-  console.log("Business ID:", businessId);
+  const handleOk = () => {
+    fetchData();
+    setIsModalVisible(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
+
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleRowSelect = (selectedRowId) => {
+    let updatedSelectedRows;
+
+    if (selectedRowId === "all") {
+      // Check if all rows are currently selected
+      const allRowsSelected = selectedRows.length === flattenedTableData.length;
+
+      if (allRowsSelected) {
+        // If all rows are selected, deselect all
+        updatedSelectedRows = [];
+      } else {
+        // If not all rows are selected, select all
+        updatedSelectedRows = flattenedTableData.map((item) => item._id);
+      }
+    } else if (selectedRowId === null) {
+      // Deselect all if selectedRowId is null
+      updatedSelectedRows = [];
+    } else if (selectedRows.includes(selectedRowId)) {
+      // If the row is already selected, deselect it
+      updatedSelectedRows = selectedRows.filter((id) => id !== selectedRowId);
+    } else {
+      // Otherwise, select the row
+      updatedSelectedRows = [...selectedRows, selectedRowId];
+    }
+
+    setSelectedRows(updatedSelectedRows);
+  };
+
+  const showDeleteConfirm = () => {
+    confirm({
+      title: "Are you sure you want to delete the selected outlets?",
+      icon: <ExclamationCircleFilled />,
+      okText: "Yes",
+      okType: "danger",
+      cancelText: "No",
+      onOk() {
+        axios
+          .delete(`/deleteOutletFields`, { data: selectedRows })
+          .then(() => {
+            fetchData(); // Fetch updated data after deletion
+            setSelectedRows([]); // Clear selected rows
+            toast.success("Successfully Deleted");
+          })
+          .catch((error) => {
+            console.error("Error deleting outlets:", error);
+          });
+      },
+    });
+  };
+
+const handleSubmit = () => {
+  // Extract the formId from the pathname
+  const formId = location.pathname.split("/")[2]; // Assuming the formId is the third segment of the pathname
+
+  // Perform form submission logic here
+  // Check if the current route is "client-onboarding"
+  if (location.pathname.startsWith("/client-onboarding") && formId) {
+    navigate(`/client-success/${formId}`);
+  } else {
+      navigate("/");
+      toast.success("Succesfully Saved");
+  }
+};
 
   const columns = [
     {
@@ -48,9 +139,8 @@ const OutletDetail = ({ businessId }) => {
     },
     {
       title: "City",
-      dataIndex: "address",
+      dataIndex: ["address", "city"], // Use nested data index for nested objects
       key: "city",
-      render: (address) => address.city,
     },
     {
       title: "Source",
@@ -58,26 +148,6 @@ const OutletDetail = ({ businessId }) => {
       key: "source",
     },
   ];
-
-  const handleOk = () => {
-    fetchData();
-    setIsModalVisible(false);
-  };
-
-  const handleCancel = () => {
-    setIsModalVisible(false);
-  };
-
-  const showModal = () => {
-    setIsModalVisible(true);
-  };
-
-  const handleSubmit = () => {
-    setLoading(true); // Set loading state to true while submitting
-    // Perform your submit action, like making an API call
-    // After successful submission, you can reset loading state
-    setLoading(false);
-  };
 
   return (
     <div>
@@ -92,10 +162,27 @@ const OutletDetail = ({ businessId }) => {
           >
             Add Outlet
           </Button>
+          <Button
+            type="danger"
+            shape="round"
+            icon={<DeleteOutlined />}
+            onClick={showDeleteConfirm}
+            disabled={selectedRows.length === 0}
+          >
+            Delete Selected
+          </Button>
         </div>
       </div>
       <div className="m-6">
-        <Table columns={columns} dataSource={flattenedTableData} />
+        <Table
+          rowSelection={{
+            selectedRowKeys: selectedRows,
+            onChange: (selectedKeys) => setSelectedRows(selectedKeys),
+          }}
+          columns={columns}
+          dataSource={flattenedTableData}
+          loading={loading}
+        />
       </div>
 
       <OutletForm
@@ -104,7 +191,6 @@ const OutletDetail = ({ businessId }) => {
         handleOk={handleOk}
         handleCancel={handleCancel}
         model={{ businessId }} // Pass businessId as prop to OutletForm through model prop
-        handleSubmit={handleSubmit} // Pass handleSubmit function as prop to OutletForm
       />
       <div className="sticky bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">
         <NavLink to="/">
@@ -115,11 +201,10 @@ const OutletDetail = ({ businessId }) => {
         <Button
           type="primary"
           className="ml-6"
-          htmlType="submit"
+          onClick={handleSubmit} // Handle form submission
           loading={loading}
-          onClick={handleSubmit} // Call handleSubmit function when Submit button is clicked
         >
-          Submit
+        Submit
         </Button>
       </div>
     </div>
