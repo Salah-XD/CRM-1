@@ -1,48 +1,33 @@
-// OutletForm.js
-import React, { useState, useEffect } from "react";
-import { Modal, Form, Input, Select, Radio, message } from "antd";
+import React, { useState } from "react";
+import { Modal, Form, Input, message } from "antd";
 import axios from "axios";
+import "../css/outletForm.css"; // Import the custom CSS
 
-const { Option } = Select;
-
-const OutletForm = ({ isModalVisible, handleOk, handleCancel }) => {
+const OutletForm = ({ isModalVisible, handleOk, handleCancel, businessId }) => {
   const [form] = Form.useForm();
-  const [ownership, setOwnership] = useState("yes");
-  const [businessList, setBussinessList] = useState([]);
-
-  useEffect(() => {
-    const fetchBusinessNames = async () => {
-      try {
-        const response = await axios.get("/getAllBussinessName");
-        setBussinessList(response.data.businesses);
-        console.log(response.data.businesses);
-      } catch (error) {
-        console.error("Error fetching business names:", error);
-      }
-    };
-    fetchBusinessNames();
-  }, []);
+  const [ownership, setOwnership] = useState("yes"); // Set initial state to "yes"
 
   const handleOwnershipChange = (e) => {
     setOwnership(e.target.value);
   };
 
+  // Initial values for the form
+  const initialValues = {
+    private_owned: ownership, // Set initial value for the ownership field
+  };
+
+  // Function to determine if fields should be disabled based on ownership
+  const isDisabled = (fieldName) =>
+    ownership === "no" && fieldName !== "private_owned";
+
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      // Prepare data to be sent in the request
-      const outletData = {
-        ...values,
-      };
-
-      // Make Axios POST request to save outlet data
+      const outletData = { ...values, business: businessId };
       await axios.post("/saveOutlet", outletData);
-
-      // Show success message
       message.success("Outlet data saved successfully");
-
-      // Close the modal
       handleOk();
+      form.resetFields();
     } catch (error) {
       console.error("Error saving outlet data:", error);
       message.error("Failed to save outlet data. Please try again later.");
@@ -57,7 +42,7 @@ const OutletForm = ({ isModalVisible, handleOk, handleCancel }) => {
       onOk={handleSubmit}
       onCancel={handleCancel}
     >
-      <Form form={form} layout="vertical" onFinish={handleSubmit}>
+      <Form form={form} layout="vertical" initialValues={initialValues}>
         <Form.Item
           label={
             <span className="text-gray-600 font-semibold">Branch Name</span>
@@ -65,22 +50,10 @@ const OutletForm = ({ isModalVisible, handleOk, handleCancel }) => {
           name="branch_name"
           rules={[{ required: true, message: "Please enter branch name" }]}
         >
-          <Input />
-        </Form.Item>
-        <Form.Item
-          label={
-            <span className="text-gray-600 font-semibold">Business Name</span>
-          }
-          name="business"
-          rules={[{ required: true, message: "Please select a business name" }]}
-        >
-          <Select>
-            {businessList.map((business) => (
-              <Option key={business._id} value={business._id}>
-                {business.name}
-              </Option>
-            ))}
-          </Select>
+          <Input
+            placeholder="Enter the name of the branch"
+            className="placeholder-gray-400 p-3 rounded-lg w-full"
+          />
         </Form.Item>
 
         <Form.Item
@@ -91,72 +64,182 @@ const OutletForm = ({ isModalVisible, handleOk, handleCancel }) => {
           }
           name="private_owned"
         >
-          <Radio.Group
-            defaultValue="yes"
-             onChange={handleOwnershipChange}
-            value={ownership}
-          >
-            <Radio value="yes">Yes</Radio>
-            <Radio value="no">No</Radio>
-          </Radio.Group>
-        </Form.Item>
-        <div
-          className={ownership === "no" ? "opacity-50 pointer-events-none" : ""}
-        >
-          <Form.Item
-            label={
-              <span className="text-gray-600 font-semibold">
-                Outlet Owned By
-              </span>
-            }
-            name="name"
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            label={
-              <span className="text-gray-600 font-semibold">GST Number</span>
-            }
-            name="gst_number"
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            label={
-              <span className="text-gray-600 font-semibold">
-                Primary Contact Number
-              </span>
-            }
-            name="primary_contact_number"
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            label={<span className="text-gray-600 font-semibold">Email</span>}
-            name="email"
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            label={<span className="text-gray-600 font-semibold">Address</span>}
-            name={["address", "line1"]}
-          >
-            <Input placeholder="Line 1" />
-          </Form.Item>
-          <Form.Item name={["address", "line2"]}>
-            <Input placeholder="Line 2" />
-          </Form.Item>
-          <div className="flex justify-between">
-            <Form.Item name={["address", "city"]} className="w-1/3 mr-2">
-              <Input placeholder="City" />
-            </Form.Item>
-            <Form.Item name={["address", "state"]} className="w-1/3 mr-2">
-              <Input placeholder="State" />
-            </Form.Item>
-            <Form.Item name={["address", "pincode"]} className="w-1/3">
-              <Input placeholder="Pincode" />
-            </Form.Item>
+          <div className="flex space-x-4">
+            <label className="custom-radio">
+              <input
+                type="radio"
+                value="yes"
+                checked={ownership === "yes"}
+                onChange={handleOwnershipChange}
+              />
+              <span
+                className={`radio-btn ${
+                  ownership === "yes" ? "radio-checked" : ""
+                }`}
+              ></span>
+              Yes
+            </label>
+            <label className="custom-radio">
+              <input
+                type="radio"
+                value="no"
+                checked={ownership === "no"}
+                onChange={handleOwnershipChange}
+              />
+              <span
+                className={`radio-btn ${
+                  ownership === "no" ? "radio-checked" : ""
+                }`}
+              ></span>
+              No
+            </label>
           </div>
+        </Form.Item>
+
+        <Form.Item
+          label={
+            <span className="text-gray-600 font-semibold">Outlet Owned By</span>
+          }
+          name="name"
+          rules={[
+            {
+              required: !isDisabled("name"),
+              message: "Please enter owner's name",
+            },
+          ]}
+        >
+          <Input
+            placeholder="Franchiser’s GST Registered Name"
+            className="placeholder-gray-400 p-3 rounded-lg w-full"
+            disabled={isDisabled("name")}
+          />
+        </Form.Item>
+
+        <Form.Item
+          label={
+            <span className="text-gray-600 font-semibold">GST Number</span>
+          }
+          name="gst_number"
+          rules={[
+            {
+              required: !isDisabled("gst_number"),
+              message: "Please enter GST number",
+            },
+          ]}
+        >
+          <Input
+            placeholder="Enter GST number"
+            className="placeholder-gray-400 p-3 rounded-lg w-full"
+            disabled={isDisabled("gst_number")}
+          />
+        </Form.Item>
+
+        <Form.Item
+          label={
+            <span className="text-gray-600 font-semibold">
+              Primary Contact Number
+            </span>
+          }
+          name="primary_contact_number"
+          rules={[
+            {
+              required: !isDisabled("primary_contact_number"),
+              message: "Please enter primary contact number",
+            },
+          ]}
+        >
+          <Input
+            placeholder="Enter primary contact number"
+            className="placeholder-gray-400 p-3 rounded-lg w-full"
+            disabled={isDisabled("primary_contact_number")}
+          />
+        </Form.Item>
+
+        <Form.Item
+          label={<span className="text-gray-600 font-semibold">Email</span>}
+          name="email"
+          rules={[
+            { required: !isDisabled("email"), message: "Please enter email" },
+            { type: "email", message: "Please enter a valid email" },
+          ]}
+        >
+          <Input
+            placeholder="Enter email"
+            className="placeholder-gray-400 p-3 rounded-lg w-full"
+            disabled={isDisabled("email")}
+          />
+        </Form.Item>
+
+        <Form.Item
+          label={<span className="text-gray-600 font-semibold">Address</span>}
+          name={["address", "line1"]}
+          rules={[
+            {
+              required: !isDisabled("line1"),
+              message: "Please enter address line 1",
+            },
+          ]}
+        >
+          <Input
+            placeholder="Enter address line 1"
+            className="placeholder-gray-400 p-3 rounded-lg w-full"
+            disabled={isDisabled("line1")}
+          />
+        </Form.Item>
+
+        <Form.Item name={["address", "line2"]}>
+          <Input
+            placeholder="Enter address line 2 (optional)"
+            className="placeholder-gray-400 p-3 rounded-lg w-full"
+            disabled={isDisabled("line2")}
+          />
+        </Form.Item>
+
+        <div className="flex justify-between">
+          <Form.Item
+            name={["address", "city"]}
+            className="w-1/3 mr-2"
+            rules={[
+              { required: !isDisabled("city"), message: "Please enter city" },
+            ]}
+          >
+            <Input
+              placeholder="Enter city"
+              className="placeholder-gray-400 p-3 rounded-lg w-full"
+              disabled={isDisabled("city")}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name={["address", "state"]}
+            className="w-1/3 mr-2"
+            rules={[
+              { required: !isDisabled("state"), message: "Please enter state" },
+            ]}
+          >
+            <Input
+              placeholder="Enter state"
+              className="placeholder-gray-400 p-3 rounded-lg w-full"
+              disabled={isDisabled("state")}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name={["address", "pincode"]}
+            className="w-1/3"
+            rules={[
+              {
+                required: !isDisabled("pincode"),
+                message: "Please enter pincode",
+              },
+            ]}
+          >
+            <Input
+              placeholder="Enter pincode"
+              className="placeholder-gray-400 p-3 rounded-lg w-full"
+              disabled={isDisabled("pincode")}
+            />
+          </Form.Item>
         </div>
       </Form>
     </Modal>

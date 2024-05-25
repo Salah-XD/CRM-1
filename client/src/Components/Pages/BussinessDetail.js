@@ -2,56 +2,41 @@ import React, { useEffect } from "react";
 import { Form, Input, Button, Select } from "antd";
 import { NavLink, useNavigate, useLocation, useParams } from "react-router-dom";
 import axios from "axios";
-import toast from "react-hot-toast";
+
 
 const { Option } = Select;
 
-const BusinessDetail = ({ form, onFinish, loading }) => {
+const BusinessDetail = ({ onSubmit, loading, disabled }) => {
+  const [form] = Form.useForm();
   const navigate = useNavigate();
   const location = useLocation();
   const { formId } = useParams();
 
- useEffect(() => {
-   const checkFormId = async () => {
-     try {
-       const response = await axios.get(`/checkFormId/${formId}`);
-       if (response.data.success) {
-         // Form ID exists, route to client-success
-         navigate(`/client-success/${formId}`);
-       }
-     } catch (error) {
-       console.error("Error checking form ID:", error);
-       // Handle error
-     }
-   };
+  useEffect(() => {
+    const checkFormId = async () => {
+      try {
+        const response = await axios.get(`/checkFormId/${formId}`);
+        if (response.data.success) {
+          navigate(`/client-success/${formId}`);
+        }
+      } catch (error) {
+        console.error("Error checking form ID:", error);
+      }
+    };
 
-   // Check form ID if it exists
-   if (formId) {
-     checkFormId();
-   }
- }, [formId, navigate]);
+    if (formId) {
+      checkFormId();
+    }
+  }, [formId, navigate]);
 
   const handleSubmit = async (values) => {
-   if (location.pathname === `/client-onboarding/${formId}`)
-     {
-     values.added_by = "Client Form";
-     values.form_id = formId;
-   } else {
-     values.added_by = "Manual";
-   }
-    try {
-      const { data } = await axios.post("/saveClientData", values);
-      if (data?.success) {
-        toast.success("Form submitted successfully");
-        if (values.added_by === "Client Form") {
-       navigate(`/client-success/${formId}`);
-        }
-      } else {
-        toast.error("An Error Occurred");
-      }
-    } catch (error) {
-      console.error("Error submitting form data:", error);
+    if (location.pathname === `/client-onboarding/${formId}`) {
+      values.added_by = "Client Form";
+      values.form_id = formId;
+    } else {
+      values.added_by = "Manual";
     }
+    onSubmit(values);
   };
 
   return (
@@ -244,7 +229,7 @@ const BusinessDetail = ({ form, onFinish, loading }) => {
               htmlType="submit"
               loading={loading}
             >
-              Submit
+           Save
             </Button>
           </Form.Item>
         </div>

@@ -193,6 +193,7 @@ export const getBusinessDetailsById = async (req, res) => {
 
 //Save The outlet Information
 export const saveOutlet = async (req, res) => {
+  console.log(req.body);
   try {
     const {
       branch_name,

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Radio } from "antd";
 import { useNavigate, useLocation } from "react-router-dom";
 
-const AddClient = ({ newClientTitle, children }) => {
+const AddClientForm = ({ newClientTitle, children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedOption, setSelectedOption] = useState("addClient");
@@ -10,13 +10,13 @@ const AddClient = ({ newClientTitle, children }) => {
   useEffect(() => {
     const route = location.pathname;
     setSelectedOption(
-      route.includes("add-business") ? "addClient" : "addOutlet"
+      route.includes("add-business-form") ? "addClient" : "addOutlet"
     );
   }, [location]);
 
   const handleNavigation = (value) => {
     setSelectedOption(value);
-    const route = value === "addClient" ? "/add-business" : "/add-outlet";
+    const route = value === "addClient" ? "/add-business-form" : "/add-outlet-form";
     navigate(route);
   };
 
@@ -64,4 +64,4 @@ const AddClient = ({ newClientTitle, children }) => {
   );
 };
 
-export default AddClient;
+export default AddClientForm;

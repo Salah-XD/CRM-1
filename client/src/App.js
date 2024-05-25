@@ -9,13 +9,24 @@ import OutletDetail from "./Components/Pages/OutletDetail";
 import ClientOnboarding from "./Components/Pages/ClientOnboarding";
 import AdminDashboard from "./Components/Layout/AdminDashboard";
 import ClientOnboardingSuccess from "./Components/Pages/ClientOnboardingSuccess";
+import AddClient from "./Components/Pages/AddClientDemo";
+
 
 function App() {
   return (
     <>
       <Routes>
         <Route path="/" element={<ClientTable />} />
-        <Route path="/add-business" element={<BusinessDetail />} />
+        <Route
+          path="/add-business"
+          element={
+            <AdminDashboard>
+              <AddClient newClientTitle={"New Client"}>
+                <BusinessDetail />
+              </AddClient>
+            </AdminDashboard>
+          }
+        />
         <Route
           path="/update-business/formId/:formId"
           element={<UpdateBussinessDetail />}
@@ -32,9 +43,26 @@ function App() {
             </AdminDashboard>
           }
         />
-        <Route path="/add-outlet" element={<OutletDetail />} />
-        <Route path="/client-onboarding/:formId" element={<ClientOnboarding />} />
-        <Route path="/client-success/:formId" element={<ClientOnboardingSuccess />} />
+        <Route
+          path="/add-outlet"
+          element={
+            <AdminDashboard>
+            
+        
+                <OutletDetail />
+      
+            </AdminDashboard>
+          }
+        />
+
+        <Route
+          path="/client-onboarding/:formId"
+          element={<ClientOnboarding />}
+        />
+        <Route
+          path="/client-success/:formId"
+          element={<ClientOnboardingSuccess />}
+        />
       </Routes>
       <Toaster />
     </>

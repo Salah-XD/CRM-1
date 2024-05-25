@@ -1,12 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { Table, Radio, Button, Input, Checkbox, Tag, Space, Modal } from "antd";
+import {
+  Table,
+  Radio,
+  Button,
+  Input,
+  Checkbox,
+  Tag,
+  Space,
+  Modal,
+  Dropdown,
+  Menu,
+} from "antd";
 import {
   DeleteOutlined,
   PlusOutlined,
   FilterOutlined,
   CloudDownloadOutlined,
+  MoreOutlined,
 } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { NavLink } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -23,11 +36,11 @@ const ClientTable = () => {
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 4,
-total:0
+    total: 0,
   });
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const navigate = useNavigate();
   const toggleModal = () => {
     setIsModalVisible(!isModalVisible);
   };
@@ -48,7 +61,7 @@ total:0
         setPagination((prevPagination) => ({
           ...prevPagination,
           current: currentPage,
-          total: totalPages*2,
+          total: totalPages * 2,
         }));
       })
       .catch((error) => {
@@ -123,6 +136,33 @@ total:0
       toast.error("Please Select Rows tod delete");
     }
   };
+  const handleMenuClick = (record, { key }) => {
+    switch (key) {
+      case "view":
+        navigate(`/viewBusiness/${record._id}`);
+
+        break;
+      case "update":
+        // Navigate to update page or handle update action
+        navigate(`/update-business/id/${record._id}`);
+        break;
+      case "addOutlet":
+        // Navigate to add outlet page or handle add outlet action
+        console.log(`Add Outlet for ${record._id}`);
+        break;
+
+      default:
+        break;
+    }
+  };
+
+  const menu = (record) => (
+    <Menu onClick={(e) => handleMenuClick(record, e)}>
+      <Menu.Item key="view">View</Menu.Item>
+      <Menu.Item key="update">Update</Menu.Item>
+      <Menu.Item key="addOutlet">Add Outlet</Menu.Item>
+    </Menu>
+  );
 
   const columns = [
     {
@@ -216,6 +256,15 @@ total:0
       key: "created_at",
       render: (text) => <span className="text-primary underline">{text}</span>,
     },
+    {
+      title: "Action",
+      key: "action",
+      render: (_, record) => (
+        <Dropdown overlay={menu(record)} trigger={["click"]}>
+          <Button type="link" icon={<MoreOutlined />} />
+        </Dropdown>
+      ),
+    },
   ];
 
   return (
@@ -248,7 +297,7 @@ total:0
             >
               <span className="text-gray-600 font-semibold">Export</span>
             </Button>
-            <NavLink to="/add-client">
+            <NavLink to="/add-business">
               <Button
                 type="primary"
                 shape="round"
@@ -309,7 +358,6 @@ total:0
               pageSize: pagination.pageSize,
               total: pagination.total,
               onChange: handlePageChange,
-              
             }}
           />
         </div>

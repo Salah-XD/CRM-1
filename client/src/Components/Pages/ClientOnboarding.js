@@ -1,13 +1,14 @@
 import React from 'react'
 import AdminHeader from '../Layout/AdminHeader'
-import AddClient from './AddClient';
+import AddClientForm from './AddClientForm';
 
 function ClientOnboarding() {
   return (
     <div>
       <AdminHeader />
 
-  <AddClient newClientTitle="Client Onboarding Form" />
+<AddClientForm newClientTitle={"Client Onboarding Form"}/>
+
 
     </div>
   );

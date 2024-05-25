@@ -1,113 +1,64 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Form, Input, Button, Select } from "antd";
 import { NavLink, useNavigate, useLocation, useParams } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
-import AdminDashboard from "../Layout/AdminDashboard";
+
 
 const { Option } = Select;
 
-const UpdateBusinessDetail = ({ form, loading }) => {
-  const [initialValues, setInitialValues] = useState(null);
+const BusinessDetail = ({ form, onFinish, loading }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { formId, id } = useParams();
+  const { formId } = useParams();
 
-  useEffect(() => {
-    // Fetch existing business data if formId or id is present
-  const fetchBusinessData = async () => {
-    try {
-      let response;
-      if (formId) {
-        response = await axios.get(`/getBusinessDataByFormId/${formId}`);
-      } else if (id) {
-        response = await axios.get(`/getBusinessDataById/${id}`);
-      }
+ useEffect(() => {
+   const checkFormId = async () => {
+     try {
+       const response = await axios.get(`/checkFormId/${formId}`);
+       if (response.data.success) {
+         // Form ID exists, route to client-success
+         navigate(`/client-success/${formId}`);
+       }
+     } catch (error) {
+       console.error("Error checking form ID:", error);
+       // Handle error
+     }
+   };
 
-      if (response.data?.success) {
-        const businessData = response.data.data;
-        console.log("Fetched business data:", businessData);
-
-        // Check if the form is initialized before setting the fields
-        if (form && form.setFieldsValue) {
-          form.setFieldsValue({
-            name: businessData.name,
-            contact_person: businessData.contact_person,
-            business_type: businessData.business_type,
-            fssai_license_number: businessData.fssai_license_number,
-            phone: businessData.phone,
-            email: businessData.email,
-            gst_number: businessData.gst_number,
-            "address.line1": businessData.address.line1,
-            "address.line2": businessData.address.line2,
-            "address.city": businessData.address.city,
-            "address.state": businessData.address.state,
-            "address.pincode": businessData.address.pincode,
-          });
-        } else {
-          console.error("Form object is not initialized");
-        }
-      } else {
-        toast.error("Failed to fetch business data");
-      }
-    } catch (error) {
-      console.error("Error fetching business data:", error);
-      toast.error("Error fetching business data");
-    }
-  };
-
-
-    if (formId || id) {
-      fetchBusinessData();
-    }
-  }, [formId, id, form]);
+   // Check form ID if it exists
+   if (formId) {
+     checkFormId();
+   }
+ }, [formId, navigate]);
 
   const handleSubmit = async (values) => {
-    // try {
-    //   const requestData = { ...values };
-    //   if (location.pathname.includes("client-onboarding")) {
-    //     requestData.added_by = "Client Form";
-    //     requestData.form_id = formId;
-    //   } else {
-    //     requestData.added_by = "Manual";
-    //   }
-
-    //   let response;
-    //   if (formId || id) {
-    //     // Update existing business data
-    //     response = await axios.put("/updateBusinessData", requestData);
-    //   }
-
-    //   if (response.data?.success) {
-    //     toast.success("Business data updated successfully");
-    //     if (requestData.added_by === "Client Form") {
-    //       navigate("/client-success");
-    //     } else {
-    //       navigate("/success"); // Or some other route
-    //     }
-    //   } else {
-    //     toast.error("An Error Occurred");
-    //   }
-    // } catch (error) {
-    //   console.error("Error updating business data:", error);
-    //   toast.error("Error updating business data");
-    // }
+   if (location.pathname === `/client-onboarding/${formId}`)
+     {
+     values.added_by = "Client Form";
+     values.form_id = formId;
+   } else {
+     values.added_by = "Manual";
+   }
+    try {
+      const { data } = await axios.post("/saveClientData", values);
+      if (data?.success) {
+        toast.success("Form submitted successfully");
+        if (values.added_by === "Client Form") {
+       navigate(`/client-success/${formId}`);
+        }
+      } else {
+        toast.error("An Error Occurred");
+      }
+    } catch (error) {
+      console.error("Error submitting form data:", error);
+    }
   };
 
   return (
     <div className="">
-      <AdminDashboard>
-        <div className="top-0 z-50 bg-white">
-          <div className="mb-4 border shadow-bottom px-4 py-4">
-            <h2 className="text-2xl font-semibold">Update Bussiness Detail</h2>
-          </div>
-        </div>
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          initialValues={initialValues} // Set initial values from state
-        >
+    
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
           <div className="m-6">
             <Form.Item
               className="w-1/2"
@@ -146,6 +97,9 @@ const UpdateBusinessDetail = ({ form, loading }) => {
             </Form.Item>
             <Form.Item
               name="business_type"
+              FSSAI
+              License
+              Number
               className="w-1/4"
               label={
                 <span className="text-gray-600 font-semibold">
@@ -156,7 +110,7 @@ const UpdateBusinessDetail = ({ form, loading }) => {
                 { required: true, message: "Please select business type" },
               ]}
             >
-              <Select placeholder="Select Business Type">
+              <Select placeholder="Select Business Name">
                 <Option value="Restaurant">Restaurant</Option>
                 <Option value="Temple">Temple</Option>
                 <Option value="Hotel">Hotel</Option>
@@ -179,7 +133,7 @@ const UpdateBusinessDetail = ({ form, loading }) => {
               ]}
             >
               <Input
-                placeholder="Enter your License Number"
+                placeholder="Enter  your License Number"
                 className="placeholder-gray-400 p-3 rounded-lg"
               />
             </Form.Item>
@@ -212,7 +166,7 @@ const UpdateBusinessDetail = ({ form, loading }) => {
             >
               <Input
                 placeholder="Enter your email address"
-                className="placeholder-gray-400 p-3 rounded-lg"
+                className="placeholder-gray-400 p-3 rounded-lg" // Set the color of the placeholder text
               />
             </Form.Item>
             <Form.Item
@@ -292,7 +246,7 @@ const UpdateBusinessDetail = ({ form, loading }) => {
           <div className="sticky bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">
             <Form.Item>
               <NavLink to="/">
-                <Button className="border-primary text-primary border-2 font-semibold">
+                <Button className="border-primary  text- border-2 font-semibold">
                   Cancel
                 </Button>
               </NavLink>
@@ -302,14 +256,14 @@ const UpdateBusinessDetail = ({ form, loading }) => {
                 htmlType="submit"
                 loading={loading}
               >
-                Update
+                Submit
               </Button>
             </Form.Item>
           </div>
         </Form>
-      </AdminDashboard>
+
     </div>
   );
 };
 
-export default UpdateBusinessDetail;
+export default BusinessDetail;

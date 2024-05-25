@@ -1,0 +1,40 @@
+/* OutletForm.css */
+.custom-radio {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.custom-radio input[type="radio"] {
+  display: none;
+}
+
+.radio-btn {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  margin-right: 8px;
+  position: relative;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.radio-btn.radio-checked {
+  border-color: #1890ff;
+  background-color: #1890ff;
+}
+
+.radio-btn.radio-checked::after {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 10px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
