@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 
 const { confirm } = Modal;
 
-const OutletDetail = ({ businessId }) => {
+const UpdateOutlet = ({ businessId }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [flattenedTableData, setFlattenedTableData] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
@@ -248,4 +248,4 @@ const OutletDetail = ({ businessId }) => {
   );
 };
 
-export default OutletDetail;
+export default UpdateOutlet;

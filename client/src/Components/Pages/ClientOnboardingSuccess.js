@@ -6,7 +6,7 @@ import { CheckCircleOutlined } from "@ant-design/icons";
 function ClientOnboardingSuccess() {
   const location = useLocation();
   const { formId } = useParams();
-  const updateLink = `/update-business/formId/${formId}`;
+  const updateLink = `/update-client/formId/${formId}`;
 
   return (
     <div>

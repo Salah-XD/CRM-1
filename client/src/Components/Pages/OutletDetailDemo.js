@@ -16,83 +16,34 @@ const { confirm } = Modal;
 const OutletDetail = ({ businessId }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [flattenedTableData, setFlattenedTableData] = useState([]);
-  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation(); // Get the current location
-  const [selectionType, setSelectionType] = useState("checkbox");
-  const [tableParams, setTableParams] = useState({
-    pagination: {
-      current: 1,
-      pageSize: 4,
-    },
-  });
+   const [selectionType, setSelectionType] = useState("checkbox");
 
   useEffect(() => {
     fetchData();
-  }, [tableParams.pagination?.current, tableParams.pagination?.pageSize]);
-
-  const handleTableChange = (pagination, filters, sorter) => {
-    setTableParams({
-      pagination,
-      filters,
-      ...sorter,
-    });
-
-    // `dataSource` is useless since `pageSize` changed
-    if (pagination.pageSize !== tableParams.pagination?.pageSize) {
-      setFlattenedTableData([]);
-    }
-  };
+  }, [businessId]);
 
   const fetchData = () => {
     setLoading(true);
-
-    // Construct the URL with the businessId included in the path
-    const url = `/getOutletDetails/${businessId}`;
-
     axios
-      .get(url, {
-        params: {
-          page: tableParams.pagination?.current,
-          pageSize: tableParams.pagination?.pageSize,
-        },
-      })
+      .get(`/getOutletDetails/${businessId}`)
       .then((response) => {
-        const { data } = response;
-
-        // Extract the data and total count from the server response
-        const { data: responseData, total } = data;
-
-        const flattenedData = responseData.map((row, index) => ({
+        const flattenedData = response.data.data.map((row) => ({
           ...row,
-          key: `${row._id}-${index}`, // Combine _id with index for a unique key
+          key: row._id, // Ensure each row has a unique key
         }));
         setFlattenedTableData(flattenedData);
-
-        // Update the pagination total with the total count of items from the server response
-        setTableParams((prevState) => ({
-          ...prevState,
-          pagination: {
-            ...prevState.pagination,
-            total: total, // Set the total count from the server response
-          },
-        }));
-
-        setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
+      })
+      .finally(() => {
         setLoading(false);
       });
   };
-
-  const getRandomuserParams = (params) => ({
-    results: params.pagination?.pageSize,
-    page: params.pagination?.current,
-    ...params,
-  });
 
   const handleOk = () => {
     fetchData();
@@ -105,6 +56,28 @@ const OutletDetail = ({ businessId }) => {
 
   const showModal = () => {
     setIsModalVisible(true);
+  };
+
+  const showDeleteConfirm = () => {
+    confirm({
+      title: "Are you sure you want to delete the selected outlets?",
+      icon: <ExclamationCircleFilled />,
+      okText: "Yes",
+      okType: "danger",
+      cancelText: "No",
+      onOk() {
+        axios
+          .delete(`/deleteOutletFields`, { data: selectedRows })
+          .then(() => {
+            fetchData(); // Fetch updated data after deletion
+            setSelectedRows([]); // Clear selected rows
+            toast.success("Successfully Deleted");
+          })
+          .catch((error) => {
+            console.error("Error deleting outlets:", error);
+          });
+      },
+    });
   };
 
   const handleSubmit = () => {
@@ -152,51 +125,18 @@ const OutletDetail = ({ businessId }) => {
   // rowSelection object indicates the need for row selection
   const rowSelection = {
     onChange: (selectedRowKeys, selectedRows) => {
-      setSelectedRowKeys(selectedRowKeys);
-      setSelectedRows(selectedRows);
-      // console.log("Selected rows:", selectedRows); // Log selected rows to console
-      // console.log("Selected keys:", selectedRowKeys); // Log selected rows to console
+      console.log(
+        `selectedRowKeys: ${selectedRowKeys}`,
+        "selectedRows: ",
+        selectedRows
+      );
     },
   };
-
-  const showDeleteConfirm = () => {
-    confirm({
-      title: "Are you sure you want to delete the selected outlets?",
-      icon: <ExclamationCircleFilled />,
-      okText: "Yes",
-      okType: "danger",
-      cancelText: "No",
-      onOk() {
-        const selectedIds = selectedRows.map((row) => row._id);
-        axios
-          .delete(`/deleteOutletFields`, { data: selectedIds })
-          .then(() => {
-            fetchData(); // Fetch updated data after deletion
-            setSelectedRowKeys([]); // Clear selected row keys
-            setSelectedRows([]); // Clear selected rows
-            toast.success("Successfully Deleted");
-          })
-          .catch((error) => {
-            console.error("Error deleting outlets:", error);
-          });
-      },
-    });
-  };
-
   return (
     <div>
       <div className="flex justify-between items-center m-6">
         <h2 className="text-lg font-semibold">Outlet List</h2>
         <div className="space-x-2">
-          <Button
-            type="danger"
-            shape="round"
-            icon={<DeleteOutlined />}
-            onClick={showDeleteConfirm}
-            disabled={selectedRows.length === 0}
-          >
-            Delete
-          </Button>
           <Button
             type="primary"
             shape="round"
@@ -205,9 +145,19 @@ const OutletDetail = ({ businessId }) => {
           >
             Add Outlet
           </Button>
+          <Button
+            type="danger"
+            shape="round"
+            icon={<DeleteOutlined />}
+            onClick={showDeleteConfirm}
+            disabled={selectedRows.length === 0}
+          >
+            Delete Selected
+          </Button>
         </div>
       </div>
       <div className="m-6">
+        <Divider />
         <Table
           rowSelection={{
             type: selectionType,
@@ -215,10 +165,6 @@ const OutletDetail = ({ businessId }) => {
           }}
           columns={columns}
           dataSource={flattenedTableData}
-          rowKey={(record) => record.key}
-          pagination={tableParams.pagination}
-          loading={loading}
-          onChange={handleTableChange}
         />
       </div>
 
@@ -229,7 +175,7 @@ const OutletDetail = ({ businessId }) => {
         handleCancel={handleCancel}
         model={{ businessId }} // Pass businessId as prop to OutletForm through model prop
       />
-      <div className="fixed bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">
+      <div className="sticky bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">
         <NavLink to="/">
           <Button className="border-primary  text- border-2 font-semibold">
             Cancel
@@ -238,8 +184,8 @@ const OutletDetail = ({ businessId }) => {
         <Button
           type="primary"
           className="ml-6"
-          htmlType="submit"
-          onClick={handleSubmit}
+          onClick={handleSubmit} // Handle form submission
+          loading={loading}
         >
           Submit
         </Button>

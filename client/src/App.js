@@ -10,6 +10,7 @@ import ClientOnboarding from "./Components/Pages/ClientOnboarding";
 import AdminDashboard from "./Components/Layout/AdminDashboard";
 import ClientOnboardingSuccess from "./Components/Pages/ClientOnboardingSuccess";
 import AddClient from "./Components/Pages/AddClientDemo";
+import UpdateClient from "./Components/Pages/UpdateClient";
 
 
 function App() {
@@ -27,13 +28,29 @@ function App() {
             </AdminDashboard>
           }
         />
-        <Route
+        {/* <Route
           path="/update-business/formId/:formId"
           element={<UpdateBussinessDetail />}
         />
         <Route
           path="/update-business/id/:id"
           element={<UpdateBussinessDetail />}
+        /> */}
+        <Route
+          path="/update-client/formId/:formId"
+          element={
+         
+              <UpdateClient newClientTitle="Update Client" />
+         
+          }
+        />
+        <Route
+          path="/update-client/id/:id"
+          element={
+            <AdminDashboard>
+              <UpdateClient newClientTitle="View Client" />
+            </AdminDashboard>
+          }
         />
         <Route
           path="/add-client"
@@ -47,10 +64,7 @@ function App() {
           path="/add-outlet"
           element={
             <AdminDashboard>
-            
-        
-                <OutletDetail />
-      
+              <OutletDetail />
             </AdminDashboard>
           }
         />

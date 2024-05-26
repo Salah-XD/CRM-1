@@ -1,36 +1,33 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Button, Select } from "antd";
-import { NavLink, useNavigate, useLocation, useParams } from "react-router-dom";
+import { Form, Input, Select, Spin,Button } from "antd";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
-import AdminDashboard from "../Layout/AdminDashboard";
+import { NavLink } from "react-router-dom";
 
 const { Option } = Select;
 
-const UpdateBusinessDetail = ({ form, loading }) => {
-  const [initialValues, setInitialValues] = useState(null);
+const UpdateBusinessDetail = ({ isEditable, loading, setLoading,showUpdateButtons }) => {
+  const [initialValues, setInitialValues] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
   const { formId, id } = useParams();
 
   useEffect(() => {
-    // Fetch existing business data if formId or id is present
-  const fetchBusinessData = async () => {
-    try {
-      let response;
-      if (formId) {
-        response = await axios.get(`/getBusinessDataByFormId/${formId}`);
-      } else if (id) {
-        response = await axios.get(`/getBusinessDataById/${id}`);
-      }
+    const fetchBusinessData = async () => {
+      try {
+        let response;
+        if (formId) {
+          response = await axios.get(`/getBusinessDataByFormId/${formId}`);
+        } else if (id) {
+          response = await axios.get(`/getBusinessDataById/${id}`);
+        }
 
-      if (response.data?.success) {
-        const businessData = response.data.data;
-        console.log("Fetched business data:", businessData);
+        if (response.data?.success) {
+          const businessData = response.data.data;
+          console.log("Fetched business data:", businessData);
 
-        // Check if the form is initialized before setting the fields
-        if (form && form.setFieldsValue) {
-          form.setFieldsValue({
+          setInitialValues({
             name: businessData.name,
             contact_person: businessData.contact_person,
             business_type: businessData.business_type,
@@ -45,68 +42,54 @@ const UpdateBusinessDetail = ({ form, loading }) => {
             "address.pincode": businessData.address.pincode,
           });
         } else {
-          console.error("Form object is not initialized");
+          toast.error("Failed to fetch business data");
         }
-      } else {
-        toast.error("Failed to fetch business data");
+      } catch (error) {
+        console.error("Error fetching business data:", error);
+        toast.error("Error fetching business data");
       }
-    } catch (error) {
-      console.error("Error fetching business data:", error);
-      toast.error("Error fetching business data");
-    }
-  };
-
+    };
 
     if (formId || id) {
       fetchBusinessData();
     }
-  }, [formId, id, form]);
+  }, [formId, id]);
 
   const handleSubmit = async (values) => {
-    // try {
-    //   const requestData = { ...values };
-    //   if (location.pathname.includes("client-onboarding")) {
-    //     requestData.added_by = "Client Form";
-    //     requestData.form_id = formId;
-    //   } else {
-    //     requestData.added_by = "Manual";
-    //   }
+    try {
+      const requestData = { ...values };
+      const idFromPath = location.pathname.split("/").pop();
+      if (idFromPath && idFromPath !== "update-business") {
+        requestData._id = idFromPath;
+      }
 
-    //   let response;
-    //   if (formId || id) {
-    //     // Update existing business data
-    //     response = await axios.put("/updateBusinessData", requestData);
-    //   }
+      if (formId) {
+        requestData.form_id = formId;
+      }
 
-    //   if (response.data?.success) {
-    //     toast.success("Business data updated successfully");
-    //     if (requestData.added_by === "Client Form") {
-    //       navigate("/client-success");
-    //     } else {
-    //       navigate("/success"); // Or some other route
-    //     }
-    //   } else {
-    //     toast.error("An Error Occurred");
-    //   }
-    // } catch (error) {
-    //   console.error("Error updating business data:", error);
-    //   toast.error("Error updating business data");
-    // }
+      let response;
+      if (requestData._id || requestData.form_id) {
+        response = await axios.put("/updateClientData", requestData);
+      }
+
+      if (response.data?.success) {
+        toast.success("Business data updated successfully");
+      } else {
+        toast.error("An Error Occurred");
+      }
+    } catch (error) {
+      console.error("Error updating business data:", error);
+      toast.error("Error updating business data");
+    }
   };
 
   return (
-    <div className="">
-      <AdminDashboard>
-        <div className="top-0 z-50 bg-white">
-          <div className="mb-4 border shadow-bottom px-4 py-4">
-            <h2 className="text-2xl font-semibold">Update Bussiness Detail</h2>
-          </div>
-        </div>
+    <div>
+      {initialValues ? (
         <Form
-          form={form}
           layout="vertical"
           onFinish={handleSubmit}
-          initialValues={initialValues} // Set initial values from state
+          initialValues={initialValues}
         >
           <div className="m-6">
             <Form.Item
@@ -122,6 +105,7 @@ const UpdateBusinessDetail = ({ form, loading }) => {
               <Input
                 placeholder="Enter your Business Name"
                 className="placeholder-gray-400 p-3 rounded-lg w-full"
+                disabled={!isEditable}
               />
             </Form.Item>
             <Form.Item
@@ -142,6 +126,7 @@ const UpdateBusinessDetail = ({ form, loading }) => {
               <Input
                 placeholder="Enter your contact person name"
                 className="placeholder-gray-400 p-3 rounded-lg"
+                disabled={!isEditable}
               />
             </Form.Item>
             <Form.Item
@@ -156,7 +141,7 @@ const UpdateBusinessDetail = ({ form, loading }) => {
                 { required: true, message: "Please select business type" },
               ]}
             >
-              <Select placeholder="Select Business Type">
+              <Select placeholder="Select Business Type" disabled={!isEditable}>
                 <Option value="Restaurant">Restaurant</Option>
                 <Option value="Temple">Temple</Option>
                 <Option value="Hotel">Hotel</Option>
@@ -181,6 +166,7 @@ const UpdateBusinessDetail = ({ form, loading }) => {
               <Input
                 placeholder="Enter your License Number"
                 className="placeholder-gray-400 p-3 rounded-lg"
+                disabled={!isEditable}
               />
             </Form.Item>
             <Form.Item
@@ -196,6 +182,7 @@ const UpdateBusinessDetail = ({ form, loading }) => {
               <Input
                 placeholder="Enter your phone number"
                 className="placeholder-gray-400 p-3 rounded-lg"
+                disabled={!isEditable}
               />
             </Form.Item>
             <Form.Item
@@ -213,6 +200,7 @@ const UpdateBusinessDetail = ({ form, loading }) => {
               <Input
                 placeholder="Enter your email address"
                 className="placeholder-gray-400 p-3 rounded-lg"
+                disabled={!isEditable}
               />
             </Form.Item>
             <Form.Item
@@ -226,6 +214,7 @@ const UpdateBusinessDetail = ({ form, loading }) => {
               <Input
                 placeholder="Enter your GST number"
                 className="placeholder-gray-400 p-3 rounded-lg"
+                disabled={!isEditable}
               />
             </Form.Item>
 
@@ -240,6 +229,7 @@ const UpdateBusinessDetail = ({ form, loading }) => {
               <Input
                 placeholder="Line 1"
                 className="placeholder-gray-400 p-3 rounded-lg"
+                disabled={!isEditable}
               />
             </Form.Item>
 
@@ -251,6 +241,7 @@ const UpdateBusinessDetail = ({ form, loading }) => {
               <Input
                 placeholder="Line 2"
                 className="placeholder-gray-400 p-3 rounded-lg"
+                disabled={!isEditable}
               />
             </Form.Item>
             <div className="flex justify-between w-1/2">
@@ -262,6 +253,7 @@ const UpdateBusinessDetail = ({ form, loading }) => {
                 <Input
                   placeholder="City"
                   className="placeholder-gray-400 p-3 rounded-lg w-full"
+                  disabled={!isEditable}
                 />
               </Form.Item>
 
@@ -273,6 +265,7 @@ const UpdateBusinessDetail = ({ form, loading }) => {
                 <Input
                   placeholder="State"
                   className="placeholder-gray-400 p-3 rounded-lg w-full"
+                  disabled={!isEditable}
                 />
               </Form.Item>
 
@@ -284,12 +277,25 @@ const UpdateBusinessDetail = ({ form, loading }) => {
                 <Input
                   placeholder="Pincode"
                   className="placeholder-gray-400 p-3 rounded-lg w-full"
+                  disabled={!isEditable}
                 />
               </Form.Item>
             </div>
           </div>
-
-          <div className="sticky bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">
+          <div
+            className={`sticky bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top transition-transform duration-500 ${
+              showUpdateButtons
+                ? "translate-y-0 opacity-100"
+                : "translate-y-full opacity-0"
+            }`}
+            style={{
+              transform: showUpdateButtons
+                ? "translateY(0)"
+                : "translateY(100%)",
+              opacity: showUpdateButtons ? 1 : 0,
+              transition: "transform 0.5s, opacity 0.5s",
+            }}
+          >
             <Form.Item>
               <NavLink to="/">
                 <Button className="border-primary text-primary border-2 font-semibold">
@@ -307,7 +313,11 @@ const UpdateBusinessDetail = ({ form, loading }) => {
             </Form.Item>
           </div>
         </Form>
-      </AdminDashboard>
+      ) : (
+        <div className="flex justify-center">
+          <Spin />
+        </div>
+      )}
     </div>
   );
 };

@@ -74,6 +74,7 @@ export const saveBusiness = async (req, res) => {
 
 //Controller function to handle update of client data 
 export const updateBusiness = async (req, res) => {
+  console.log(req.body);
   try {
     const {
       form_id,
@@ -428,63 +429,116 @@ export const sendEmail = async (req, res) => {
   }
 };
 
+export const getOutletDetailsById = async (req, res) => {
+  try {
+    const { businessId } = req.params;
+    let { page, pageSize, sort } = req.query;
 
-//Controller to get the outlet details of particular outlet only
- export const getOutletDetailsById = async (req, res) => {
-   try {
-     const { businessId } = req.params; // Extract businessId from request parameters
+    // Convert page and pageSize to numbers and validate
+    page = parseInt(page, 10);
+    pageSize = parseInt(pageSize, 10);
+    if (isNaN(page) || page <= 0) {
+      page = 1;
+    }
+    if (isNaN(pageSize) || pageSize <= 0) {
+      pageSize = 10;
+    }
+    const skip = (page - 1) * pageSize;
 
-     // Find outlets with the specified business ID
-     const outlets = await Outlet.find({ business: businessId })
-       .populate("business")
-       .populate("private_company");
+    // Check if businessId exists
+    const businessExists = await Business.exists({ _id: businessId });
+    if (!businessExists) {
+      console.log("Business not found");
+      return res.status(404).json({ message: "Business not found" });
+    }
 
-     const populatedData = [];
+    // Find the total count of outlets with the specified business ID
+    const totalOutlets = await Outlet.countDocuments({ business: businessId });
+    console.log(`Total outlets found: ${totalOutlets}`);
 
-     for (const outlet of outlets) {
-       let data;
+    // Initialize query with pagination
+    let query = Outlet.find({ business: businessId })
+      .populate("business")
+      .populate("private_company")
+      .skip(skip)
+      .limit(pageSize);
 
-       if (outlet.private_company) {
-         // If private_company is not null, extract data from Private model
-         const privateCompany = outlet.private_company;
-         data = {
-           branch_name: outlet.branch_name,
-           name: privateCompany.name,
-           gst_number: privateCompany.gst_number,
-           address: privateCompany.address,
-           email: privateCompany.email,
-           source: "PrivateCompany", // Indicate the source of data
-         };
-       } else if (outlet.business) {
-         // If business is not null, extract data from Business model
-         const business = outlet.business;
-         data = {
-           branch_name: outlet.branch_name,
-           name: business.name,
-           gst_number: business.gst_number,
-           address: business.address,
-           email: outlet.email,
-           source: "Business", // Indicate the source of data
-         };
-       }
+    // Apply sorting based on the 'sort' parameter
+    if (sort === "newlyadded") {
+      query = query.sort({ created_at: -1 });
+    }
 
-       // Add extracted data to the populatedData array
-       if (data) populatedData.push(data);
-     }
+    // Execute the query to get outlets
+    const outlets = await query;
 
-     return res
-       .status(200)
-       .json({ message: "Data populated successfully", data: populatedData });
-   } catch (error) {
-     console.error("Error:", error);
-     return res.status(500).json({ message: "Internal server error" });
-   }
- };
+    console.log(`Found ${outlets.length} outlets`);
+
+    if (!outlets.length) {
+      return res.status(200).json({
+        message: "No outlets found",
+        data: [],
+        total: totalOutlets,
+        currentPage: page,
+        pageSize: pageSize,
+      });
+    }
+
+    const populatedData = [];
+
+    for (const outlet of outlets) {
+      let data;
+
+      if (outlet.private_company) {
+        // If private_company is not null, extract data from Private model
+        const privateCompany = outlet.private_company;
+        data = {
+          _id: outlet._id, // Include outlet ID
+          branch_name: outlet.branch_name,
+          name: privateCompany.name,
+          gst_number: privateCompany.gst_number,
+          address: privateCompany.address,
+          email: privateCompany.email,
+          source: "PrivateCompany", // Indicate the source of data
+        };
+      } else if (outlet.business) {
+        // If business is not null, extract data from Business model
+        const business = outlet.business;
+        data = {
+          _id: outlet._id, // Include outlet ID
+          branch_name: outlet.branch_name,
+          name: business.name,
+          gst_number: business.gst_number,
+          address: business.address,
+          email: outlet.email,
+          source: "Business", // Indicate the source of data
+        };
+      }
+
+      // Add extracted data to the populatedData array
+      if (data) populatedData.push(data);
+    }
+
+    console.log(`Populated data: ${JSON.stringify(populatedData)}`);
+
+    return res.status(200).json({
+      message: "Data populated successfully",
+      data: populatedData,
+      total: totalOutlets,
+      currentPage: page,
+      pageSize: pageSize,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
 
 
 //Controller to deltet the array of fields of outlet
  export const deleteOutlets = async (req, res) => {
-  console.log(req.body);
+  console.log("this is"+req.body);
    try {
      const arrayOfOutletIds = req.body; // Assuming an array of arrays of IDs is sent in the request body
      // Validate the arrayOfOutletIds here if necessary

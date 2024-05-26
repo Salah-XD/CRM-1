@@ -139,13 +139,9 @@ const ClientTable = () => {
   const handleMenuClick = (record, { key }) => {
     switch (key) {
       case "view":
-        navigate(`/viewBusiness/${record._id}`);
-
+       navigate(`/update-client/id/${record._id}`);
         break;
-      case "update":
-        // Navigate to update page or handle update action
-        navigate(`/update-business/id/${record._id}`);
-        break;
+      
       case "addOutlet":
         // Navigate to add outlet page or handle add outlet action
         console.log(`Add Outlet for ${record._id}`);
@@ -159,8 +155,6 @@ const ClientTable = () => {
   const menu = (record) => (
     <Menu onClick={(e) => handleMenuClick(record, e)}>
       <Menu.Item key="view">View</Menu.Item>
-      <Menu.Item key="update">Update</Menu.Item>
-      <Menu.Item key="addOutlet">Add Outlet</Menu.Item>
     </Menu>
   );
 

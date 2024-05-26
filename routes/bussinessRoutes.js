@@ -26,7 +26,7 @@ router.post("/saveClientData", saveBusiness);
 
 
 // Route to save Client data
-router.post("/updateClientData", updateBusiness);
+router.put("/updateClientData", updateBusiness);
 
 //Route to get the bussiness name
 router.get("/getAllBussinessName", getBusinesses);

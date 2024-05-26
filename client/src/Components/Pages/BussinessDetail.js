@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
-import { Form, Input, Button, Select } from "antd";
-import { NavLink, useNavigate, useLocation, useParams } from "react-router-dom";
+import React, { useEffect,useState } from "react";
+import { Form, Input, Button, Select,Spin} from "antd";
+import { NavLink, useNavigate, useLocation, useParams, } from "react-router-dom";
 import axios from "axios";
 
 
@@ -8,6 +8,7 @@ const { Option } = Select;
 
 const BusinessDetail = ({ onSubmit, loading, disabled }) => {
   const [form] = Form.useForm();
+  const [checkingFormId, setCheckingFormId] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
   const { formId } = useParams();
@@ -21,14 +22,20 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
         }
       } catch (error) {
         console.error("Error checking form ID:", error);
+      } finally {
+        setCheckingFormId(false);
       }
     };
 
     if (formId) {
       checkFormId();
+    } else {
+      setCheckingFormId(false);
     }
   }, [formId, navigate]);
 
+
+ 
   const handleSubmit = async (values) => {
     if (location.pathname === `/client-onboarding/${formId}`) {
       values.added_by = "Client Form";
@@ -40,6 +47,12 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
   };
 
   return (
+     checkingFormId ? (
+      <div className="flex justify-center items-center h-screen">
+        <Spin size="large" />
+      </div>
+    ) : (
+   
     <div className="">
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <div className="m-6">
@@ -235,6 +248,7 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
         </div>
       </Form>
     </div>
+       )
   );
 };
 
