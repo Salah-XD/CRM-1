@@ -1,20 +1,20 @@
 import React, { useState } from "react";
 import { Radio, Button } from "antd";
-import UpdateBusinessDetail from "./UpdateBussinessDetail";
+import UpdateBusinessDetail from "./UpdateBussinessDetail"
 import UpdateOutlet from "./UpdateOutlet";
-
 
 const UpdateClient = ({ newClientTitle }) => {
   const [selectedOption, setSelectedOption] = useState("addClient");
-  const [isBusinessSaved, setIsBusinessSaved] = useState(false);
   const [businessId, setBusinessId] = useState(null);
-  const [loading, setLoading] = useState(false); // Added loading state
+  const [loading, setLoading] = useState(false);
   const [isEditable, setIsEditable] = useState(false);
   const [showUpdateButtons, setShowUpdateButtons] = useState(false);
+  const [showUpdateButton, setShowUpdateButton] = useState(true);
 
   const handleUpdate = () => {
     setIsEditable(true);
     setShowUpdateButtons(true);
+    setShowUpdateButton(false);
   };
 
   return (
@@ -22,9 +22,11 @@ const UpdateClient = ({ newClientTitle }) => {
       <div className="top-0 z-50 bg-white">
         <div className="mb-4 border shadow-bottom px-4 py-4 flex justify-between items-center">
           <h2 className="text-2xl font-semibold">{newClientTitle}</h2>
-          <Button type="primary" onClick={handleUpdate}>
-            Update
-          </Button>
+          {showUpdateButton && (
+            <Button type="primary" onClick={handleUpdate}>
+              Update
+            </Button>
+          )}
         </div>
       </div>
 
@@ -66,6 +68,7 @@ const UpdateClient = ({ newClientTitle }) => {
             loading={loading}
             setLoading={setLoading}
             showUpdateButtons={showUpdateButtons}
+            setBusinessId={setBusinessId} // Pass the setBusinessId function
           />
         )}
         {selectedOption === "addOutlet" && (

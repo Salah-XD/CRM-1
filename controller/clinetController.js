@@ -559,6 +559,36 @@ export const getOutletDetailsById = async (req, res) => {
  };
 
 
+ export const getParticularOutletDetails = async (req, res) => {
+  console.log(req.params.id);
+   try {
+     const outletId = req.params.id;
+
+     // Find the outlet by ID and populate business and private_company references
+     const outlet = await Outlet.findById(outletId)
+       .populate("business")
+       .populate("private_company");
+
+     if (!outlet) {
+       return res.status(404).json({ error: "Outlet not found" });
+     }
+
+     const response = {
+       branch_name: outlet.branch_name,
+       private_owned: !!outlet.private_company,
+     };
+
+     if (outlet.private_company) {
+       response.private_details = outlet.private_company;
+     }
+
+     return res.status(200).json(response);
+   } catch (error) {
+     console.error(error);
+     return res.status(500).json({ error: "Internal Server Error" });
+   }
+ };
+
 
 
 //Controlle to get Outelet Table

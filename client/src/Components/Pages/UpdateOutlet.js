@@ -1,31 +1,35 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Modal, Checkbox, Space, Divider } from "antd";
+import { Table, Button, Modal, Dropdown, Menu } from "antd";
 import {
   PlusOutlined,
   DeleteOutlined,
   ExclamationCircleFilled,
+  MoreOutlined,
 } from "@ant-design/icons";
-import { useNavigate, useLocation } from "react-router-dom"; // Import useLocation
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { NavLink } from "react-router-dom";
 import OutletForm from "./OutletForm";
+import UpdateOutletForm from "./UpdateOutletForm";
 import toast from "react-hot-toast";
 
 const { confirm } = Modal;
 
 const UpdateOutlet = ({ businessId }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false); // State for update modal visibility
   const [flattenedTableData, setFlattenedTableData] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [currentOutletId, setCurrentOutletId] = useState(null); // State to store current outlet ID
   const navigate = useNavigate();
-  const location = useLocation(); // Get the current location
+  const location = useLocation();
   const [selectionType, setSelectionType] = useState("checkbox");
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
-      pageSize: 4,
+      pageSize: 2,
     },
   });
 
@@ -40,7 +44,6 @@ const UpdateOutlet = ({ businessId }) => {
       ...sorter,
     });
 
-    // `dataSource` is useless since `pageSize` changed
     if (pagination.pageSize !== tableParams.pagination?.pageSize) {
       setFlattenedTableData([]);
     }
@@ -48,8 +51,6 @@ const UpdateOutlet = ({ businessId }) => {
 
   const fetchData = () => {
     setLoading(true);
-
-    // Construct the URL with the businessId included in the path
     const url = `/getOutletDetails/${businessId}`;
 
     axios
@@ -61,22 +62,19 @@ const UpdateOutlet = ({ businessId }) => {
       })
       .then((response) => {
         const { data } = response;
-
-        // Extract the data and total count from the server response
         const { data: responseData, total } = data;
 
         const flattenedData = responseData.map((row, index) => ({
           ...row,
-          key: `${row._id}-${index}`, // Combine _id with index for a unique key
+          key: `${row._id}`,
         }));
         setFlattenedTableData(flattenedData);
 
-        // Update the pagination total with the total count of items from the server response
         setTableParams((prevState) => ({
           ...prevState,
           pagination: {
             ...prevState.pagination,
-            total: total, // Set the total count from the server response
+            total: total,
           },
         }));
 
@@ -97,27 +95,31 @@ const UpdateOutlet = ({ businessId }) => {
   const handleOk = () => {
     fetchData();
     setIsModalVisible(false);
+    setIsUpdateModalVisible(false); // Close update modal
   };
 
   const handleCancel = () => {
     setIsModalVisible(false);
+    setIsUpdateModalVisible(false); // Close update modal
   };
 
   const showModal = () => {
     setIsModalVisible(true);
   };
 
-  const handleSubmit = () => {
-    // Extract the formId from the pathname
-    const formId = location.pathname.split("/")[2]; // Assuming the formId is the third segment of the pathname
+  const showUpdateModal = (outletId) => {
+    setCurrentOutletId(outletId); // Set the current outlet ID
+    setIsUpdateModalVisible(true);
+  };
 
-    // Perform form submission logic here
-    // Check if the current route is "client-onboarding"
+  const handleSubmit = () => {
+    const formId = location.pathname.split("/")[2];
+
     if (location.pathname.startsWith("/client-onboarding") && formId) {
       navigate(`/client-success/${formId}`);
     } else {
       navigate("/");
-      toast.success("Succesfully Saved");
+      toast.success("Successfully Saved");
     }
   };
 
@@ -139,7 +141,7 @@ const UpdateOutlet = ({ businessId }) => {
     },
     {
       title: "City",
-      dataIndex: ["address", "city"], // Use nested data index for nested objects
+      dataIndex: ["address", "city"],
       key: "city",
     },
     {
@@ -147,15 +149,36 @@ const UpdateOutlet = ({ businessId }) => {
       dataIndex: "source",
       key: "source",
     },
+    {
+      title: "Action",
+      dataIndex: "Action",
+      key: "Action",
+      render: (_, record) => (
+        <Dropdown overlay={menu(record)} trigger={["click"]}>
+          <Button type="link" icon={<MoreOutlined />} />
+        </Dropdown>
+      ),
+    },
   ];
 
-  // rowSelection object indicates the need for row selection
+  const menu = (record) => (
+    <Menu>
+      <Menu.Item
+        key="update"
+        onClick={() => showUpdateModal(record._id)} // Pass outlet ID to showUpdateModal
+      >
+        View
+      </Menu.Item>
+    
+    </Menu>
+  );
+
   const rowSelection = {
     onChange: (selectedRowKeys, selectedRows) => {
       setSelectedRowKeys(selectedRowKeys);
       setSelectedRows(selectedRows);
-      // console.log("Selected rows:", selectedRows); // Log selected rows to console
-      // console.log("Selected keys:", selectedRowKeys); // Log selected rows to console
+      console.log("Selected rows:", selectedRows);
+      console.log("Selected keys:", selectedRowKeys);
     },
   };
 
@@ -171,9 +194,9 @@ const UpdateOutlet = ({ businessId }) => {
         axios
           .delete(`/deleteOutletFields`, { data: selectedIds })
           .then(() => {
-            fetchData(); // Fetch updated data after deletion
-            setSelectedRowKeys([]); // Clear selected row keys
-            setSelectedRows([]); // Clear selected rows
+            fetchData();
+            setSelectedRowKeys([]);
+            setSelectedRows([]);
             toast.success("Successfully Deleted");
           })
           .catch((error) => {
@@ -227,8 +250,17 @@ const UpdateOutlet = ({ businessId }) => {
         isModalVisible={isModalVisible}
         handleOk={handleOk}
         handleCancel={handleCancel}
-        model={{ businessId }} // Pass businessId as prop to OutletForm through model prop
+        model={{ businessId }}
       />
+
+      <UpdateOutletForm
+        isModalVisible={isUpdateModalVisible}
+        handleOk={handleOk}
+        handleCancel={handleCancel}
+        outletId={currentOutletId} // Pass current outlet ID to UpdateOutletForm
+        businessId={businessId}
+      />
+
       <div className="fixed bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">
         <NavLink to="/">
           <Button className="border-primary  text- border-2 font-semibold">

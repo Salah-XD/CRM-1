@@ -7,7 +7,13 @@ import { NavLink } from "react-router-dom";
 
 const { Option } = Select;
 
-const UpdateBusinessDetail = ({ isEditable, loading, setLoading,showUpdateButtons }) => {
+const UpdateBusinessDetail = ({
+  isEditable,
+  loading,
+  setLoading,
+  showUpdateButtons,
+  setBusinessId,
+}) => {
   const [initialValues, setInitialValues] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,6 +32,10 @@ const UpdateBusinessDetail = ({ isEditable, loading, setLoading,showUpdateButton
         if (response.data?.success) {
           const businessData = response.data.data;
           console.log("Fetched business data:", businessData);
+          // Pass the businessId to the parent
+      
+            setBusinessId(businessData._id);
+         
 
           setInitialValues({
             name: businessData.name,

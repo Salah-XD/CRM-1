@@ -154,7 +154,7 @@ const ClientTable = () => {
 
   const menu = (record) => (
     <Menu onClick={(e) => handleMenuClick(record, e)}>
-      <Menu.Item key="view">View</Menu.Item>
+      <Menu.Item key="view">View/Update</Menu.Item>
     </Menu>
   );
 

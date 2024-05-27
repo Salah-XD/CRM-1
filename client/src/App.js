@@ -4,13 +4,14 @@ import { Toaster } from "react-hot-toast";
 import ClientTable from "./Components/Pages/ClientTable";
 import AddClientForm from "./Components/Pages/AddClient";
 import BusinessDetail from "./Components/Pages/BussinessDetail";
-import UpdateBussinessDetail from "./Components/Pages/UpdateBussinessDetail";
 import OutletDetail from "./Components/Pages/OutletDetail";
 import ClientOnboarding from "./Components/Pages/ClientOnboarding";
 import AdminDashboard from "./Components/Layout/AdminDashboard";
 import ClientOnboardingSuccess from "./Components/Pages/ClientOnboardingSuccess";
 import AddClient from "./Components/Pages/AddClientDemo";
 import UpdateClient from "./Components/Pages/UpdateClient";
+import AdminHeader from "./Components/Layout/AdminHeader";
+
 
 
 function App() {
@@ -28,20 +29,14 @@ function App() {
             </AdminDashboard>
           }
         />
-        {/* <Route
-          path="/update-business/formId/:formId"
-          element={<UpdateBussinessDetail />}
-        />
-        <Route
-          path="/update-business/id/:id"
-          element={<UpdateBussinessDetail />}
-        /> */}
         <Route
           path="/update-client/formId/:formId"
           element={
-         
+            <>
+              <AdminHeader />
+
               <UpdateClient newClientTitle="Update Client" />
-         
+            </>
           }
         />
         <Route

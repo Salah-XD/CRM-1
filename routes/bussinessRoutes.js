@@ -12,7 +12,8 @@ import {
   updateBusiness,
   getBusinessDetailsById,
   checkFormId,
-  deleteOutlets
+  deleteOutlets,
+  getParticularOutletDetails,
 } from "../controller/clinetController.js";
 const router = express.Router();
  
@@ -65,6 +66,8 @@ router.post("/saveOutlet", saveOutlet);
 //Route to get Outlet Detail
 router.get("/getOutletDetails/:businessId", getOutletDetailsById);
 
+//Route to get particular outelet details
+router.get("/getParticularOutletDetails/:id",getParticularOutletDetails);
 
 
 
