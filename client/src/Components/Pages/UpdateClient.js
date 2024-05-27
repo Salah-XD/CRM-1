@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Radio, Button } from "antd";
-import UpdateBusinessDetail from "./UpdateBussinessDetail"
+import UpdateBusinessDetail from "./UpdateBussinessDetail";
 import UpdateOutlet from "./UpdateOutlet";
 
 const UpdateClient = ({ newClientTitle }) => {
@@ -10,6 +10,9 @@ const UpdateClient = ({ newClientTitle }) => {
   const [isEditable, setIsEditable] = useState(false);
   const [showUpdateButtons, setShowUpdateButtons] = useState(false);
   const [showUpdateButton, setShowUpdateButton] = useState(true);
+
+  // Determine if the update button should be shown
+  const shouldShowUpdateButton = selectedOption === "addClient" && !isEditable;
 
   const handleUpdate = () => {
     setIsEditable(true);
@@ -22,7 +25,7 @@ const UpdateClient = ({ newClientTitle }) => {
       <div className="top-0 z-50 bg-white">
         <div className="mb-4 border shadow-bottom px-4 py-4 flex justify-between items-center">
           <h2 className="text-2xl font-semibold">{newClientTitle}</h2>
-          {showUpdateButton && (
+          {shouldShowUpdateButton && (
             <Button type="primary" onClick={handleUpdate}>
               Update
             </Button>

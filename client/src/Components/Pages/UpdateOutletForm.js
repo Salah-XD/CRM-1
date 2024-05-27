@@ -55,24 +55,40 @@ const UpdateOutletForm = ({
     setOwnership(e.target.value);
   };
 
-  const handleSubmit = async () => {
-    try {
-      const values = await form.validateFields();
-      const outletData = { ...values, business: businessId };
-      if (outletId) {
-        await axios.put(`/updateOutlet/${outletId}`, outletData);
-        message.success("Outlet data updated successfully");
-      } else {
-        await axios.post("/saveOutlet", outletData);
-        message.success("Outlet data saved successfully");
-      }
-      handleOk();
-      form.resetFields();
-    } catch (error) {
-      console.error("Error saving outlet data:", error);
-      message.error("Failed to save outlet data. Please try again later.");
-    }
-  };
+ const handleSubmit = async () => {
+   try {
+     // Validate form fields and get values
+     const values = await form.validateFields();
+     // Include business ID in the outlet data
+     const outletData = { ...values, business: businessId };
+
+     // Check if outletId is present to determine create or update
+     if (outletId) {
+       // Update existing outlet
+       await axios.put(`/updateOutlet/${outletId}`, outletData);
+       message.success("Outlet data updated successfully");
+     } else {
+       // Create new outlet
+       await axios.post("/saveOutlet", outletData);
+       message.success("Outlet data saved successfully");
+     }
+
+     // Handle success actions
+     handleOk();
+     form.resetFields();
+   } catch (error) {
+     // Check if the error is from form validation
+     if (error.name === "ValidationError") {
+       console.error("Validation error:", error);
+       message.error("Please correct the validation errors.");
+     } else {
+       // Log the error and show a generic error message
+       console.error("Error saving outlet data:", error);
+       message.error("Failed to save outlet data. Please try again later.");
+     }
+   }
+ };
+
 
   const isDisabled = (fieldName) =>
     ownership === "no" && fieldName !== "private_owned";
@@ -82,7 +98,7 @@ const UpdateOutletForm = ({
       className="h-80vh overflow-hidden"
       title={
         <span className="text-xl">
-          {outletId ? "Edit Outlet" : "Add Outlet"}
+          {outletId ? "View/Edit Outlet" : "Add Outlet"}
         </span>
       }
       visible={isModalVisible}

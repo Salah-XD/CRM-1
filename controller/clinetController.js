@@ -269,6 +269,105 @@ export const saveOutlet = async (req, res) => {
   }
 };
 
+// Update The outlet Information
+export const updateOutlet = async (req, res) => {
+  console.log(req.body);
+  try {
+    const { outletId } = req.params;
+    const {
+      branch_name,
+      business,
+      name,
+      gst_number,
+      address,
+      primary_contact_number,
+      email,
+      private_owned, // Corrected spelling
+    } = req.body;
+
+    // Check if outletId is provided
+    if (!outletId) {
+      return res.status(400).json({ message: "Outlet ID is required" });
+    }
+
+    // Find the outlet by ID
+    const outlet = await Outlet.findById(outletId);
+    if (!outlet) {
+      return res.status(404).json({ message: "Outlet not found" });
+    }
+
+    // Update the fields that are provided
+    if (branch_name) {
+      outlet.branch_name = branch_name;
+    }
+    if (private_owned) {
+      // Check if private_owned has a valid value
+      if (!["yes", "no"].includes(private_owned)) {
+        return res.status(400).json({ message: "Invalid value for private_owned" });
+      }
+      outlet.private_owned = private_owned;
+
+      if (private_owned === "yes") {
+        if (business) {
+          outlet.business = business;
+        }
+
+        // Find or create private company data
+        let privateCompany;
+        if (outlet.private_company) {
+          privateCompany = await PrivateCompany.findById(outlet.private_company);
+          if (!privateCompany) {
+            return res.status(404).json({ message: "Associated private company not found" });
+          }
+        } else {
+          privateCompany = new PrivateCompany();
+        }
+
+        // Update private company data
+        if (name) {
+          privateCompany.name = name;
+        }
+        if (gst_number) {
+          privateCompany.gst_number = gst_number;
+        }
+        if (address) {
+          privateCompany.address = address;
+        }
+        if (primary_contact_number) {
+          privateCompany.primary_contact_number = primary_contact_number;
+        }
+        if (email) {
+          privateCompany.email = email;
+        }
+        if (business) {
+          privateCompany.business = business;
+        }
+
+        await privateCompany.save();
+
+        // Associate the ObjectId of the private company with the outlet
+        outlet.private_company = privateCompany._id;
+      } else {
+        outlet.business = business;
+        outlet.private_company = null;
+      }
+    } else {
+      if (business) {
+        outlet.business = business;
+      }
+    }
+
+    // Save the outlet
+    await outlet.save();
+
+    return res.status(200).json({ message: "Outlet updated successfully", data: outlet });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
 
 //Fetch Bussiness name to show in outlets
 export const getBusinesses = async (req, res) => {
@@ -282,7 +381,6 @@ export const getBusinesses = async (req, res) => {
 };
 
 //Fetch bussiness detail to show in table
-
 export const getAllBusinessDetails = async (req, res) => {
   try {
     const { page, pageSize, sort } = req.query;
