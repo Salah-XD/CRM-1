@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quotation</title>
+    <!-- Tailwind CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0px;
+        padding: 0px;
+      }
+      @page {
+        size: A4;
+        margin: 0;
+      }
+      html {
+        -webkit-print-color-adjust: exact;
+      }
+      .container {
+        width: 793px; /* A4 width in pixels */
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .a4 {
+        border: 2px solid black; /* Add border to a4 class */
+      }
+      .a4 img {
+        width: 100%;
+        height: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: left;
+      }
+      .selected-cell {
+        background-color: #f2f2f2 !important;
+      }
+      .small-cell {
+        padding: 3px; /* Reduce padding for smaller cell height */
+      }
+      body {
+        background-image: url("./shoe.jpg"); /* Replace 'path_to_your_image.jpg' with the actual path to your image */
+        background-repeat: repeat-y; /* Repeat the image vertically */
+        background-position: center center; /* Center the background image */
+        background-attachment: fixed; /* Ensure the background image stays fixed as the content scrolls */
+        background-size: contain; /* Resize the background image to fit the container */
+      }
+      .page-break-before {
+        page-break-before: always;
+      }
+    </style>
+  </head>
+  <body class="bg-white text-sm">
+    <div class="container bg-white rounded-lg p-5">
+      <div class="flex p-8 header items-center border">
+        <div>
+          <!-- Include this placeholder where you want the image to appear -->
+          <img
+            src="data:image/png;base64,{{imageData}}"
+            alt="Your Image Alt Text"
+            width="50"
+            height="50"
+          />
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-gray-800">
+            Unavar Food Inspection and Certification Private Limited
+          </h1>
+        </div>
+      </div>
+
+ <div class="mt-5">
+  <table id="clientProposalTable">
+    <tr>
+      <td colspan="2">
+        <strong>To</strong><br />
+        <span id="clientNamePlaceholder">Client Name:{{clientName}}</span><br />
+        <span id="contactPersonNamePlaceholder">Contact Person Name:</span><br />
+        <span id="contactPersonNumberPlaceholder">Contact Person Number:</span><br />
+        <span id="addressPlaceholder">Address:</span><br />
+        <span id="pinCodePlaceholder">Pin code:</span><br />
+        <span id="gstNoPlaceholder">GST No:</span><br />
+        <span id="industryVerticalPlaceholder">Industry Vertical:</span><br />
+        <span id="numberOfFoodHandlersPlaceholder">No. of Food Handlers:</span>
+      </td>
+      <td colspan="2">
+        <strong>Proposal Number:</strong><br />
+        <span id="proposalNumberPlaceholder">Proposal Number:</span><br />
+        <strong>Proposal Date:</strong><br />
+        <span id="proposalDatePlaceholder">Proposal Date:</span><br />
+        Format No: AUDIT.REC.AMT.03<br />
+        Issue Date: 22.08.2022<br />
+        Version No: 1
+      </td>
+    </tr>
+  </table>
+</div>
+
+
+      <div class="mt-5 w-full flex justify-center">
+        <table class="border-collapse">
+          <tr>
+            <th class="border">Location</th>
+            <th class="border">Audit Criteria & Scope</th>
+            <th class="border">Frequency</th>
+            <th class="border">Quantity</th>
+            <th class="border">Unit Cost</th>
+            <th class="border">Total</th>
+          </tr>
+          <tr>
+            <td class="border">Chennai</td>
+            <td class="border"></td>
+            <td class="border"></td>
+            <td class="border"></td>
+            <td class="border"></td>
+            <td class="border"></td>
+          </tr>
+          <!-- Additional rows can be added dynamically -->
+          <tr>
+            <td
+              colspan="5"
+              class="selected-cell border text-right w-3/4 small-cell"
+            >
+              <strong>Total</strong>
+            </td>
+            <td class="border w-1/4 selected-cell small-cell"></td>
+          </tr>
+          <tr>
+            <td colspan="5" class="border text-right w-3/4 small-cell">
+              <strong>18% GST</strong>
+            </td>
+            <td class="border w-1/4 small-cell"></td>
+          </tr>
+          <tr>
+            <td
+              colspan="5"
+              class="border selected-cell text-right w-3/4 small-cell"
+            >
+              <strong>Overall Total</strong>
+            </td>
+            <td class="border w-1/4 selected-cell small-cell"></td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="mt-5">
+        <strong class="mb-2">Auditor Conveyance Charges:</strong>
+        <div class="w-full flex justify-center">
+          <table class="border-collapse w-3/4">
+            <tr>
+              <td class="w-1/2 border px-4 py-1">Total Amount (without tax)</td>
+              <td class="w-1/2 border px-4 py-1"></td>
+            </tr>
+            <tr>
+              <td class="w-1/2 border px-4 py-1">18% Tax</td>
+              <td class="w-1/2 border px-4 py-1"></td>
+            </tr>
+            <tr>
+              <td class="w-1/2 border px-4 py-1">
+                <strong>Total Amount (With Tax)</strong>
+              </td>
+              <td class="w-1/2 border px-4 py-1"></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="mt-1">
+        <strong>Note:</strong>
+        <ol class="list-decimal list-inside">
+          <li>This proposal is valid for 30 days from the date of receipt.</li>
+          <li>100% advance payment to be done for the project.</li>
+          <li>18% Taxes as applicable in state.</li>
+          <li>
+            Travel and accommodation of the auditor is under the scope of the
+            client.
+          </li>
+        </ol>
+      </div>
+
+      <div class="mt-10">
+        <div class="text-center mb-4">
+          <h2 class="font-bold">Address & Payment Details</h2>
+        </div>
+        <table class="w-full border">
+          <tr>
+            <td class="w-1/2 border p-4 align-top">
+              <h2 class="font-bold">ADDRESS</h2>
+            </td>
+            <td class="w-1/2 border p-4 align-top">
+              <h2 class="font-bold">BANK DETAILS</h2>
+            </td>
+          </tr>
+          <tr>
+            <td class="w-1/2 border p-4 align-top">
+              <p>
+                Flat no: F1, First Floor, Door No: 519, MM Illam, MKN Road,
+                Adambakkam Village, Alandur, Chennai.
+              </p>
+              <p>Chennai-600 016</p>
+              <p>GST No: 33AADCU1306M1ZI</p>
+            </td>
+            <td class="w-1/2 border p-4 align-top">
+              <p>Bank Name: HDFC BANK</p>
+              <p>Branch: West Mambalam</p>
+              <p>Account Number: 50200078830737</p>
+              <p>IFSC code: HDFC0000575</p>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Existing code above -->
+
+      <!-- Client Acceptance section -->
+      <div class="container my-5 bg-white rounded-lg p-5 page-break-before">
+        <div class="text-center">
+          <h2 class="font-bold text-xl mb-3">For Client</h2>
+        </div>
+        <p>
+    I hereby accept this offer letter and I commit myself to follow the requirements established including
+payment of the licensee fee and the terms and conditions of this proposal.
+        </p>
+        <div class="mt-5 flex flex-col justify-center">
+          <div class="flex my-2  items-center">
+            <span class="font-bold mr-2">CLIENT-REPRESENTATIVE:</span>
+            <div class="border-b-2 border-gray-400 w-52"></div>
+          </div>
+          <div class="my-2 flex items-center">
+            <span class="font-bold mr-2">DESIGNATION:</span>
+            <div class="border-b-2 border-gray-400 w-52"></div>
+          </div>
+          <div class="my-2 flex items-center">
+            <span class="font-bold mr-2">SIGNATURE:</span>
+            <div class="border-b-2 border-gray-400 w-52"></div>
+          </div>
+          <div class="my-2 flex items-center">
+            <span class="font-bold mr-2">DATE:</span>
+            <div class="border-b-2 border-gray-400 w-52"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Existing code below -->
+
+      <!-- Existing code below -->
+    </div>
+  </body>
+</html>

@@ -61,7 +61,7 @@ const ClientTable = () => {
         setPagination((prevPagination) => ({
           ...prevPagination,
           current: currentPage,
-          total: totalPages * 2,
+          total: totalPages *2,
         }));
       })
       .catch((error) => {
@@ -136,17 +136,28 @@ const ClientTable = () => {
       toast.error("Please Select Rows tod delete");
     }
   };
+
   const handleMenuClick = (record, { key }) => {
     switch (key) {
       case "view":
-       navigate(`/update-client/id/${record._id}`);
+        navigate(`/update-client/id/${record._id}`);
         break;
-      
-      case "addOutlet":
+      case "add":
         // Navigate to add outlet page or handle add outlet action
         console.log(`Add Outlet for ${record._id}`);
         break;
-
+      case "form-link":
+        const formLink = `${window.location.origin}/update-client-form/id/${record._id}`;
+        navigator.clipboard
+          .writeText(formLink)
+          .then(() => {
+            toast.success("Form link copied to clipboard");
+          })
+          .catch((err) => {
+            toast.error("Failed to copy form link");
+            console.error("Error copying form link:", err);
+          });
+        break;
       default:
         break;
     }
@@ -155,8 +166,12 @@ const ClientTable = () => {
   const menu = (record) => (
     <Menu onClick={(e) => handleMenuClick(record, e)}>
       <Menu.Item key="view">View/Update</Menu.Item>
+      <Menu.Item key="form-link">Copy Form Link</Menu.Item>
     </Menu>
   );
+
+
+  
 
   const columns = [
     {

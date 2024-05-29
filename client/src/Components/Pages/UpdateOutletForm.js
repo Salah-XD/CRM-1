@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Modal, Form, Input, message, Spin } from "antd";
 import axios from "axios";
 import "../css/outletForm.css"; // Import the custom CSS
-import UpdateOutlet from "./UpdateOutlet";
+
 
 const UpdateOutletForm = ({
   isModalVisible,

@@ -29,6 +29,9 @@ function App() {
             </AdminDashboard>
           }
         />
+
+
+
         <Route
           path="/update-client/formId/:formId"
           element={
@@ -39,6 +42,18 @@ function App() {
             </>
           }
         />
+
+        <Route
+          path="/update-client-form/id/:id"
+          element={
+            <>
+              <AdminHeader />
+              <UpdateClient newClientTitle="Update Client" />
+            </>
+          }
+        />
+
+
         <Route
           path="/update-client/id/:id"
           element={

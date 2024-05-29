@@ -1,4 +1,6 @@
 import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import {
   saveBusiness,
@@ -18,10 +20,12 @@ import {
 } from "../controller/clinetController.js";
 const router = express.Router();
  
-import { generateInvoice } from "../controller/InvoiceController.js";
+import { generatePDF } from "../controller/InvoiceController.js";
 
 
-router.post("/invoicesGenrate", generateInvoice); 
+
+
+router.post("/generate", generatePDF);
 
 // Route to save Client data
 router.post("/saveClientData", saveBusiness);
