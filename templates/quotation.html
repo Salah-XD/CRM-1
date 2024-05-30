@@ -69,8 +69,8 @@
           <img
             src="data:image/png;base64,{{imageData}}"
             alt="Your Image Alt Text"
-            width="50"
-            height="50"
+            width="100"
+            height="100"
           />
         </div>
         <div>
@@ -80,33 +80,39 @@
         </div>
       </div>
 
- <div class="mt-5">
-  <table id="clientProposalTable">
-    <tr>
-      <td colspan="2">
-        <strong>To</strong><br />
-        <span id="clientNamePlaceholder">Client Name:{{clientName}}</span><br />
-        <span id="contactPersonNamePlaceholder">Contact Person Name:</span><br />
-        <span id="contactPersonNumberPlaceholder">Contact Person Number:</span><br />
-        <span id="addressPlaceholder">Address:</span><br />
-        <span id="pinCodePlaceholder">Pin code:</span><br />
-        <span id="gstNoPlaceholder">GST No:</span><br />
-        <span id="industryVerticalPlaceholder">Industry Vertical:</span><br />
-        <span id="numberOfFoodHandlersPlaceholder">No. of Food Handlers:</span>
-      </td>
-      <td colspan="2">
-        <strong>Proposal Number:</strong><br />
-        <span id="proposalNumberPlaceholder">Proposal Number:</span><br />
-        <strong>Proposal Date:</strong><br />
-        <span id="proposalDatePlaceholder">Proposal Date:</span><br />
-        Format No: AUDIT.REC.AMT.03<br />
-        Issue Date: 22.08.2022<br />
-        Version No: 1
-      </td>
-    </tr>
-  </table>
-</div>
-
+      <div class="mt-5">
+        <table id="clientProposalTable">
+          <tr>
+            <td colspan="2">
+              <strong>To</strong><br />
+              <span class="font-medium"> Client Name: </span
+              >{{clientName}}<br />
+              <span class="font-medium">Contact Person Name:</span
+              >{{contactPersonName}}<br />
+              <span class="font-medium"> Contact Person Number:</span
+              >{{contactPersonNumber}}<br />
+              <span class="font-medium"> Address: </span>{{address}}<br />
+              <span class="font-medium"> Pin code:</span>{{pinCode}}<br />
+              <span class="font-medium">GST No:</span>{{gstNo}}<br />
+              <span class="font-medium"> Industry Vertical:</span
+              >{{industryVertical}}<br />
+              <span class="font-medium"> No. of Food Handlers: </span
+              >{{numberOfFoodHandlers}}
+            </td>
+            <td colspan="2">
+              <span class="font-medium"> Proposal Number:</span
+              >{{proposalNumber}}<br />
+              <span class="font-medium"> Proposal Date: </span
+              >{{proposalDate}}<br />
+              <span class="font-medium"> Format No: </span
+              >{{formatNumber}}<br />
+              <span class="font-medium"> Issue Date: </span>{{issueDate}}<br />
+              <span class="font-medium"> Version No: </span
+              >{{versionNumber}}<br />
+            </td>
+          </tr>
+        </table>
+      </div>
 
       <div class="mt-5 w-full flex justify-center">
         <table class="border-collapse">
@@ -119,11 +125,11 @@
             <th class="border">Total</th>
           </tr>
           <tr>
-            <td class="border">Chennai</td>
-            <td class="border"></td>
-            <td class="border"></td>
-            <td class="border"></td>
-            <td class="border"></td>
+            <td class="border">{{location}}</td>
+            <td class="border">{{audit}}</td>
+            <td class="border">{{frequnecy}}</td>
+            <td class="border">{{quantity}}</td>
+            <td class="border">{{unitCost}}</td>
             <td class="border"></td>
           </tr>
           <!-- Additional rows can be added dynamically -->
@@ -134,13 +140,13 @@
             >
               <strong>Total</strong>
             </td>
-            <td class="border w-1/4 selected-cell small-cell"></td>
+            <td class="border w-1/4 selected-cell small-cell">{{total}}</td>
           </tr>
           <tr>
             <td colspan="5" class="border text-right w-3/4 small-cell">
               <strong>18% GST</strong>
             </td>
-            <td class="border w-1/4 small-cell"></td>
+            <td class="border w-1/4 small-cell">{{gst}}</td>
           </tr>
           <tr>
             <td
@@ -149,28 +155,29 @@
             >
               <strong>Overall Total</strong>
             </td>
-            <td class="border w-1/4 selected-cell small-cell"></td>
+            <td class="border w-1/4 selected-cell small-cell">{{overallTotal}}</td>
           </tr>
         </table>
       </div>
 
       <div class="mt-5">
-        <strong class="mb-2">Auditor Conveyance Charges:</strong>
+       <strong class="block my-2" style="margin-top: 10px; margin-bottom: 10px;">Auditor Conveyance Charges:</strong>
+
         <div class="w-full flex justify-center">
           <table class="border-collapse w-3/4">
             <tr>
               <td class="w-1/2 border px-4 py-1">Total Amount (without tax)</td>
-              <td class="w-1/2 border px-4 py-1"></td>
+              <td class="w-1/2 border px-4 py-1">{{toatlAmountWithoutTax}}</td>
             </tr>
             <tr>
               <td class="w-1/2 border px-4 py-1">18% Tax</td>
-              <td class="w-1/2 border px-4 py-1"></td>
+              <td class="w-1/2 border px-4 py-1">{{tax}}</td>
             </tr>
             <tr>
               <td class="w-1/2 border px-4 py-1">
                 <strong>Total Amount (With Tax)</strong>
               </td>
-              <td class="w-1/2 border px-4 py-1"></td>
+              <td class="w-1/2 border px-4 py-1">{{toatlAmountWithTax}}</td>
             </tr>
           </table>
         </div>
@@ -229,11 +236,12 @@
           <h2 class="font-bold text-xl mb-3">For Client</h2>
         </div>
         <p>
-    I hereby accept this offer letter and I commit myself to follow the requirements established including
-payment of the licensee fee and the terms and conditions of this proposal.
+          I hereby accept this offer letter and I commit myself to follow the
+          requirements established including payment of the licensee fee and the
+          terms and conditions of this proposal.
         </p>
         <div class="mt-5 flex flex-col justify-center">
-          <div class="flex my-2  items-center">
+          <div class="flex my-2 items-center">
             <span class="font-bold mr-2">CLIENT-REPRESENTATIVE:</span>
             <div class="border-b-2 border-gray-400 w-52"></div>
           </div>
