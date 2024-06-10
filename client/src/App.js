@@ -11,6 +11,8 @@ import ClientOnboardingSuccess from "./Components/Pages/ClientOnboardingSuccess"
 import AddClient from "./Components/Pages/AddClientDemo";
 import UpdateClient from "./Components/Pages/UpdateClient";
 import AdminHeader from "./Components/Layout/AdminHeader";
+import ProposalTable from "./Components/Pages/ProposalTable";
+
 
 
 
@@ -19,6 +21,7 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={<ClientTable />} />
+        <Route path="/proposal" element={<ProposalTable />} />
         <Route
           path="/add-business"
           element={
@@ -29,8 +32,6 @@ function App() {
             </AdminDashboard>
           }
         />
-
-
 
         <Route
           path="/update-client/formId/:formId"
@@ -52,7 +53,6 @@ function App() {
             </>
           }
         />
-
 
         <Route
           path="/update-client/id/:id"

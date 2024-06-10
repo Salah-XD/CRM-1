@@ -20,12 +20,15 @@ import {
 } from "../controller/clinetController.js";
 const router = express.Router();
  
-import { generatePDF } from "../controller/InvoiceController.js";
+import { generateQuotation } from "../controller/quotationsController.js";
+import { generateInvoices } from "../controller/invoicesController.js";
 
 
 
 
-router.post("/generate", generatePDF);
+router.post("/generate-Quotation", generateQuotation);
+
+router.post("/generate-invoices", generateInvoices);
 
 // Route to save Client data
 router.post("/saveClientData", saveBusiness);

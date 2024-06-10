@@ -1,78 +1,207 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Invoice</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
     <style>
-        .border-collapse {
-            border-collapse: collapse;
-        }
+      body {
+        background-color: #f7fafc;
+        font-size: 12px;
+      }
+      .container {
+        background-color: #ffffff;
+        padding: 16px;
+        max-width: 100%;
+        margin: auto;
+      }
+      .container {
+        width: 793px; /* A4 width in pixels */
+        margin-left: auto;
+        margin-right: auto;
+      }
+      table {
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+      th {
+        background-color: #edf2f7;
+      }
+      th,
+      td {
+        border: 1px solid #e2e8f0;
+        padding: 4px 8px;
+      }
+      .header-info,
+      .bill-info,
+      .total-info,
+      .bank-info,
+      .declaration,
+      .signature {
+        margin-bottom: 8px;
+      }
+      .header-info h2,
+      .bill-info h2,
+      .bank-info h2,
+      .declaration h2 {
+        font-size: 14px;
+      }
+      .text-right p {
+        margin: 0;
+      }
     </style>
-</head>
-<body class="bg-gray-100 p-6 text-xs">
-    <div class="max-w-5xl mx-auto bg-white p-6 shadow-md rounded-md border border-gray-300">
-        <table class="w-full border-collapse border border-gray-300">
-            <tr>
-                <td colspan="2" class="p-2">
-                    <h1 class="text-xl font-bold text-teal-600">UNAVAR FOOD INSPECTION AND CERTIFICATION PRIVATE LIMITED</h1>
-                    <p>MM ILLAM MKN ROAD, ALANDUR CHENNAI - 600016.</p>
-                    <p>Tel: + 9894398096 / Email ID: vivekanand@unavar.com</p>
-                    <p>GSTIN: 33AADCU1306M1ZI | PAN: AADCU1306M</p>
-                </td>
-                <td colspan="2" class="p-2 text-right">
-                    <img src="path/to/your/logo.jpg" alt="Company Logo" class="h-24 w-auto inline-block">
-                </td>
-            </tr>
-            <tr>
-                <td colspan="4" class="p-4 border border-gray-300 text-center">
-                    <span class="text-2xl font-bold">TAX INVOICE</span>
-                </td>
-            </tr>
-            <tr>
-        
-                <td class="border border-gray-300 p-2" colspan="2"><strong>Invoice No:</strong></td>
+  </head>
+  <body class="p-4">
+    <div class="container mx-auto mt-10 shadow-lg rounded-lg">
+      <div class="header-info flex justify-between items-center">
+        <div>
+    <h2 class="text-xl font-bold" style="color: #13A6B8;">UNAVAR FOOD INSPECTION AND CERTIFICATION PRIVATE LIMITED</h2>
+    <p style="color: #13A6B8;">MM ILLAM MKN ROAD, ALANDUR CHENNAI - 600016.</p>
+    <p style="color: #13A6B8;">Tel: + 9894398096 | Email: vivekanand@unavar.com</p>
+    <p style="color: #13A6B8;">GSTIN: 33AADCU1306M1ZI | PAN: AADCU1306M</p>
+</div>
 
-                <td class="border border-gray-300 p-2" rowspan="2"><strong>Field Executive Name:</strong></td>
-                <td class="border border-gray-300 p-2" rowspan="2">dsf</td>
-            </tr>
-            <tr>
-                <td class="border border-gray-300 p-2" ><strong>Invoice Date:</strong></td>
-                <td class="border border-gray-300 p-2"></td>
-                
-            </tr>
-            <tr>
-                <td class="border border-gray-300 p-2"><strong>Order Ref No:</strong></td>
-                <td class="border border-gray-300 p-2"></td>
-                <td class="border border-gray-300 p-2"  rowspan="2"><strong>Team Leader Name:</strong></td>
-                <td class="border border-gray-300 p-2" rowspan="2">sdf</td>
-              
-            </tr>
-            <tr>
-                  <td class="border border-gray-300 p-2"><strong>Cust. P.O.No:</strong></td>
-                <td class="border border-gray-300 p-2"></td>
-            </tr>
-            <tr>
-                <td colspan="4" class="p-2 font-bold border-b text-center border-gray-300">Bill to Party</td>
-            </tr>
-            <tr>
-                <td class="border border-gray-300 p-2"><strong>Name:</strong></td>
-                <td class="border border-gray-300 p-2"></td>
-                <td class="border border-gray-300 p-2"><strong>GSTIN:</strong></td>
-                <td class="border border-gray-300 p-2"></td>
-            </tr>
-            <tr>
-                <td class="border border-gray-300 p-2"><strong>Address:</strong></td>
-                <td class="border border-gray-300 p-2" colspan="3"></td>
-            </tr>
-            <tr>
-                <td class="border border-gray-300 p-2"><strong>State (Place of Supply):</strong></td>
-                <td class="border border-gray-300 p-2"></td>
-                <td class="border border-gray-300 p-2"><strong>State Code:</strong></td>
-                <td class="border border-gray-300 p-2"></td>
-            </tr>
-        </table>
+
+        <img
+          src="data:image/png;base64,{{imageData}}"
+          alt="Your Image Alt Text"
+          width="80"
+          height="80"
+        />
+      </div>
+
+      <h1 class="text-2xl font-bold my-4 text-center text-gray-700">
+        TAX INVOICE
+      </h1>
+
+      <div class="grid grid-cols-2 gap-2 mb-2">
+        <div>
+          <p>
+            <span class="font-semibold">Invoice No:</span> {{Invoice Number}}
+          </p>
+          <p>
+            <span class="font-semibold">Invoice Date:</span> {{Invoice Date}}
+          </p>
+          <p>
+            <span class="font-semibold">Order Ref No:</span> {{Order Ref No}}
+          </p>
+          <p>
+            <span class="font-semibold">Cust. P.O. No:</span> {{Cust. P.O. No}}
+          </p>
+        </div>
+        <div>
+          <p>
+            <span class="font-semibold">Field Executive Name:</span>{{Field Executive Name}}</p>
+          <p>
+            <span class="font-semibold">Team Leader Name:</span>{{Team Leader Name}}</p>
+        </div>
+      </div>
+
+      <div class="bill-info mb-2">
+        <h2 class="text-lg font-semibold text-gray-700">Bill to Party</h2>
+        <p><span class="font-semibold">Name:</span> {{Customer Name}}</p>
+        <p><span class="font-semibold">Address:</span> {{Customer Address}}</p>
+        <p><span class="font-semibold">GSTIN:</span> {{Customer GSTIN}}</p>
+        <p>
+          <span class="font-semibold">State (Place of Supply):</span> {{State}}
+        </p>
+        <p><span class="font-semibold">State Code:</span> {{State Code}}</p>
+      </div>
+
+      <div class="mb-2">
+        <p><span class="font-semibold">SAC:</span> 998399 (18%)</p>
+      </div>
+
+      <table class="table-auto w-full my-4">
+        <thead>
+          <tr>
+            <th class="px-4 py-2">Services Rendered</th>
+            <th class="px-4 py-2">UOM</th>
+            <th class="px-4 py-2">Qty</th>
+            <th class="px-4 py-2">Rate</th>
+            <th class="px-4 py-2">Amount</th>
+            <th class="px-4 py-2">Discount</th>
+            <th class="px-4 py-2">Taxable Value</th>
+            <th class="px-4 py-2">GST Rate</th>
+            <th class="px-4 py-2">GST Amount</th>
+            <th class="px-4 py-2">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="px-4 py-2">{{Service}}</td>
+            <td class="px-4 py-2">{{UOM}}</td>
+            <td class="px-4 py-2">{{Qty}}</td>
+            <td class="px-4 py-2">{{Rate}}</td>
+            <td class="px-4 py-2">{{Amount}}</td>
+            <td class="px-4 py-2">{{Discount}}</td>
+            <td class="px-4 py-2">{{Taxable Value}}</td>
+            <td class="px-4 py-2">{{GST Rate}}</td>
+            <td class="px-4 py-2">{{GST Amount}}</td>
+            <td class="px-4 py-2">{{Total Amount Including Tax}}</td>
+          </tr>
+          <!-- Repeat for each service rendered -->
+        </tbody>
+      </table>
+
+      <div class="total-info mb-4">
+        <p class="font-semibold text-gray-700">
+          Total Invoice amount in words:
+          <span class="font-normal">{{Total Amount In Word}}</span>
+        </p>
+        <p>
+          <span class="font-semibold">Total Amount before Tax:</span>{{Amount Before Tax}}</p>
+        <p><span class="font-semibold">Add: IGST:</span>{{IGST}}</p>
+        <p><span class="font-semibold">Add: CGST:</span>{{CGST}}</p>
+        <p><span class="font-semibold">Add: SGST:</span>{{SGST}}</p>
+        <p>
+          <span class="font-semibold">Total Amount after Tax:</span>{{Total Amount}}</p>
+        <p>
+          <span class="font-semibold">Gst On Reverse Charge</span>{{Gst Charge}}</p>
+      </div>
+
+      <div class="bank-info my-4">
+        <h2 class="text-lg font-semibold text-gray-700">
+          Bank Account Details
+        </h2>
+        <p>
+          <span class="font-semibold">Account Holder's Name:</span> UNAVAR FOOD
+          INSPECTION AND CERTIFICATION PVT LTD
+        </p>
+        <p><span class="font-semibold">Bank Name:</span> HDFC BANK</p>
+        <p><span class="font-semibold">Bank Branch:</span> West Mambalam</p>
+        <p><span class="font-semibold">IFSC Code:</span> HDFC0000575</p>
+        <p><span class="font-semibold">Account No:</span> 50200078830737</p>
+      </div>
+
+      <div class="declaration my-4">
+        <h2 class="text-lg font-semibold text-gray-700">Declaration:</h2>
+        <p>1. E& O.E,</p>
+        <p>2. Please Quote Invoice no while making payment,</p>
+        <p>
+          3. Invoice Payable within 7 days failing which interest @2% per month
+          will be charged.
+        </p>
+        <br />
+        <p class="font-semibold text-gray-700">Udyog Aadhar No. UDYAM-TN-02-0162170</p>
+        <p>
+          Payment to be made as per our agreed terms. Delay in payment to us
+          beyond 45 days from the date of receipt of invoice would attract
+          interest of 24% p.a. as per MSMED Act, 2006.
+        </p>
+      </div>
+
+      <div class="signature text-right my-8">
+        <p class="font-semibold">
+          Certified that the particulars given above are true and correct
+        </p>
+        <p>For UNAVAR Food Inspection & Certification Pvt Ltd</p>
+        <p class="mt-6">Authorised signatory</p>
+      </div>
     </div>
-</body>
+  </body>
 </html>

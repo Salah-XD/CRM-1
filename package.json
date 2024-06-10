@@ -17,6 +17,7 @@
   "author": "steam troops",
   "license": "ISC",
   "dependencies": {
+    "archiver": "^7.0.1",
     "colors": "^1.4.0",
     "concurrently": "^8.2.2",
     "cors": "^2.8.5",
@@ -28,6 +29,7 @@
     "morgan": "^1.10.0",
     "nodemailer": "^6.9.13",
     "nodemon": "^3.1.0",
+    "number-to-words": "^1.2.4",
     "pdfkit": "^0.15.0",
     "pdfkit-table": "^0.1.99",
     "puppeteer": "^22.10.0",
