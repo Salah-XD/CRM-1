@@ -3,7 +3,7 @@ import Outlet from "../models/outletModel.js";
 import PrivateCompany from "../models/privateModel.js";
 import moment from "moment";
 import nodemailer from "nodemailer";
-
+import mongoose from "mongoose";
 
 // Controller function to handle saving client data
 export const saveBusiness = async (req, res) => {
@@ -689,51 +689,65 @@ export const getOutletDetailsById = async (req, res) => {
 
 
 
-//Controlle to get Outelet Table
-// export const getOutletDetails = async (req, res) => {
-//   try {
-//     const outlets = await Outlet.find({})
-//       .populate("business")
-//       .populate("private_company");
 
-//     const populatedData = [];
+ //Controller to get all the client name
+export const getAllClientName = async (req, res) => {
+  try {
+    // Fetch all client names and their IDs from the Business model
+    const clientNameList = await Business.find({}, "name _id").exec();
 
-//     for (const outlet of outlets) {
-//       let data;
+    // Extract client names and IDs from the query result
+    const clients = clientNameList.map((business) => ({
+      id: business._id,
+      name: business.name,
+    }));
 
-//       if (outlet.private_company) {
-//         // If private_company is not null, extract data from Private model
-//         const privateCompany = outlet.private_company;
-//         data = {
-//           branch_name: outlet.branch_name,
-//           name: privateCompany.name,
-//           gst_number: privateCompany.gst_number,
-//           address: privateCompany.address,
-//           email: privateCompany.email,
-//           source: "PrivateCompany", // Indicate the source of data
-//         };
-//       } else if (outlet.business) {
-//         // If business is not null, extract data from Business model
-//         const business = outlet.business;
-//         data = {
-//           branch_name: outlet.branch_name,
-//           name: business.name,
-//           gst_number: business.gst_number,
-//           address: business.address,
-//           email: outlet.email,
-//           source: "Business", // Indicate the source of data
-//         };
-//       }
+    res.status(200).json(clients);
+  } catch (error) {
+    res.status(500).json({
+      message: "An error occurred while fetching client names",
+      error,
+    });
+  }
+};
 
-//       // Add extracted data to the populatedData array
-//       if (data) populatedData.push(data);
-//     }
 
-//     return res
-//       .status(200)
-//       .json({ message: "Data populated successfully", data: populatedData });
-//   } catch (error) {
-//     console.error("Error:", error);
-//     return res.status(500).json({ message: "Internal server error" });
-//   }
-// };
+//Outlet to get the branch name from Outlet Model by specific bussiness id
+
+export const getBranchNamesByBusinessId = async (req, res) => {
+  const { businessId } = req.params;
+
+  try {
+    console.log(`Fetching branch names for business ID: ${businessId}`);
+
+    // Ensure businessId is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(businessId)) {
+      return res.status(400).json({ message: "Invalid business ID" });
+    }
+
+    // Fetch branch names and outlet IDs from the Outlet model for the specific business ID
+    const branchList = await Outlet.find(
+      { business: businessId },
+      { _id: 1, branch_name: 1 } // Projection to retrieve only outlet ID and branch name
+    ).exec();
+
+    console.log("Branches found:", branchList);
+
+    // Extract branch names and outlet IDs from the query result
+    const branches = branchList.map((outlet) => ({
+      _id: outlet._id,
+      branchName: outlet.branch_name,
+    }));
+
+    res.status(200).json(branches);
+  } catch (error) {
+    console.error("Error fetching branches:", error);
+    res.status(500).json({
+      message: "An error occurred while fetching branches",
+      error,
+    });
+  }
+};
+
+
+

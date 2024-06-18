@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   UserOutlined,
   DashboardOutlined,
@@ -30,7 +30,14 @@ const items = [
 ];
 
 const AdminDashboard = ({ children }) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
+  const [collapsed, setCollapsed] = useState(
+    localStorage.getItem("sidebarCollapsed") === "true" || false
+  );
+
+  useEffect(() => {
+    localStorage.setItem("sidebarCollapsed", collapsed);
+  }, [collapsed]);
 
   return (
     <>
@@ -44,27 +51,25 @@ const AdminDashboard = ({ children }) => {
           onCollapse={setCollapsed}
           theme="light"
         >
-          <div className="flex mt-4 justify-center mb-4 ">
-            <div className="mr-2 text-4xl">
-              <CrownFilled />
+          {!collapsed && (
+            <div className="flex mt-4 justify-center mb-4 admin-crown ">
+              <div className="mr-2 text-4xl">
+                <CrownFilled />
+              </div>
+              <div>
+                <div className="">Venkat</div>
+                <div className="text-xs text-ligtGrey">Super Admin</div>
+              </div>
             </div>
-            <div>
-              <div className="">Venkat</div>
-              <div className="text-xs text-ligtGrey">Super Admin</div>
-            </div>
-          </div>
+          )}
           <Menu defaultSelectedKeys={["1"]} mode="inline">
             {items.map((item) => (
-              <Menu.Item
-                key={item.key}
-                icon={item.icon}
-                className={
-                  item.key === "1"
-                    ? "selected-menu-item"
-                    : "unselected-menu-item"
-                }
-              >
-                <NavLink to={item.link} className="text-white">
+              <Menu.Item key={item.key} icon={item.icon}>
+                <NavLink
+                  to={item.link}
+                  className="text-white"
+                  activeClassName="ant-menu-item-selected"
+                >
                   {item.label}
                 </NavLink>
               </Menu.Item>

@@ -11,14 +11,29 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Replace this with your actual data fetching logic
 const fetchOutletDetails = async (outletId) => {
   // Mock data
-  return {
-    name: "Mock Outlet Name",
+
+  if(outletId==123){
+ return {
+    name: "outlet 1",
     address: "Mock Outlet Address",
     gstin: "1234567890",
     state: "Mock State",
     stateCode: "12",
     // Additional fields if needed
   };
+  }
+ 
+
+  if(outletId==321){
+     return {
+    name: "outlet 2",
+    address: "Mock Outlet Address",
+    gstin: "1234567890",
+    state: "Mock State",
+    stateCode: "12",
+    // Additional fields if needed
+  };
+  }
 };
 
 export const generateInvoices = async (req, res) => {

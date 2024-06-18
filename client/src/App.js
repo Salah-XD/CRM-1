@@ -16,12 +16,14 @@ import ProposalTable from "./Components/Pages/ProposalTable";
 
 
 
+
 function App() {
   return (
     <>
       <Routes>
         <Route path="/" element={<ClientTable />} />
         <Route path="/proposal" element={<ProposalTable />} />
+       
         <Route
           path="/add-business"
           element={

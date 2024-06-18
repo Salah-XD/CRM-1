@@ -23,8 +23,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { NavLink } from "react-router-dom";
 import toast from "react-hot-toast";
-import SendMailModal from "./SendMail";
 import { ExclamationCircleFilled } from "@ant-design/icons";
+import AddProposal from "./AddProposal";
 const { confirm } = Modal;
 
 const { Search } = Input;
@@ -303,18 +303,16 @@ const ProposalTable = () => {
             >
               <span className="text-gray-600 font-semibold">Export</span>
             </Button>
-            <NavLink to="/add-business">
-              <Button
-                type="primary"
-                shape="round"
-                icon={<PlusOutlined />}
-                size="default"
-              >
-               Add Proposals
-              </Button>
-            </NavLink>
 
-           
+            <Button
+              onClick={toggleModal}
+              type="primary"
+              shape="round"
+              icon={<PlusOutlined />}
+              size="default"
+            >
+              Add Proposals
+            </Button>
           </div>
         </div>
 
@@ -360,7 +358,7 @@ const ProposalTable = () => {
           />
         </div>
       </div>
-      <SendMailModal visible={isModalVisible} onCancel={toggleModal} />
+      <AddProposal visible={isModalVisible} onCancel={toggleModal} />
     </AdminDashboard>
   );
 };

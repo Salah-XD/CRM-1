@@ -17,11 +17,14 @@ import {
   deleteOutlets,
   getParticularOutletDetails,
   updateOutlet,
+  getAllClientName,
+  getBranchNamesByBusinessId,
 } from "../controller/clinetController.js";
 const router = express.Router();
  
 import { generateQuotation } from "../controller/quotationsController.js";
 import { generateInvoices } from "../controller/invoicesController.js";
+import { runInContext } from "vm";
 
 
 
@@ -80,6 +83,16 @@ router.get("/getOutletDetails/:businessId", getOutletDetailsById);
 
 //Route to get particular outelet details
 router.get("/getParticularOutletDetails/:id",getParticularOutletDetails);
+
+//Route to get all the client name
+router.get("/getAllBussinessName", getAllClientName);
+
+
+//Route to get all the client name
+router.get(
+  "/getBranchNamesByBussinessId/:businessId",
+  getBranchNamesByBusinessId
+);
 
 
 
