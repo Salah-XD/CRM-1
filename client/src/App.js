@@ -12,7 +12,7 @@ import AddClient from "./Components/Pages/AddClientDemo";
 import UpdateClient from "./Components/Pages/UpdateClient";
 import AdminHeader from "./Components/Layout/AdminHeader";
 import ProposalTable from "./Components/Pages/ProposalTable";
-
+import LoginPage from "./Components/Auth/LoginPage";
 
 
 
@@ -23,7 +23,8 @@ function App() {
       <Routes>
         <Route path="/" element={<ClientTable />} />
         <Route path="/proposal" element={<ProposalTable />} />
-       
+        <Route path="/login" element={<LoginPage />} />
+
         <Route
           path="/add-business"
           element={

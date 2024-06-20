@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Form, Input, message, Spin } from "antd";
+import { Modal, Form, Input, Button, message, Spin } from "antd";
 import axios from "axios";
 import "../css/outletForm.css"; // Import the custom CSS
-
 
 const UpdateOutletForm = ({
   isModalVisible,
@@ -14,6 +13,7 @@ const UpdateOutletForm = ({
   const [form] = Form.useForm();
   const [ownership, setOwnership] = useState("yes");
   const [loading, setLoading] = useState(true); // State to handle loading
+  const [isEditMode, setIsEditMode] = useState(false); // State to manage edit mode
 
   useEffect(() => {
     const fetchOutletDetails = async () => {
@@ -55,40 +55,40 @@ const UpdateOutletForm = ({
     setOwnership(e.target.value);
   };
 
- const handleSubmit = async () => {
-   try {
-     // Validate form fields and get values
-     const values = await form.validateFields();
-     // Include business ID in the outlet data
-     const outletData = { ...values, business: businessId };
+  const handleSubmit = async () => {
+    try {
+      // Validate form fields and get values
+      const values = await form.validateFields();
+      // Include business ID in the outlet data
+      const outletData = { ...values, business: businessId };
 
-     // Check if outletId is present to determine create or update
-     if (outletId) {
-       // Update existing outlet
-       await axios.put(`/updateOutlet/${outletId}`, outletData);
-       message.success("Outlet data updated successfully");
-     } else {
-       // Create new outlet
-       await axios.post("/saveOutlet", outletData);
-       message.success("Outlet data saved successfully");
-     }
+      // Check if outletId is present to determine create or update
+      if (outletId) {
+        // Update existing outlet
+        await axios.put(`/updateOutlet/${outletId}`, outletData);
+        message.success("Outlet data updated successfully");
+      } else {
+        // Create new outlet
+        await axios.post("/saveOutlet", outletData);
+        message.success("Outlet data saved successfully");
+      }
 
-     // Handle success actions
-     handleOk();
-     form.resetFields();
-   } catch (error) {
-     // Check if the error is from form validation
-     if (error.name === "ValidationError") {
-       console.error("Validation error:", error);
-       message.error("Please correct the validation errors.");
-     } else {
-       // Log the error and show a generic error message
-       console.error("Error saving outlet data:", error);
-       message.error("Failed to save outlet data. Please try again later.");
-     }
-   }
- };
-
+      // Handle success actions
+      handleOk();
+      form.resetFields();
+      setIsEditMode(false); // Exit edit mode after submission
+    } catch (error) {
+      // Check if the error is from form validation
+      if (error.name === "ValidationError") {
+        console.error("Validation error:", error);
+        message.error("Please correct the validation errors.");
+      } else {
+        // Log the error and show a generic error message
+        console.error("Error saving outlet data:", error);
+        message.error("Failed to save outlet data. Please try again later.");
+      }
+    }
+  };
 
   const isDisabled = (fieldName) =>
     ownership === "no" && fieldName !== "private_owned";
@@ -97,13 +97,25 @@ const UpdateOutletForm = ({
     <Modal
       className="h-80vh overflow-hidden"
       title={
-        <span className="text-xl">
-          {outletId ? "View/Edit Outlet" : "Add Outlet"}
-        </span>
+        <div className="flex justify-between items-center">
+          <span className="text-xl">
+            {outletId ? "View/Edit Outlet" : "Add Outlet"}
+          </span>
+          <div className="mr-8">
+            {outletId && !isEditMode && (
+              <Button type="primary" onClick={() => setIsEditMode(true)}>
+                Edit
+              </Button>
+            )}
+          </div>
+        </div>
       }
       visible={isModalVisible}
-      onOk={handleSubmit}
-      onCancel={handleCancel}
+      onCancel={() => {
+        handleCancel();
+        setIsEditMode(false); // Exit edit mode on cancel
+      }}
+      footer={null}
     >
       {loading ? (
         <div className="flex justify-center items-center h-full">
@@ -113,7 +125,9 @@ const UpdateOutletForm = ({
         <Form form={form} layout="vertical">
           <Form.Item
             label={
-              <span className="text-gray-600 font-semibold">Branch Name</span>
+              <span className="text-gray-fed600 font-semibold">
+                Branch Name
+              </span>
             }
             name="branch_name"
             rules={[{ required: true, message: "Please enter branch name" }]}
@@ -121,6 +135,7 @@ const UpdateOutletForm = ({
             <Input
               placeholder="Enter the name of the branch"
               className="placeholder-gray-400 p-3 rounded-lg w-full"
+              disabled={!isEditMode}
             />
           </Form.Item>
 
@@ -139,6 +154,7 @@ const UpdateOutletForm = ({
                   value="yes"
                   checked={ownership === "yes"}
                   onChange={handleOwnershipChange}
+                  disabled={!isEditMode}
                 />
                 <span
                   className={`radio-btn ${
@@ -153,6 +169,7 @@ const UpdateOutletForm = ({
                   value="no"
                   checked={ownership === "no"}
                   onChange={handleOwnershipChange}
+                  disabled={!isEditMode}
                 />
                 <span
                   className={`radio-btn ${
@@ -181,7 +198,7 @@ const UpdateOutletForm = ({
             <Input
               placeholder="Franchiser’s GST Registered Name"
               className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={isDisabled("name")}
+              disabled={isDisabled("name") || !isEditMode}
             />
           </Form.Item>
 
@@ -200,7 +217,7 @@ const UpdateOutletForm = ({
             <Input
               placeholder="Enter GST number"
               className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={isDisabled("gst_number")}
+              disabled={isDisabled("gst_number") || !isEditMode}
             />
           </Form.Item>
 
@@ -221,7 +238,7 @@ const UpdateOutletForm = ({
             <Input
               placeholder="Enter primary contact number"
               className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={isDisabled("primary_contact_number")}
+              disabled={isDisabled("primary_contact_number") || !isEditMode}
             />
           </Form.Item>
 
@@ -236,7 +253,7 @@ const UpdateOutletForm = ({
             <Input
               placeholder="Enter email"
               className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={isDisabled("email")}
+              disabled={isDisabled("email") || !isEditMode}
             />
           </Form.Item>
 
@@ -253,7 +270,7 @@ const UpdateOutletForm = ({
             <Input
               placeholder="Enter address line 1"
               className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={isDisabled("line1")}
+              disabled={isDisabled("line1") || !isEditMode}
             />
           </Form.Item>
 
@@ -261,7 +278,7 @@ const UpdateOutletForm = ({
             <Input
               placeholder="Enter address line 2 (optional)"
               className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={isDisabled("line2")}
+              disabled={isDisabled("line2") || !isEditMode}
             />
           </Form.Item>
 
@@ -276,7 +293,7 @@ const UpdateOutletForm = ({
               <Input
                 placeholder="Enter city"
                 className="placeholder-gray-400 p-3 rounded-lg w-full"
-                disabled={isDisabled("city")}
+                disabled={isDisabled("city") || !isEditMode}
               />
             </Form.Item>
 
@@ -293,7 +310,7 @@ const UpdateOutletForm = ({
               <Input
                 placeholder="Enter state"
                 className="placeholder-gray-400 p-3 rounded-lg w-full"
-                disabled={isDisabled("state")}
+                disabled={isDisabled("state") || !isEditMode}
               />
             </Form.Item>
 
@@ -310,10 +327,19 @@ const UpdateOutletForm = ({
               <Input
                 placeholder="Enter pincode"
                 className="placeholder-gray-400 p-3 rounded-lg w-full"
-                disabled={isDisabled("pincode")}
+                disabled={isDisabled("pincode") || !isEditMode}
               />
             </Form.Item>
           </div>
+
+          {isEditMode && (
+            <div className="flex justify-end space-x-2">
+              <Button onClick={() => setIsEditMode(false)}>Cancel</Button>
+              <Button type="primary" onClick={handleSubmit}>
+                OK
+              </Button>
+            </div>
+          )}
         </Form>
       )}
     </Modal>
