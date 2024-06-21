@@ -13,7 +13,7 @@ import UpdateClient from "./Components/Pages/UpdateClient";
 import AdminHeader from "./Components/Layout/AdminHeader";
 import ProposalTable from "./Components/Pages/ProposalTable";
 import LoginPage from "./Components/Auth/LoginPage";
-
+import ForgotPasswordPage from "./Components/Auth/ForgotPassword";
 
 
 
@@ -24,6 +24,7 @@ function App() {
         <Route path="/" element={<ClientTable />} />
         <Route path="/proposal" element={<ProposalTable />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         <Route
           path="/add-business"

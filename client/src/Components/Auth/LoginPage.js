@@ -64,9 +64,8 @@ const LoginPage = () => {
             </Select>
           </Form.Item>
           <Form.Item
-            label="User ID"
+            label={<span className=" font-semibold">User ID</span>}
             name="userID"
-            className="text-gray-400 font-semibold"
             rules={[{ required: true, message: "Please input your user id!" }]}
           >
             <Input
@@ -79,12 +78,6 @@ const LoginPage = () => {
             label={
               <span className="flex justify-around items-center font-semibold">
                 Password
-                {/* <NavLink
-                  to="/forgot-password"
-                  className="text-sm text-blue-600 ml-2"
-                >
-                  Forgot your password?
-                </NavLink> */}
               </span>
             }
             name="password"
@@ -101,12 +94,19 @@ const LoginPage = () => {
               <Checkbox>Remember me</Checkbox>
             </Form.Item>
 
-            <a className="login-form-forgot" href="">
+            <NavLink
+              to="/forgot-password"
+              className="text-sm text-blue-600 ml-2 login-form-forgot"
+            >
               Forgot password
-            </a>
+            </NavLink>
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" className="w-full bg-BlueGlobal">
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="w-full bg-BlueGlobal"
+            >
               Continue
             </Button>
           </Form.Item>
