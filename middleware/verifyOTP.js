@@ -1,29 +1,20 @@
-import { User } from "../models/usersModel.js";
+import jwt from "jsonwebtoken";
 
-export const verifyOTPMiddleware = async (req, res, next) => {
-  const { userId, otp } = req.body;
+const OTP_SECRET = process.env.OTP_SECRET || "arun@321"; // Ensure this is stored securely
+
+export const verifyJWT = (req, res, next) => {
+  const token = req.headers["authorization"];
+
+  if (!token) {
+    return res.status(401).json({ message: "Authorization token required" });
+  }
 
   try {
-    if (!userId || !otp) {
-      return res.status(400).json({ message: "Missing userId or otp" });
-    }
-
-    const user = await User.findOne({ userId });
-
-    if (!user || user.resetPasswordOTP !== otp) {
-      return res.status(400).json({ message: "Invalid OTP" });
-    }
-
-    // Optionally, invalidate the OTP after verification by setting it to null or removing it
-    user.resetPasswordOTP = null;
-    await user.save();
-
-    // Attach user to request object
-    req.user = user;
-
+    const decoded = jwt.verify(token, OTP_SECRET);
+    req.userId = decoded.userId;
     next();
   } catch (error) {
-    console.error("Error during OTP verification:", error);
-    res.status(500).json({ message: "Server error", error });
+    console.error("Error verifying JWT:", error);
+    res.status(401).json({ message: "Invalid or expired token" });
   }
 };

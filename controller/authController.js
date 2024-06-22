@@ -147,43 +147,57 @@ export const forgotPassword=async(req,res)=>{
   }
 }
 
-//Verify the otp
-// export const verifyOTP=async(req,res)=>{
-//   const{userId,otp}=req.body;
 
-//   try{
-//     if(!userId || !otp){
-//       return res.status(400).json({message:"Missing userId or otp"
-//       });
-//     }
+const OTP_SECRET = process.env.OTP_SECRET || "arun@321"; // Ensure this is stored securely
 
-//   const user=await User.findOne({userId});
-
-//   if(!user || user.resetPasswordOTP!==otp){
-//     return res.status(400).json({message:"Invalid OTP"});
-//   }
-
-//   //Invalidate the otp
-//   user.resetPasswordOTP=null;
-//   await user.save();
-
-// res.status(200).json({ message: "OTP verified successfully" });
-//   }catch(error){
-//     console.error("Error during OTP verification",error);
-//     res.status(500).json({message:"Server error",error});
-//   }
-// };
-
-//Set new password Controller
-export const setNewPassword = async (req, res) => {
-  const { newPassword } = req.body;
+export const verifyOTP = async (req, res) => {
+  const { userId, otp } = req.body;
 
   try {
-    if (!newPassword) {
-      return res.status(400).json({ message: "Missing newPassword" });
+    if (!userId || !otp) {
+      return res.status(400).json({ message: "Missing userId or otp" });
     }
 
-    const user = req.user; // Retrieved from the middleware
+    const user = await User.findOne({ userId });
+
+    if (!user || user.resetPasswordOTP !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    // Invalidate the OTP after verification by setting it to null or removing it
+    user.resetPasswordOTP = null;
+    await user.save();
+
+    // Generate a temporary JWT
+    const token = jwt.sign({ userId: user.userId }, OTP_SECRET, {
+      expiresIn: "15m",
+    });
+
+    res.status(200).json({ message: "OTP verified successfully", token });
+  } catch (error) {
+    console.error("Error during OTP verification:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+
+
+
+export const setNewPassword = async (req, res) => {
+  const { newPassword,userId } = req.body;
+
+  try {
+    if (!req.userId || !newPassword) {
+      return res
+        .status(400)
+        .json({ message: "Missing newPassword or invalid token" });
+    }
+
+    const user = await User.findOne({ userId: req.userId });
+
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
 
     // Hash the new password
     const salt = await bcrypt.genSalt(10);
