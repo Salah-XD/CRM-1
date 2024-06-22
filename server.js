@@ -4,6 +4,7 @@ import connectDB from "./config/dbConnect.js";
 import cors from "cors";
 import morgan from "morgan";
 import bussinessRoutes from "./routes/bussinessRoutes.js";
+import authenticatinRoutes from "./routes/authenticationRoutes.js"
 
 // Configure environment variables
 dotenv.config();
@@ -22,6 +23,7 @@ app.use(morgan("dev"));
 
 // API routes
 app.use("/", bussinessRoutes);
+app.use("/auth", authenticatinRoutes);
 
 
 app.use((err, req, res, next) => {

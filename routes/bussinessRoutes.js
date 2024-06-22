@@ -1,6 +1,5 @@
 import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
+import { verifyToken } from "../middleware/auth.js";
 
 import {
   saveBusiness,
@@ -41,7 +40,7 @@ router.post("/saveClientData", saveBusiness);
 router.put("/updateClientData", updateBusiness);
 
 //Route to get the bussiness name
-router.get("/getAllBussinessName", getBusinesses);
+router.get("/getAllBussinessName", verifyToken,getBusinesses);
 
 //Route to get all Bussiness deatils
 router.get("/getAllBussinesDetails", getAllBusinessDetails);
@@ -85,7 +84,13 @@ router.get("/getOutletDetails/:businessId", getOutletDetailsById);
 router.get("/getParticularOutletDetails/:id",getParticularOutletDetails);
 
 //Route to get all the client name
-router.get("/getAllBussinessName", getAllClientName);
+router.get("/getAllBussinessName", verifyToken,getAllClientName);
+
+router.get("/protected", verifyToken, (req, res) => {
+  res
+    .status(200)
+    .json({ message: "This is a protected route", user: req.user });
+});
 
 
 //Route to get all the client name

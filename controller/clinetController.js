@@ -5,6 +5,9 @@ import moment from "moment";
 import nodemailer from "nodemailer";
 import mongoose from "mongoose";
 
+
+
+
 // Controller function to handle saving client data
 export const saveBusiness = async (req, res) => {
 
@@ -492,7 +495,7 @@ export const deleteFields = async (req, res) => {
 
 //Controller to send logic to
 export const sendEmail = async (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   const { to, message, formLink } = req.body;
 
   try {
@@ -748,6 +751,4 @@ export const getBranchNamesByBusinessId = async (req, res) => {
     });
   }
 };
-
-
 
