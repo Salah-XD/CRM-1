@@ -8,12 +8,19 @@ import OutletDetail from "./Components/Pages/OutletDetail";
 import ClientOnboarding from "./Components/Pages/ClientOnboarding";
 import AdminDashboard from "./Components/Layout/AdminDashboard";
 import ClientOnboardingSuccess from "./Components/Pages/ClientOnboardingSuccess";
-import AddClient from "./Components/Pages/AddClientDemo";
+import AddClient from "./Components/Pages/AddClientForm";
 import UpdateClient from "./Components/Pages/UpdateClient";
 import AdminHeader from "./Components/Layout/AdminHeader";
 import ProposalTable from "./Components/Pages/ProposalTable";
 import LoginPage from "./Components/Auth/LoginPage";
 import ForgotPasswordPage from "./Components/Auth/ForgotPassword";
+import Agreement from "./Components/Pages/Agreement";
+import AuditPlan from "./Components/Pages/AuditPlan";
+import Enquiry from "./Components/Pages/Enquiry";
+import Invoice from "./Components/Pages/Invoice";
+import ProtectedRoute from "./Components/Context/ProtectedRoute";
+import Dashboard from "./Components/Pages/Dashboard";
+
 
 
 
@@ -21,9 +28,19 @@ function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<ClientTable />} />
+        {/* <Route  element={<ProtectedRoute />} >
+         <Route path="/dashboard" element={<ClientTable />} />
+      </Route> */}
+
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/client-table" element={<ClientTable />} />
+        <Route path="/audit-plan" element={<AuditPlan />} />
+        <Route path="/aggrement" element={<Agreement />} />
+        <Route path="/enquiry" element={<Enquiry />} />
+        <Route path="/invoice" element={<Invoice />} />
+
         <Route path="/proposal" element={<ProposalTable />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         <Route

@@ -3,6 +3,9 @@ import jwt from "jsonwebtoken";
 const OTP_SECRET = process.env.OTP_SECRET || "arun@321"; // Ensure this is stored securely
 
 export const verifyJWT = (req, res, next) => {
+  // Print the authorization token for debugging
+  console.log("Authorization Token:", req.headers.authorization);
+
   const token = req.headers["authorization"];
 
   if (!token) {

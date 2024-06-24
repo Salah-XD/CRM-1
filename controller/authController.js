@@ -4,13 +4,14 @@ import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 
 // JWT Secret Key (Ensure this is set in your environment variables for production)
-const JWT_SECRET = process.env.JWT_SECRET || 'arun@321';
+const JWT_SECRET = process.env.JWT_SECRET || "arun@321";
 
 if (!JWT_SECRET) {
-  console.error("JWT_SECRET is not set. Please set the JWT_SECRET environment variable.");
+  console.error(
+    "JWT_SECRET is not set. Please set the JWT_SECRET environment variable."
+  );
   process.exit(1); // Exit the application if JWT_SECRET is not set
 }
-
 
 const generateOTP = () => {
   const digits = "0123456789";
@@ -20,7 +21,6 @@ const generateOTP = () => {
   }
   return OTP;
 };
-
 
 export const registerUser = async (req, res) => {
   console.log(req.body);
@@ -55,9 +55,9 @@ export const registerUser = async (req, res) => {
   }
 };
 
-
 //Controller for login
 export const loginUser = async (req, res) => {
+  console.log(req.body);
   try {
     const { userId, password } = req.body;
 
@@ -65,14 +65,14 @@ export const loginUser = async (req, res) => {
     const user = await User.findOne({ userId });
     if (!user) {
       console.error("User not found");
-      return res.status(400).json({ message: "Invalid user ID or password" });
+      return res.status(200).json({ message: "Invalid user ID or password" });
     }
 
     // Validate password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       console.error("Invalid password");
-      return res.status(400).json({ message: "Invalid user ID or password" });
+      return res.status(200).json({ message: "Invalid user ID or password" });
     }
 
     // Generate JWT Token
@@ -85,7 +85,7 @@ export const loginUser = async (req, res) => {
       { expiresIn: "1h" } // Token expiry time
     );
 
-    res.status(200).json({ token });
+    res.status(200).json({ success: true, token });
   } catch (error) {
     console.error("Error during login:", error);
     res.status(500).json({ message: "Server error", error });
@@ -93,12 +93,17 @@ export const loginUser = async (req, res) => {
 };
 
 //Controller for forgot password
-export const forgotPassword=async(req,res)=>{
-  const {userId}=req.body;
+export const forgotPassword = async (req, res) => {
+  const { userId } = req.body;
 
-  try{
+  try {
     if (!userId) {
       throw new Error("Missing userId");
+    }
+
+    const user = await User.findOne({ userId });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
     //Genrate OTP
@@ -127,26 +132,24 @@ export const forgotPassword=async(req,res)=>{
       },
     });
 
- const mailOptions = {
-   from: `"Your Name" <${process.env.EMAIL_USERNAME}>`,
-   to: userId,
-   subject: "Password Reset OTP",
-   text: `Your OTP for password reset is: ${OTP}.`,
- };
+    const mailOptions = {
+      from: `"Your Name" <${process.env.EMAIL_USERNAME}>`,
+      to: userId,
+      subject: "Password Reset OTP",
+      text: `Your OTP for password reset is: ${OTP}.`,
+    };
 
- await transporter.sendMail(mailOptions);
- console.log("OTP sent to", userId);
+    await transporter.sendMail(mailOptions);
+    console.log("OTP sent to", userId);
 
- res.status(200).json({ message: "OTP sent successfully. Check your email." });
-
-
-
-  }catch(error){
-    console.error("Erro occured:",error);
-    res.status(500).json({error:"Failed to send OTP"});
+    res
+      .status(200)
+      .json({ message: "OTP sent successfully. Check your email." });
+  } catch (error) {
+    console.error("Erro occured:", error);
+    res.status(500).json({ error: "Failed to send OTP" });
   }
-}
-
+};
 
 const OTP_SECRET = process.env.OTP_SECRET || "arun@321"; // Ensure this is stored securely
 
@@ -180,13 +183,17 @@ export const verifyOTP = async (req, res) => {
   }
 };
 
-
-
-
+//setnewpassw
 export const setNewPassword = async (req, res) => {
-  const { newPassword,userId } = req.body;
+  const { newPassword, userId } = req.body;
+
+  //   // Print the authorization token for debugging
+  // console.log("Authorization Token:", req.headers.authorization);
 
   try {
+    // Print the authorization token for debugging
+    console.log("Authorization Token:", req.headers.authorization);
+
     if (!req.userId || !newPassword) {
       return res
         .status(400)

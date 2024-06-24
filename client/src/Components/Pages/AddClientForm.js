@@ -1,23 +1,54 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Radio } from "antd";
-import { useNavigate, useLocation } from "react-router-dom";
+import BusinessDetail from "./BussinessDetail";
+import OutletDetail from "./OutletDetail";
+import toast from "react-hot-toast";
+import axios from "axios";
 
-const AddClientForm = ({ newClientTitle, children }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
+const AddClient = ({ newClientTitle }) => {
   const [selectedOption, setSelectedOption] = useState("addClient");
+  const [isBusinessSaved, setIsBusinessSaved] = useState(false);
+  const [businessId, setBusinessId] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const route = location.pathname;
-    setSelectedOption(
-      route.includes("add-business-form") ? "addClient" : "addOutlet"
-    );
-  }, [location]);
+  const handleBusinessSubmit = async (details) => {
+    setLoading(true);
+    try {
+      const { data } = await axios.post("/saveClientData", details);
+      if (data?.success) {
+        setBusinessId(data.data._id);
+        console.log("this is data" + data.data._id);
+        setIsBusinessSaved(true);
+        setSelectedOption("addOutlet");
+        toast.success("Client Added Successfully");
+      } else {
+        console.error("Failed to save business details");
+        toast.error("Failed to save business details");
+      }
+    } catch (error) {
+      console.error("Error saving business details", error);
+      toast.error("Error saving business details");
+    }
+    setLoading(false);
+  };
 
-  const handleNavigation = (value) => {
-    setSelectedOption(value);
-    const route = value === "addClient" ? "/add-business-form" : "/add-outlet-form";
-    navigate(route);
+  const renderComponent = () => {
+    switch (selectedOption) {
+      case "addClient":
+        return (
+          <BusinessDetail
+            onSubmit={handleBusinessSubmit}
+            loading={loading}
+            disabled={isBusinessSaved}
+          />
+        );
+      case "addOutlet":
+        return isBusinessSaved ? (
+          <OutletDetail businessId={businessId} />
+        ) : null;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -31,7 +62,7 @@ const AddClientForm = ({ newClientTitle, children }) => {
       <div className="flex justify-center mt-8">
         <Radio.Group
           value={selectedOption}
-          onChange={(e) => handleNavigation(e.target.value)}
+          onChange={(e) => setSelectedOption(e.target.value)}
           className="w-full flex justify-center"
         >
           <Radio.Button
@@ -42,6 +73,7 @@ const AddClientForm = ({ newClientTitle, children }) => {
                 selectedOption === "addClient" ? "#16A7B9" : "#E5E7EB",
               color: selectedOption === "addClient" ? "white" : "#6B7280",
             }}
+            disabled={isBusinessSaved}
           >
             Business Detail
           </Radio.Button>
@@ -53,15 +85,16 @@ const AddClientForm = ({ newClientTitle, children }) => {
                 selectedOption === "addOutlet" ? "#16A7B9" : "#E5E7EB",
               color: selectedOption === "addOutlet" ? "white" : "#6B7280",
             }}
+            disabled={!isBusinessSaved}
           >
             Outlets
           </Radio.Button>
         </Radio.Group>
       </div>
 
-      <div className="mt-12">{children}</div>
+      <div className="mt-8">{renderComponent()}</div>
     </>
   );
 };
 
-export default AddClientForm;
+export default AddClient;

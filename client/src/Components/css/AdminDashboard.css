@@ -1,0 +1,83 @@
+/* AdminDashboard.css */
+
+.admin-crown {
+  text-align: center;
+}
+
+.text-lightGrey {
+  color: #a0a0a0;
+}
+
+.ant-menu-item-selected,
+.ant-menu-item-selected a {
+  background-color: white !important;
+  color: #16a7b9 !important;
+  font-weight: bolder !important; /* Ensuring more prominent text */
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.ant-menu-submenu-title .ant-menu-item-selected,
+.ant-menu-submenu-title .ant-menu-item-selected a {
+  background-color: white !important;
+  color: #16a7b9 !important;
+  font-weight: bolder !important; /* Ensuring more prominent text */
+}
+
+.custom-selected {
+  background-color: #f0f0f0; /* Example background color */
+  color: #1890ff; /* Example text color */
+  font-weight: bolder !important; /* Ensuring more prominent text */
+}
+
+.custom-menu-item {
+  color: #718096; /* text-gray-600 equivalent */
+  font-weight: 600; /* font-semibold equivalent */
+}
+
+.custom-menu-item:hover {
+  color: #16A7B9;
+}
+
+.custom-menu-item:not(.custom-selected) {
+  color: #718096;
+  font-weight: 600;
+}
+
+.custom-selected {
+  background-color: white !important;
+  color: #16A7B9 !important; /* Ensuring the selected color is prominent */
+  font-weight: bolder !important; /* Ensuring more prominent text */
+}
+
+.ant-menu-item::after {
+  border-right: 3px solid #16A7B9; /* Indicator for selected item */
+}
+
+.ant-menu-item:hover::after {
+  border-right: 3px solid #16A7B9;
+}
+
+.ant-menu-submenu-title .custom-menu-item {
+  color: #718096; /* Ensure nested items also use custom styles */
+}
+
+.ant-menu-submenu-title:hover .custom-menu-item {
+  color: #16A7B9;
+}
+
+/* AdminDashboard.css */
+.ant-layout-sider-trigger {
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+ 
+}

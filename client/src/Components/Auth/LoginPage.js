@@ -1,23 +1,46 @@
 import React, { useState } from "react";
-import { Input, Button, Select, Typography, Form, message,Checkbox} from "antd";
+import { useNavigate } from "react-router-dom";
+import {
+  Input,
+  Button,
+  Select,
+  Typography,
+  Form,
+  message,
+  Checkbox,
+} from "antd";
 import { NavLink } from "react-router-dom";
-import "../css/login.css"
+import axios from "axios";
+import { useAuth } from "../Context/AuthContext";
+import "../css/login.css";
 
 const { Title } = Typography;
-const { Option } = Select;
+// const { Option } = Select;
 
 const LoginPage = () => {
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
-  const [businessType, setBusinessType] = useState("");
+  // const [businessType, setBusinessType] = useState("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault(); // Don't forget to prevent default form submission
+  const handleSubmit = async (values) => {
     try {
-      // Your login logic goes here
-      message.success("Login Successful!");
+      const response = await axios.post("/auth/login", {
+        userId: values.userID,
+        password: values.password,
+        businessType: values.businessType,
+      });
+
+      if (response.data.success) {
+        message.success("Login Successful!");
+        login(response.data.token);
+        navigate("/dashboard");
+      } else {
+        message.error("incorrect email or password.");
+      }
     } catch (error) {
-      message.error("Login Failed. Please try again.");
+      message.error("some error occured.");
     }
   };
 
@@ -35,7 +58,7 @@ const LoginPage = () => {
           Sign in to your account
         </Title>
         <Form layout="vertical" onFinish={handleSubmit}>
-          <Form.Item
+          {/* <Form.Item
             label="Business Type"
             name="businessType"
             className="text-gray-400 font-semibold"
@@ -62,7 +85,7 @@ const LoginPage = () => {
                 Audit Admin
               </Option>
             </Select>
-          </Form.Item>
+          </Form.Item> */}
           <Form.Item
             label={<span className=" font-semibold">User ID</span>}
             name="userID"

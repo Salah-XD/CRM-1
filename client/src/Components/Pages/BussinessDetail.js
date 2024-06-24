@@ -46,13 +46,11 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
     onSubmit(values);
   };
 
-  return (
-     checkingFormId ? (
-      <div className="flex justify-center items-center h-screen">
-        <Spin size="large" />
-      </div>
-    ) : (
-   
+  return checkingFormId ? (
+    <div className="flex justify-center items-center h-screen">
+      <Spin size="large" />
+    </div>
+  ) : (
     <div className="">
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <div className="m-6">
@@ -231,7 +229,7 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
 
         <div className="sticky bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">
           <Form.Item>
-            <NavLink to="/">
+            <NavLink to="/client-table">
               <Button className="border-primary  text- border-2 font-semibold">
                 Cancel
               </Button>
@@ -242,13 +240,12 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
               htmlType="submit"
               loading={loading}
             >
-           Save
+              Save
             </Button>
           </Form.Item>
         </div>
       </Form>
     </div>
-       )
   );
 };
 

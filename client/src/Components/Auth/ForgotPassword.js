@@ -1,33 +1,48 @@
 import React, { useState } from "react";
+import axios from "axios";
 import { Input, Button, Typography, Form, message } from "antd";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeftOutlined } from "@ant-design/icons";
 import "../css/login.css";
 
 const { Title } = Typography;
 
 const ForgotPasswordPage = () => {
-  const [userID, setUserID] = useState("");
+  const [userId, setUserId] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otpVerified, setOtpVerified] = useState(false);
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSendOtp = async () => {
+     setLoading(true);
     try {
       // Call API to send OTP
+      await axios.post("/auth/forgotPassword", { userId });
       setOtpSent(true);
       message.success("OTP sent successfully!");
-    } catch (error) {
+    }  catch (error) {
+    if (error.response && error.response.status === 404) {
+      message.error("User not found");
+    } else {
       message.error("Failed to send OTP. Please try again.");
+    } 
+  }finally {
+      setLoading(false);
     }
   };
 
   const handleVerifyOtp = async () => {
     try {
       // Call API to verify OTP
+      const response = await axios.post("/auth/verifyOtp", {
+        userId,
+        otp,
+      });
+      const { token } = response.data;
+      localStorage.setItem("resetToken", token);
       setOtpVerified(true);
       message.success("OTP verified successfully!");
     } catch (error) {
@@ -41,9 +56,20 @@ const ForgotPasswordPage = () => {
         message.error("Passwords do not match!");
         return;
       }
+      const token = localStorage.getItem("resetToken");
+      if (!token) {
+        message.error("Unauthorized. Please verify OTP again.");
+        return;
+      }
       // Call API to reset password
+      await axios.post(
+        "/auth/setNewPassword",
+        { userId, newPassword },
+        { headers: { Authorization: `${token}` } }
+      );
       message.success("Password reset successfully!");
-      navigate("/login");
+      localStorage.removeItem("resetToken");
+      navigate("/");
     } catch (error) {
       message.error("Failed to reset password. Please try again.");
     }
@@ -51,11 +77,15 @@ const ForgotPasswordPage = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+      <div className="w-full ml-5 flex max-w-sm py-3">
+        <img src="logo.png" alt="Company Logo" className="h-12 w-12" />
+
+        <label className="text-400 ml-3 text-2xl font-semibold">
+          Unavar Admin Dashboard
+        </label>
+      </div>
       <div className="w-full max-w-sm p-6 bg-white rounded-md shadow-md">
         <div className="flex items-center mb-4">
-          {/* <Link to="/login">
-            <ArrowLeftOutlined className="text-lg cursor-pointer mr-2" />
-          </Link> */}
           <Title level={3} className="text-gray-600 font-semibold">
             Forgot Password
           </Title>
@@ -64,14 +94,14 @@ const ForgotPasswordPage = () => {
           <Form layout="vertical" onFinish={handleSendOtp}>
             <Form.Item
               label="User ID"
-              name="userID"
+              name="userId"
               rules={[
-                { required: true, message: "Please input your user id!" },
+                { required: true, message: "Please input your user ID!" },
               ]}
             >
               <Input
-                value={userID}
-                onChange={(e) => setUserID(e.target.value)}
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
                 placeholder="Enter your User ID"
               />
             </Form.Item>
@@ -80,6 +110,7 @@ const ForgotPasswordPage = () => {
                 type="primary"
                 htmlType="submit"
                 className="w-full bg-BlueGlobal"
+                loading={loading}
               >
                 Send OTP
               </Button>
@@ -150,7 +181,7 @@ const ForgotPasswordPage = () => {
             </Form.Item>
           </Form>
         )}
-        <Link to="/login">
+        <Link to="/">
           <Button type="default" className="mt-4 w-full">
             Back to Login
           </Button>
