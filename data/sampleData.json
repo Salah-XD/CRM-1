@@ -1,0 +1,41 @@
+{
+    "proposalNumber": "12345",
+    "proposalDate": "2022-08-22",
+    "clientName": "John Doe",
+    "contactPersonName": "Jane Smith",
+    "contactPersonNumber": "9876543210",
+    "address": "123 Main St, Springfield",
+    "pinCode": "123456",
+    "gstNo": "GSTIN123456",
+    "industryVertical": "Food Industry",
+    "foodHandlers": "50",
+    "auditDetails": [
+        {
+            "location": "Location 1",
+            "criteriaScope": "Criteria 1",
+            "frequency": "Monthly",
+            "quantity": "10",
+            "unitCost": "100",
+            "total": "1000"
+        },
+        {
+            "location": "Location 2",
+            "criteriaScope": "Criteria 2",
+            "frequency": "Quarterly",
+            "quantity": "5",
+            "unitCost": "200",
+            "total": "1000"
+        }
+    ],
+    "total": "2000",
+    "gst": "360",
+    "overallTotal": "2360",
+    "conveyanceCharges": "100",
+    "totalWithoutTax": "2100",
+    "tax": "378",
+    "totalWithTax": "2478",
+    "clientRepresentative": "John Doe",
+    "designation": "Manager",
+    "signature": "Signature",
+    "date": "2022-08-22"
+}

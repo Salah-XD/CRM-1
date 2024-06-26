@@ -306,7 +306,7 @@ const ClientTable = () => {
             >
               <span className="text-gray-600 font-semibold">Export</span>
             </Button>
-            <NavLink to="/add-business">
+            <NavLink to="/client-profile/add-business">
               <Button
                 type="primary"
                 shape="round"

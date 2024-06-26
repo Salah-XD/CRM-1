@@ -15,14 +15,14 @@ import { useAuth } from "../Context/AuthContext";
 import "../css/login.css";
 
 const { Title } = Typography;
-// const { Option } = Select;
+const { Option } = Select;
 
 const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
-  // const [businessType, setBusinessType] = useState("");
+  const [businessType, setBusinessType] = useState("");
 
   const handleSubmit = async (values) => {
     try {
@@ -58,7 +58,7 @@ const LoginPage = () => {
           Sign in to your account
         </Title>
         <Form layout="vertical" onFinish={handleSubmit}>
-          {/* <Form.Item
+          <Form.Item
             label="Business Type"
             name="businessType"
             className="text-gray-400 font-semibold"
@@ -85,7 +85,7 @@ const LoginPage = () => {
                 Audit Admin
               </Option>
             </Select>
-          </Form.Item> */}
+          </Form.Item>
           <Form.Item
             label={<span className=" font-semibold">User ID</span>}
             name="userID"

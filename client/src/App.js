@@ -33,7 +33,7 @@ function App() {
       </Route> */}
 
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/client-table" element={<ClientTable />} />
+        <Route path="/client-profile" element={<ClientTable />} />
         <Route path="/audit-plan" element={<AuditPlan />} />
         <Route path="/aggrement" element={<Agreement />} />
         <Route path="/enquiry" element={<Enquiry />} />
@@ -44,7 +44,7 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         <Route
-          path="/add-business"
+          path="/client-profile/add-business"
           element={
             <AdminDashboard>
               <AddClient newClientTitle={"New Client"}>

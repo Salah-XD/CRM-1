@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   UserOutlined,
   DashboardOutlined,
-  MailOutlined,
   MessageOutlined,
   FileTextOutlined,
-  CrownFilled,
   LogoutOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined,
@@ -16,18 +14,22 @@ import { Layout, Menu, ConfigProvider, Button } from "antd";
 import AdminHeader from "./AdminHeader";
 import "../css/AdminDashboard.css";
 import { useAuth } from "../Context/AuthContext.js";
+import Cookies from "js-cookie";
 
 const { Sider, Content } = Layout;
 
 const AdminDashboard = ({ children }) => {
-  const location = useLocation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(
     localStorage.getItem("sidebarCollapsed") === "true" || false
   );
   const [openKeys, setOpenKeys] = useState(
     JSON.parse(localStorage.getItem("sidebarOpenKeys")) || []
+  );
+  const [selectedKey, setSelectedKey] = useState(
+    Cookies.get("selectedKey") || location.pathname
   );
 
   const handleLogout = () => {
@@ -43,6 +45,33 @@ const AdminDashboard = ({ children }) => {
     localStorage.setItem("sidebarOpenKeys", JSON.stringify(openKeys));
   }, [openKeys]);
 
+  useEffect(() => {
+    const currentPath = location.pathname;
+    setSelectedKey(currentPath);
+    Cookies.set("selectedKey", currentPath, { expires: 7 });
+
+    // Check if the current path matches any of the parent keys or their children
+    const openKeys = menuItems.reduce((acc, item) => {
+      if (item.children) {
+        const isChildActive = item.children.some((subItem) =>
+          currentPath.startsWith(subItem.link)
+        );
+        if (isChildActive) {
+          acc.push(item.key);
+        }
+      } else if (currentPath.startsWith(item.link)) {
+        acc.push(item.key);
+      }
+      return acc;
+    }, []);
+    setOpenKeys(openKeys);
+  }, [location.pathname]);
+
+  const handleMenuItemClick = (key) => {
+    setSelectedKey(key);
+    Cookies.set("selectedKey", key, { expires: 7 });
+  };
+
   const onOpenChange = (keys) => {
     setOpenKeys(keys);
   };
@@ -55,22 +84,32 @@ const AdminDashboard = ({ children }) => {
       link: "/dashboard",
     },
     {
-      label: "Client Profiles",
-      key: "/client-table",
-      icon: <UserOutlined />,
-      link: "/client-table",
-    },
-    {
-      label: "Enquiry",
-      key: "/enquiry",
-      icon: <MailOutlined />,
-      link: "/enquiry",
+      label: "Customers",
+      key: "/customers",
+      icon: <MessageOutlined />,
+      children: [
+        {
+          label: "Web Enquiry (leads)",
+          key: "/web-enquiry",
+          link: "/web-enquiry",
+        },
+        {
+          label: "Client Profile",
+          key: "/client-profile",
+          link: "/client-profile",
+        },
+      ],
     },
     {
       label: "Accounts Management",
       key: "/accounts",
       icon: <MessageOutlined />,
       children: [
+        {
+          label: "Enquiry from customers",
+          key: "/enquiry-from-customers",
+          link: "/enquiry-from-customers",
+        },
         { label: "Proposal", key: "/proposal", link: "/proposal" },
         { label: "Invoice", key: "/invoice", link: "/invoice" },
         { label: "Audit Plan", key: "/audit-plan", link: "/audit-plan" },
@@ -97,15 +136,6 @@ const AdminDashboard = ({ children }) => {
       ],
     },
     {
-      label: "Targets Management",
-      key: "/targets",
-      icon: <DashboardOutlined />,
-      children: [
-        { label: "Fix targets", key: "/fix-targets", link: "/fix-targets" },
-        { label: "Leader board", key: "/leader-board", link: "/leader-board" },
-      ],
-    },
-    {
       label: "Settings",
       key: "/settings",
       icon: <SettingOutlined />,
@@ -124,7 +154,6 @@ const AdminDashboard = ({ children }) => {
       theme={{
         components: {
           Menu: {
-            itemSelectedBg: "white",
             colorItemTextSelected: "#16A7B9",
           },
         },
@@ -139,94 +168,98 @@ const AdminDashboard = ({ children }) => {
           collapsed={collapsed}
           onCollapse={setCollapsed}
           theme="light"
-          width={250} // Increased width
+          width={250}
           collapsedWidth={80}
           style={{
             overflow: "auto",
-            height: "calc(100vh - 64px)", // Assuming AdminHeader height is 64px
+            height: "calc(100vh - 64px)",
             position: "fixed",
             left: 0,
-            top: 64, // Adjusting for the height of the AdminHeader
-            bottom: 0,
+            top: 64,
+            bottom: 50,
             background: "white",
+            borderRight: "1px solid #e8e8e8",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: collapsed ? "center" : "flex-end",
-              padding: "10px",
-            }}
-          >
-            <Button
-              type="text"
-              onClick={() => setCollapsed(!collapsed)}
-              className="ant-layout-sider-trigger"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            />
-          </div>
-          {!collapsed && (
-            <div className="flex mt-4 ml-7 mb-4 admin-crown">
-              <div className="mr-2 text-4xl">
-                <UserOutlined />
-              </div>
-              <div>
-                <div className="text-600  text-lg font-semibold">
-                  {user?.name ? user.name : "Venkat"}
+          <div className="sider-menu">
+            <div className="sider-menu-content">
+              {!collapsed && (
+                <div className="flex ml-7 mt-4 mb-4 admin-crown">
+                  <div className="mr-2 text-4xl">
+                    <UserOutlined />
+                  </div>
+                  <div>
+                    <div className="text-600 text-lg font-semibold">
+                      {user?.name ? user.name : "Venkat"}
+                    </div>
+                    <div className="text-xs text-lightGrey">Super Admin</div>
+                  </div>
                 </div>
-
-                <div className="text-xs text-lightGrey">Super Admin</div>
-              </div>
-            </div>
-          )}
-          <Menu
-            mode="inline"
-            selectedKeys={[location.pathname]}
-            openKeys={openKeys}
-            onOpenChange={onOpenChange}
-            theme="light"
-            className="custom-menu"
-          >
-            {menuItems.map((item) =>
-              item.children ? (
-                <Menu.SubMenu
-                  key={item.key}
-                  icon={item.icon}
-                  title={item.label}
-                >
-                  {item.children.map((subItem) => (
-                    <Menu.Item key={subItem.key}>
+              )}
+              <Menu
+                mode="inline"
+                selectedKeys={[selectedKey]}
+                openKeys={openKeys}
+                onOpenChange={onOpenChange}
+                theme="light"
+                className="custom-menu"
+              >
+                {menuItems.map((item) =>
+                  item.children ? (
+                    <Menu.SubMenu
+                      key={item.key}
+                      icon={item.icon}
+                      title={item.label}
+                    >
+                      {item.children.map((subItem) => (
+                        <Menu.Item key={subItem.key}>
+                          <NavLink
+                            to={subItem.link}
+                            className="custom-menu-item"
+                            activeClassName="custom-selected"
+                            onClick={() => handleMenuItemClick(subItem.key)}
+                          >
+                            {subItem.label}
+                          </NavLink>
+                        </Menu.Item>
+                      ))}
+                    </Menu.SubMenu>
+                  ) : (
+                    <Menu.Item
+                      key={item.key}
+                      icon={item.icon}
+                      onClick={
+                        item.action
+                          ? item.action
+                          : () => handleMenuItemClick(item.key)
+                      }
+                    >
                       <NavLink
-                        to={subItem.link}
+                        to={item.link}
                         className="custom-menu-item"
                         activeClassName="custom-selected"
+                        onClick={() => handleMenuItemClick(item.key)}
                       >
-                        {subItem.label}
+                        {item.label}
                       </NavLink>
                     </Menu.Item>
-                  ))}
-                </Menu.SubMenu>
-              ) : (
-                <Menu.Item
-                  key={item.key}
-                  icon={item.icon}
-                  onClick={item.action}
-                >
-                  <NavLink
-                    to={item.link}
-                    className="custom-menu-item"
-                    activeClassName="custom-selected"
-                  >
-                    {item.label}
-                  </NavLink>
-                </Menu.Item>
-              )
-            )}
-          </Menu>
+                  )
+                )}
+              </Menu>
+            </div>
+            <div className="sider-menu-bottom">
+              <Button
+                type="text"
+                onClick={() => setCollapsed(!collapsed)}
+                className="ant-layout-sider-trigger"
+                icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              />
+            </div>
+          </div>
         </Sider>
         <Layout
           style={{
-            marginLeft: collapsed ? 80 : 250, // Adjusted margin for new width
+            marginLeft: collapsed ? 80 : 250,
             transition: "margin-left 0.2s",
             background: "#E6F7FF",
           }}
