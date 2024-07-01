@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Table,
   Radio,
@@ -10,6 +10,7 @@ import {
   Modal,
   Dropdown,
   Menu,
+  ConfigProvider,
 } from "antd";
 import {
   DeleteOutlined,
@@ -17,6 +18,7 @@ import {
   FilterOutlined,
   CloudDownloadOutlined,
   MoreOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
 import { useNavigate } from "react-router-dom";
@@ -26,86 +28,126 @@ import toast from "react-hot-toast";
 import SendMailModal from "./SendMail";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 const { confirm } = Modal;
-
 const { Search } = Input;
 
+// Debounce function definition
+const debounce = (func, delay) => {
+  let timeoutId;
+  return function (...args) {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      func.apply(this, args);
+    }, delay);
+  };
+};
+
 const ClientTable = () => {
-  const [selectedRows, setSelectedRows] = useState([]);
   const [flattenedTableData, setFlattenedTableData] = useState([]);
   const [sortData, setSortData] = useState("alllist");
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 4,
-    total: 0,
+  const [selectionType, setSelectionType] = useState("checkbox");
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [tableParams, setTableParams] = useState({
+    pagination: {
+      current: 1,
+      pageSize: 8, // Adjust page size as needed
+      total: 0, // Initial total count
+    },
   });
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState("");
   const navigate = useNavigate();
+
+  // Toggling
   const toggleModal = () => {
     setIsModalVisible(!isModalVisible);
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [pagination.current, sortData]);
-
-  const fetchData = () => {
+  // Fetch data function
+  const fetchData = useCallback(() => {
     setLoading(true);
+
+    // Construct the URL with the businessId included in the path
+    const url = "/getAllBussinesDetails";
+
     axios
-      .get(
-        `getAllBussinesDetails?page=${pagination.current}&pageSize=${pagination.pageSize}&sort=${sortData}`
-      )
+      .get(url, {
+        params: {
+          page: tableParams.pagination.current,
+          pageSize: tableParams.pagination.pageSize,
+          sort: `${sortData}`,
+          keyword: searchKeyword,
+        },
+      })
       .then((response) => {
-        const { businesses, totalPages, currentPage } = response.data;
-        setFlattenedTableData(businesses.flatMap((row) => row)); // Flatten the table data
-        setPagination((prevPagination) => ({
-          ...prevPagination,
-          current: currentPage,
-          total: totalPages *2,
+        const { data } = response;
+        const { data: responseData, total, currentPage } = data;
+
+        const flattenedData = responseData.map((row, index) => ({
+          ...row,
+          key: `${row._id}-${index}`, // Combine _id with index for a unique key
         }));
+        setFlattenedTableData(flattenedData);
+
+        setTableParams((prevState) => ({
+          ...prevState,
+          pagination: {
+            ...prevState.pagination,
+            total: total, // Set the total count from the server response
+            current: currentPage, // Update current page from response
+          },
+        }));
+
+        setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
-      })
-      .finally(() => {
         setLoading(false);
       });
-  };
+  }, [
+    tableParams.pagination.current,
+    tableParams.pagination.pageSize,
+    sortData,
+    searchKeyword,
+  ]);
 
-  const handlePageChange = (page, pageSize) => {
-    setPagination((prevPagination) => ({
-      ...prevPagination,
-      current: page,
-      pageSize: pageSize,
-    }));
-  };
+  // Fetch data with debounce
+  const fetchDataWithDebounce = useCallback(
+    debounce(() => {
+      fetchData();
+    }, 500),
+    [fetchData]
+  );
 
-  const onSearch = (value) => console.log(value);
+  // Fetch initial data on component mount
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
-  const handleRowSelect = (selectedRowId) => {
-    let updatedSelectedRows;
-
-    if (selectedRowId === "all") {
-      // If "all" is selected, select all rows
-      updatedSelectedRows = flattenedTableData.map((item) => item._id);
-    } else if (selectedRowId === null) {
-      // If selectedRowId is null, remove all IDs
-      updatedSelectedRows = [];
-    } else if (selectedRows.includes(selectedRowId)) {
-      // If the row is already selected, remove it from selectedRows
-      updatedSelectedRows = selectedRows.filter((id) => id !== selectedRowId);
-    } else {
-      // If the row is not selected, add it to selectedRows
-      updatedSelectedRows = [...selectedRows, selectedRowId];
+  // Pagination
+  const handleTableChange = (pagination, filters, sorter) => {
+    setTableParams({
+      pagination,
+      filters,
+      ...sorter,
+    });
+    if (pagination.pageSize !== tableParams.pagination.pageSize) {
+      setFlattenedTableData([]);
     }
-
-    setSelectedRows(updatedSelectedRows);
-    console.log(updatedSelectedRows);
   };
 
-  console.log("Pagination:", pagination.total);
-  console.log("Flattened Table Data:", flattenedTableData);
+  // Row Selection
+  const rowSelection = {
+    onChange: (selectedRowKeys, selectedRows) => {
+      setSelectedRowKeys(selectedRowKeys);
+      setSelectedRows(selectedRows);
+    },
+  };
 
+  // Show confirm Delete
   const showDeleteConfirm = () => {
     confirm({
       title: "Are you sure delete?",
@@ -117,8 +159,8 @@ const ClientTable = () => {
         axios
           .delete("deleteSelectedFields", { data: selectedRows })
           .then((response) => {
-            fetchData(); // Fetch updated data after deletion
-            setSelectedRows([]); // Clear selected rows
+            fetchData();
+            setSelectedRows([]);
             toast.success("Successfully Deleted");
           })
           .catch((error) => {
@@ -131,23 +173,18 @@ const ClientTable = () => {
     });
   };
 
-  const handelDelete = () => {
-    if (!selectedRows) {
-      toast.error("Please Select Rows tod delete");
-    }
-  };
-
+  // Handle Menu
   const handleMenuClick = (record, { key }) => {
     switch (key) {
       case "view":
-        navigate(`/update-client/id/${record._id}`);
+        navigate(`/client-profile/update-client/id/${record._id}`);
         break;
       case "add":
         // Navigate to add outlet page or handle add outlet action
         console.log(`Add Outlet for ${record._id}`);
         break;
       case "form-link":
-        const formLink = `${window.location.origin}/update-client-form/id/${record._id}`;
+        const formLink = `${window.location.origin}/client-profile/update-client-form/id/${record._id}`;
         navigator.clipboard
           .writeText(formLink)
           .then(() => {
@@ -170,100 +207,77 @@ const ClientTable = () => {
     </Menu>
   );
 
+  // Handle search on key press
+  const handleKeyDown = (event) => {
+    const { key } = event;
 
-  
+    if (/^[a-z]$/i.test(key)) {
+      setSearchKeyword((prevKeyword) => prevKeyword + key);
+      fetchDataWithDebounce();
+    } else if (key === "Backspace") {
+      setSearchKeyword((prevKeyword) =>
+        prevKeyword.slice(0, prevKeyword.length - 1)
+      );
+      fetchDataWithDebounce();
+    }
+  };
+
+
+  // Keyboard event listener
+   useEffect(() => {
+     document.addEventListener("keydown", handleKeyDown);
+
+     return () => {
+       document.removeEventListener("keydown", handleKeyDown);
+     };
+   }, [fetchDataWithDebounce]);
 
   const columns = [
     {
-      title: (
-        <Checkbox
-          onChange={(e) => handleRowSelect(e.target.checked ? "all" : null)}
-        />
-      ),
-      render: (_, record) => (
-        <Checkbox
-          onChange={(e) => handleRowSelect(record._id)}
-          checked={selectedRows.includes(record._id)}
-        />
-      ),
-    },
-    {
-      title: (
-        <span className="text-gray-600 font-semibold text-gray-700">
-          Business Name
-        </span>
-      ),
+      title: "FBO Name",
       dataIndex: "name",
       key: "name",
-      render: (text) => <span className="text-gray-700">{text}</span>,
     },
     {
-      title: (
-        <span className="text-gray-600 font-semibold text-gray-700">
-          Contact Person
-        </span>
-      ),
+      title: "Contact Number",
       dataIndex: "contact_person",
       key: "contact_person",
-      render: (text) => <span className="text-gray-700">{text}</span>,
     },
     {
-      title: (
-        <span className="text-gray-600 font-semibold text-gray-700">
-          Phone Number
-        </span>
-      ),
+      title: "Phone Number",
       dataIndex: "phone",
       key: "phone",
-      render: (text) => <span className="text-gray-700">{text}</span>,
     },
     {
-      title: (
-        <span className="text-gray-600 font-semibold text-gray-700">
-          Mail ID
-        </span>
-      ),
+      title: "Mail ID",
       dataIndex: "email",
       key: "email",
-      render: (text) => <span className="text-gray-700">{text}</span>,
     },
     {
-      title: (
-        <span className="text-gray-600 font-semibold text-gray-700">
-          Outlet
-        </span>
-      ),
+      title: "Outlet",
       dataIndex: "outletCount",
       key: "outletCount",
-      render: (text) => <span className="text-gray-700">{text}</span>,
     },
     {
-      title: (
-        <span className="text-gray-600 font-semibold text-gray-700">
-          Added By
-        </span>
-      ),
+      title: "Added By",
       dataIndex: "added_by",
       key: "added_by",
       render: (addedBy) => {
-        let color =
-          addedBy === "Manual"
-            ? "volcano"
-            : addedBy === "Web Enquiry"
-            ? "geekblue"
-            : "green";
+        let color;
+        if (addedBy === "Manual") {
+          color = "volcano";
+        } else if (addedBy === "Web Enquiry") {
+          color = "green";
+        } else {
+          color = "geekblue"; // Default color
+        }
         return <Tag color={color}>{addedBy.toUpperCase()}</Tag>;
       },
     },
     {
-      title: (
-        <span className="text-gray-600 font-semibold text-gray-700">
-          Created On
-        </span>
-      ),
+      title: "Created On",
       dataIndex: "created_at",
       key: "created_at",
-      render: (text) => <span className="text-primary underline">{text}</span>,
     },
     {
       title: "Action",
@@ -278,7 +292,7 @@ const ClientTable = () => {
 
   return (
     <AdminDashboard>
-      <div className="bg-lightBlue m-6">
+      <div className="bg-blue-50 m-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Client List</h2>
           <div className="space-x-2">
@@ -286,25 +300,20 @@ const ClientTable = () => {
               <Button
                 onClick={showDeleteConfirm}
                 icon={<DeleteOutlined />}
-                type="text"
+                disabled={selectedRowKeys.length === 0}
               >
-                <span className="text-gray-600 font-semibold"> Delete</span>
+                Delete
               </Button>
             </Space>
-            <Button
-              type="text"
-              shape="round"
-              icon={<FilterOutlined />}
-              size="default"
-            >
-              <span className="text-gray-600 font-semibold">Filters</span>
+            <Button shape="round" icon={<FilterOutlined />} size="default">
+              Filters
             </Button>
             <Button
               shape="round"
               icon={<CloudDownloadOutlined />}
               size="default"
             >
-              <span className="text-gray-600 font-semibold">Export</span>
+              Export
             </Button>
             <NavLink to="/client-profile/add-business">
               <Button
@@ -318,11 +327,11 @@ const ClientTable = () => {
             </NavLink>
 
             <Button
-              onClick={toggleModal}
               type="primary"
               shape="round"
               icon={<PlusOutlined />}
               size="default"
+              onClick={toggleModal}
             >
               Send Form Link
             </Button>
@@ -330,45 +339,87 @@ const ClientTable = () => {
         </div>
 
         <div className="flex justify-between my-4">
-          <Radio.Group
-            value={sortData}
-            onChange={(e) => setSortData(e.target.value)}
+          <ConfigProvider
+            theme={{
+              components: {
+                Radio: {
+                  buttonBorderWidth: 0, // Remove border
+                },
+              },
+            }}
           >
-            <Radio.Button
-              value="alllist"
-              className={`${
-                sortData === "alllist" ? "bg-gray-300" : ""
-              } text-gray-600 font-semibold`}
+            <Radio.Group
+              value={sortData}
+              onChange={(e) => setSortData(e.target.value)}
             >
-              All List
-            </Radio.Button>
-            <Radio.Button
-              value="newlyadded"
-              className={`${
-                sortData === "newlyadded" ? "bg-gray-300" : ""
-              } text-gray-600 font-semibold`}
-            >
-              Newly Added
-            </Radio.Button>
-          </Radio.Group>
-
+              <Radio.Button
+                value="alllist"
+                style={{
+                  backgroundColor:
+                    sortData === "alllist" ? "transparent" : "white",
+                  color: sortData === "alllist" ? "black" : "black",
+                  padding: "0 16px",
+                  height: "32px",
+                  lineHeight: "30px",
+                  border: "1px solid #d3d3d3",
+                }}
+              >
+                All List
+              </Radio.Button>
+              <Radio.Button
+                value="newlyadded"
+                style={{
+                  backgroundColor:
+                    sortData === "newlyadded" ? "transparent" : "white",
+                  color: sortData === "newlyadded" ? "black" : "black",
+                  padding: "0 16px",
+                  height: "32px",
+                  lineHeight: "30px",
+                  border: "1px solid #d3d3d3",
+                }}
+              >
+                Newly Added
+              </Radio.Button>
+            </Radio.Group>
+          </ConfigProvider>
           <div className="space-x-2">
-            <Search placeholder="Search" onSearch={onSearch} enterButton />
+            <Input
+              size="default"
+              placeholder="Search"
+              prefix={<SearchOutlined />}
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+            />
           </div>
         </div>
 
         <div>
-          <Table
-            loading={loading}
-            columns={columns}
-            dataSource={flattenedTableData}
-            pagination={{
-              current: pagination.current,
-              pageSize: pagination.pageSize,
-              total: pagination.total,
-              onChange: handlePageChange,
+          <ConfigProvider
+            theme={{
+              token: {
+                colorTextHeading: "#4A5568", // Darker grey color for titles
+                colorText: "#4A5568", // Darker grey color for general text
+              },
+              components: {
+                Table: {
+                  colorText: "#4A5568", // Darker grey color for table text
+                },
+              },
             }}
-          />
+          >
+            <Table
+              rowSelection={{
+                type: selectionType,
+                ...rowSelection,
+              }}
+              columns={columns}
+              dataSource={flattenedTableData}
+              rowKey={(record) => record.key}
+              pagination={tableParams.pagination}
+              loading={loading}
+              onChange={handleTableChange}
+            />
+          </ConfigProvider>
         </div>
       </div>
       <SendMailModal visible={isModalVisible} onCancel={toggleModal} />

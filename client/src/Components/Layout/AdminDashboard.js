@@ -264,7 +264,7 @@ const AdminDashboard = ({ children }) => {
             background: "#E6F7FF",
           }}
         >
-          <Content style={{ background: "#E6F7FF" }}>{children}</Content>
+          <Content className="bg-blue-50">{children}</Content>
         </Layout>
       </Layout>
     </ConfigProvider>

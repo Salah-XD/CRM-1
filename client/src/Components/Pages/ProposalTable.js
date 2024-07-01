@@ -1,245 +1,107 @@
 import React, { useState, useEffect } from "react";
-import {
-  Table,
-  Radio,
-  Button,
-  Input,
-  Checkbox,
-  Tag,
-  Space,
-  Modal,
-  Dropdown,
-  Menu,
-} from "antd";
-import {
-  DeleteOutlined,
-  PlusOutlined,
-  FilterOutlined,
-  CloudDownloadOutlined,
-  MoreOutlined,
-} from "@ant-design/icons";
-import AdminDashboard from "../Layout/AdminDashboard";
-import { useNavigate } from "react-router-dom";
+import { Table,Tag } from "antd";
 import axios from "axios";
-import { NavLink } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
-import { ExclamationCircleFilled } from "@ant-design/icons";
-import AddProposal from "./AddProposal";
-const { confirm } = Modal;
 
-const { Search } = Input;
-
-const ProposalTable = () => {
-  const [selectedRows, setSelectedRows] = useState([]);
-  const [flattenedTableData, setFlattenedTableData] = useState([]);
-  const [sortData, setSortData] = useState("alllist");
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 4,
-    total: 0,
-  });
+function ProposalTable() {
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [flattenedTableData, setFlattenedTableData] = useState([]);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [selectedRows, setSelectedRows] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const toggleModal = () => {
-    setIsModalVisible(!isModalVisible);
-  };
+  const location = useLocation();
+  const [selectionType, setSelectionType] = useState("checkbox");
+  const [tableParams, setTableParams] = useState({
+    pagination: {
+      current: 1,
+      pageSize: 2, // Adjust page size as needed
+      total: 1, // Initial total count
+    },
+  });
 
   useEffect(() => {
     fetchData();
-  }, [pagination.current, sortData]);
+  }, [tableParams.pagination.current, tableParams.pagination.pageSize]);
 
   const fetchData = () => {
     setLoading(true);
+
+    // Construct the URL with the businessId included in the path
+    const url = "/getAllBussinesDetails";
+
     axios
-      .get(
-        `getAllBussinesDetails?page=${pagination.current}&pageSize=${pagination.pageSize}&sort=${sortData}`
-      )
+      .get(url, {
+        params: {
+          page: tableParams.pagination.current,
+          pageSize: tableParams.pagination.pageSize,
+          sort: "alllist",
+        },
+      })
       .then((response) => {
-        const { businesses, totalPages, currentPage } = response.data;
-        setFlattenedTableData(businesses.flatMap((row) => row)); // Flatten the table data
-        setPagination((prevPagination) => ({
-          ...prevPagination,
-          current: currentPage,
-          total: totalPages * 2,
+        const { data } = response;
+        const { data: responseData, total, currentPage } = data;
+
+        const flattenedData = responseData.map((row, index) => ({
+          ...row,
+          key: `${row._id}-${index}`, // Combine _id with index for a unique key
         }));
+        setFlattenedTableData(flattenedData);
+
+        setTableParams((prevState) => ({
+          ...prevState,
+          pagination: {
+            ...prevState.pagination,
+            total: total, // Set the total count from the server response
+            current: currentPage, // Update current page from response
+          },
+        }));
+
+        setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
-      })
-      .finally(() => {
         setLoading(false);
       });
   };
 
-  const handlePageChange = (page, pageSize) => {
-    setPagination((prevPagination) => ({
-      ...prevPagination,
-      current: page,
-      pageSize: pageSize,
-    }));
-  };
-
-  const onSearch = (value) => console.log(value);
-
-  const handleRowSelect = (selectedRowId) => {
-    let updatedSelectedRows;
-
-    if (selectedRowId === "all") {
-      // If "all" is selected, select all rows
-      updatedSelectedRows = flattenedTableData.map((item) => item._id);
-    } else if (selectedRowId === null) {
-      // If selectedRowId is null, remove all IDs
-      updatedSelectedRows = [];
-    } else if (selectedRows.includes(selectedRowId)) {
-      // If the row is already selected, remove it from selectedRows
-      updatedSelectedRows = selectedRows.filter((id) => id !== selectedRowId);
-    } else {
-      // If the row is not selected, add it to selectedRows
-      updatedSelectedRows = [...selectedRows, selectedRowId];
-    }
-
-    setSelectedRows(updatedSelectedRows);
-    console.log(updatedSelectedRows);
-  };
-
-  console.log("Pagination:", pagination.total);
-  console.log("Flattened Table Data:", flattenedTableData);
-
-  const showDeleteConfirm = () => {
-    confirm({
-      title: "Are you sure delete?",
-      icon: <ExclamationCircleFilled />,
-      okText: "Yes",
-      okType: "danger",
-      cancelText: "No",
-      onOk() {
-        axios
-          .delete("deleteSelectedFields", { data: selectedRows })
-          .then((response) => {
-            fetchData(); // Fetch updated data after deletion
-            setSelectedRows([]); // Clear selected rows
-            toast.success("Successfully Deleted");
-          })
-          .catch((error) => {
-            console.error("Error deleting rows:", error);
-          });
-      },
-      onCancel() {
-        console.log("Cancel");
-      },
+  const handleTableChange = (pagination, filters, sorter) => {
+    setTableParams({
+      pagination,
+      filters,
+      ...sorter,
     });
-  };
 
-  const handelDelete = () => {
-    if (!selectedRows) {
-      toast.error("Please Select Rows tod delete");
+    // `dataSource` is useless since `pageSize` changed
+    if (pagination.pageSize !== tableParams.pagination.pageSize) {
+      setFlattenedTableData([]);
     }
   };
-
-  const handleMenuClick = (record, { key }) => {
-    switch (key) {
-      case "view":
-        navigate(`/update-client/id/${record._id}`);
-        break;
-      case "add":
-        // Navigate to add outlet page or handle add outlet action
-        console.log(`Add Outlet for ${record._id}`);
-        break;
-      case "form-link":
-        const formLink = `${window.location.origin}/update-client-form/id/${record._id}`;
-        navigator.clipboard
-          .writeText(formLink)
-          .then(() => {
-            toast.success("Form link copied to clipboard");
-          })
-          .catch((err) => {
-            toast.error("Failed to copy form link");
-            console.error("Error copying form link:", err);
-          });
-        break;
-      default:
-        break;
-    }
-  };
-
-  const menu = (record) => (
-    <Menu onClick={(e) => handleMenuClick(record, e)}>
-      <Menu.Item key="view">View/Update</Menu.Item>
-      <Menu.Item key="form-link">Copy Form Link</Menu.Item>
-    </Menu>
-  );
 
   const columns = [
     {
-      title: (
-        <Checkbox
-          onChange={(e) => handleRowSelect(e.target.checked ? "all" : null)}
-        />
-      ),
-      render: (_, record) => (
-        <Checkbox
-          onChange={(e) => handleRowSelect(record._id)}
-          checked={selectedRows.includes(record._id)}
-        />
-      ),
-    },
-    {
-      title: (
-        <span className="text-gray-600 font-semibold text-gray-700">
-          Business Name
-        </span>
-      ),
+      title: "FBO name",
       dataIndex: "name",
       key: "name",
-      render: (text) => <span className="text-gray-700">{text}</span>,
     },
     {
-      title: (
-        <span className="text-gray-600 font-semibold text-gray-700">
-          Contact Person
-        </span>
-      ),
-      dataIndex: "contact_person",
-      key: "contact_person",
-      render: (text) => <span className="text-gray-700">{text}</span>,
+      title: "Date Created",
+      dataIndex: "created_at",
+      key: "created_at",
     },
     {
-      title: (
-        <span className="text-gray-600 font-semibold text-gray-700">
-          Phone Number
-        </span>
-      ),
-      dataIndex: "phone",
-      key: "phone",
-      render: (text) => <span className="text-gray-700">{text}</span>,
-    },
-    {
-      title: (
-        <span className="text-gray-600 font-semibold text-gray-700">
-          Mail ID
-        </span>
-      ),
-      dataIndex: "email",
-      key: "email",
-      render: (text) => <span className="text-gray-700">{text}</span>,
-    },
-    {
-      title: (
-        <span className="text-gray-600 font-semibold text-gray-700">
-          Outlet
-        </span>
-      ),
+      title: "Total No. of Outlets",
       dataIndex: "outletCount",
       key: "outletCount",
-      render: (text) => <span className="text-gray-700">{text}</span>,
     },
     {
-      title: (
-        <span className="text-gray-600 font-semibold text-gray-700">
-          Added By
-        </span>
-      ),
+      title: "No of Outlets Invoiced",
+      dataIndex: "outlet_invoiced",
+      key: "outlet_invoiced",
+    },
+    {
+      title: "Created by",
       dataIndex: "added_by",
       key: "added_by",
       render: (addedBy) => {
@@ -251,116 +113,38 @@ const ProposalTable = () => {
             : "green";
         return <Tag color={color}>{addedBy.toUpperCase()}</Tag>;
       },
+
     },
     {
-      title: (
-        <span className="text-gray-600 font-semibold text-gray-700">
-          Created On
-        </span>
-      ),
-      dataIndex: "created_at",
-      key: "created_at",
-      render: (text) => <span className="text-primary underline">{text}</span>,
-    },
-    {
-      title: "Action",
-      key: "action",
-      render: (_, record) => (
-        <Dropdown overlay={menu(record)} trigger={["click"]}>
-          <Button type="link" icon={<MoreOutlined />} />
-        </Dropdown>
-      ),
+      title: "Status",
+      dataIndex: "proposal_status",
+      key: "proposal_status",
     },
   ];
 
+  const rowSelection = {
+    onChange: (selectedRowKeys, selectedRows) => {
+      setSelectedRowKeys(selectedRowKeys);
+      setSelectedRows(selectedRows);
+    },
+  };
+
   return (
-    <AdminDashboard>
-      <div className="bg-white m-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Proposals</h2>
-          <div className="space-x-2">
-            <Space wrap>
-              <Button
-                onClick={showDeleteConfirm}
-                icon={<DeleteOutlined />}
-                type="text"
-              >
-                <span className="text-gray-600 font-semibold"> Delete</span>
-              </Button>
-            </Space>
-            <Button
-              type="text"
-              shape="round"
-              icon={<FilterOutlined />}
-              size="default"
-            >
-              <span className="text-gray-600 font-semibold">Filters</span>
-            </Button>
-            <Button
-              shape="round"
-              icon={<CloudDownloadOutlined />}
-              size="default"
-            >
-              <span className="text-gray-600 font-semibold">Export</span>
-            </Button>
-
-            <Button
-              onClick={toggleModal}
-              type="primary"
-              shape="round"
-              icon={<PlusOutlined />}
-              size="default"
-            >
-              Add Proposals
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex justify-between my-4">
-          <Radio.Group
-            value={sortData}
-            onChange={(e) => setSortData(e.target.value)}
-          >
-            <Radio.Button
-              value="alllist"
-              className={`${
-                sortData === "alllist" ? "bg-gray-300" : ""
-              } text-gray-600 font-semibold`}
-            >
-              All List
-            </Radio.Button>
-            <Radio.Button
-              value="newlyadded"
-              className={`${
-                sortData === "newlyadded" ? "bg-gray-300" : ""
-              } text-gray-600 font-semibold`}
-            >
-              Newly Added
-            </Radio.Button>
-          </Radio.Group>
-
-          <div className="space-x-2">
-            <Search placeholder="Search" onSearch={onSearch} enterButton />
-          </div>
-        </div>
-
-        <div>
-          <Table
-            loading={loading}
-            columns={columns}
-            dataSource={flattenedTableData}
-            pagination={{
-              current: pagination.current,
-              pageSize: pagination.pageSize,
-              total: pagination.total,
-              onChange: handlePageChange,
-            }}
-          />
-        </div>
-      </div>
-      <AddProposal visible={isModalVisible} onCancel={toggleModal} />
-    </AdminDashboard>
+    <div>
+      <Table
+        rowSelection={{
+          type: selectionType,
+          ...rowSelection,
+        }}
+        columns={columns}
+        dataSource={flattenedTableData}
+        rowKey={(record) => record.key}
+        pagination={tableParams.pagination}
+        loading={loading}
+        onChange={handleTableChange}
+      />
+    </div>
   );
-};
+}
 
 export default ProposalTable;

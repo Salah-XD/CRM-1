@@ -55,7 +55,7 @@ function App() {
         />
 
         <Route
-          path="/update-client/formId/:formId"
+          path="client-profile/update-client/formId/:formId"
           element={
             <>
               <AdminHeader />
@@ -66,7 +66,7 @@ function App() {
         />
 
         <Route
-          path="/update-client-form/id/:id"
+          path="client-profile/update-client-form/id/:id"
           element={
             <>
               <AdminHeader />
@@ -76,7 +76,7 @@ function App() {
         />
 
         <Route
-          path="/update-client/id/:id"
+          path="client-profile/update-client/id/:id"
           element={
             <AdminDashboard>
               <UpdateClient newClientTitle="View Client" />
@@ -92,7 +92,7 @@ function App() {
           }
         />
         <Route
-          path="/add-outlet"
+          path="/client-profile/add-outlet"
           element={
             <AdminDashboard>
               <OutletDetail />

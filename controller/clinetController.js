@@ -1,7 +1,7 @@
+import moment from "moment";
 import Business from "../models/bussinessModel.js";
 import Outlet from "../models/outletModel.js";
 import PrivateCompany from "../models/privateModel.js";
-import moment from "moment";
 import nodemailer from "nodemailer";
 import mongoose from "mongoose";
 
@@ -383,10 +383,11 @@ export const getBusinesses = async (req, res) => {
   }
 };
 
-//Fetch bussiness detail to show in table
+
+
 export const getAllBusinessDetails = async (req, res) => {
   try {
-    const { page, pageSize, sort } = req.query;
+    const { page, pageSize, sort, keyword } = req.query;
 
     // Convert page and pageSize to integers
     const pageNumber = parseInt(page);
@@ -404,7 +405,19 @@ export const getAllBusinessDetails = async (req, res) => {
         .json({ message: "Invalid page or pageSize parameter" });
     }
 
+    // Base query
     let query = Business.find({});
+
+    // Apply search keyword if provided
+    if (keyword) {
+      const searchRegex = new RegExp(keyword, "i"); // Case-insensitive regex
+      query = query.or([
+        { name: searchRegex },
+        { contact_person: searchRegex },
+        { phone: searchRegex },
+        { email: searchRegex },
+      ]);
+    }
 
     // Apply sorting based on the 'sort' parameter
     if (sort === "newlyadded") {
@@ -412,7 +425,7 @@ export const getAllBusinessDetails = async (req, res) => {
     }
 
     // Count total number of businesses
-    const totalBusinesses = await Business.countDocuments();
+    const totalBusinesses = await Business.countDocuments(query.getQuery());
 
     // Retrieve businesses with pagination
     const businesses = await query
@@ -443,15 +456,16 @@ export const getAllBusinessDetails = async (req, res) => {
     });
 
     res.json({
-      totalPages: Math.ceil(totalBusinesses / sizePerPage),
+      total: totalBusinesses, // Total number of businesses
       currentPage: pageNumber,
-      businesses: businessesWithCountsAndFormattedDate,
+      data: businessesWithCountsAndFormattedDate,
     });
   } catch (error) {
     console.error("Error fetching businesses:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 export const countOutletsForBusinesses = async (req, res) => {
   try {
