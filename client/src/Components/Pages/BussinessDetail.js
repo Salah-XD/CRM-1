@@ -22,6 +22,10 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
       ? "m-6 p-4   w-3/4 mx-auto"
       : "ml-6  ";
 
+
+ 
+const baseDivClass = location.pathname === "/client-onboarding" ? "ml-16" : "margin";
+
   return (
     <div className="w-full">
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
@@ -217,7 +221,8 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
           </div>
         </div>
 
-        <div className="sticky bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">
+        <div className="sticky bottom-0  z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">
+          <div className={baseDivClass}>
           <Form.Item>
             <NavLink to="/client-profile">
               <Button className="border-primary text-border-2 font-semibold">
@@ -233,6 +238,7 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
               Save
             </Button>
           </Form.Item>
+          </div>
         </div>
       </Form>
     </div>

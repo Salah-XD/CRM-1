@@ -11,6 +11,7 @@ import { NavLink } from "react-router-dom";
 import OutletForm from "./OutletForm";
 import toast from "react-hot-toast";
 
+
 const { confirm } = Modal;
 
 const OutletDetail = ({ businessId }) => {
@@ -183,70 +184,77 @@ const OutletDetail = ({ businessId }) => {
     });
   };
 
+  const container = location.pathname === "/client-onboarding" ? "w-3/4 mx-auto " : " ";
+
+   const bottomButton =
+     location.pathname === "/client-onboarding" ? "ml-16 " : " ";
   return (
-    <div>
-      <div className="flex justify-between items-center m-6">
-        <h2 className="text-lg font-semibold">Outlet List</h2>
-        <div className="space-x-2">
-          <Space wrap>
+    <>
+      <div className={container}>
+        <div className="flex justify-between items-center m-6">
+          <h2 className="text-lg font-semibold">Outlet List</h2>
+          <div className="space-x-2">
+            <Space wrap>
+              <Button
+                onClick={showDeleteConfirm}
+                icon={<DeleteOutlined />}
+                disabled={selectedRowKeys.length === 0}
+                shape="round"
+              >
+                Delete
+              </Button>
+            </Space>
             <Button
-              onClick={showDeleteConfirm}
-              icon={<DeleteOutlined />}
-              isabled={selectedRowKeys.length === 0}
+              type="primary"
               shape="round"
+              icon={<PlusOutlined />}
+              onClick={showModal}
             >
-              Delete
+              Add Outlet
             </Button>
-          </Space>
+          </div>
+        </div>
+        <div className="m-6">
+          <Table
+            rowSelection={{
+              type: selectionType,
+              ...rowSelection,
+            }}
+            columns={columns}
+            dataSource={flattenedTableData}
+            rowKey={(record) => record.key}
+            pagination={tableParams.pagination}
+            loading={loading}
+            onChange={handleTableChange}
+          />
+        </div>
+
+        <OutletForm
+          businessId={businessId}
+          isModalVisible={isModalVisible}
+          handleOk={handleOk}
+          handleCancel={handleCancel}
+          model={{ businessId }} // Pass businessId as prop to OutletForm through model prop
+        />
+      </div>
+      <div className="fixed bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">
+        <div className={bottomButton}>
+          <NavLink to="/client-profile">
+            <Button className="border-primary  text- border-2 font-semibold">
+              Cancel
+            </Button>
+          </NavLink>
           <Button
             type="primary"
-            shape="round"
-            icon={<PlusOutlined />}
-            onClick={showModal}
+            className="ml-6"
+            htmlType="submit"
+            onClick={handleSubmit}
           >
-            Add Outlet
+            Submit
           </Button>
         </div>
       </div>
-      <div className="m-6">
-        dele
-        <Table
-          rowSelection={{
-            type: selectionType,
-            ...rowSelection,
-          }}
-          columns={columns}
-          dataSource={flattenedTableData}
-          rowKey={(record) => record.key}
-          pagination={tableParams.pagination}
-          loading={loading}
-          onChange={handleTableChange}
-        />
-      </div>
-
-      <OutletForm
-        businessId={businessId}
-        isModalVisible={isModalVisible}
-        handleOk={handleOk}
-        handleCancel={handleCancel}
-        model={{ businessId }} // Pass businessId as prop to OutletForm through model prop
-      />
-      <div className="fixed bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">
-        <NavLink to="/">
-          <Button className="border-primary  text- border-2 font-semibold">
-            Cancel
-          </Button>
-        </NavLink>
-        <Button
-          type="primary"
-          className="ml-6"
-          htmlType="submit"
-          onClick={handleSubmit}
-        >
-          Submit
-        </Button>
-      </div>
-    </div>
+    </>
   );
 };
 

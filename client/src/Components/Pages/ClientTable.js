@@ -164,7 +164,23 @@ const ClientTable = () => {
         axios
           .delete("deleteSelectedFields", { data: selectedRows })
           .then((response) => {
-            fetchData();
+            const currentPage = tableParams.pagination.current;
+            const pageSize = tableParams.pagination.pageSize;
+            const newTotal = tableParams.pagination.total - selectedRows.length;
+            const newCurrentPage = Math.min(
+              currentPage,
+              Math.ceil(newTotal / pageSize)
+            );
+
+            setTableParams((prevState) => ({
+              ...prevState,
+              pagination: {
+                ...prevState.pagination,
+                total: newTotal,
+                current: newCurrentPage,
+              },
+            }));
+
             setSelectedRows([]);
             toast.success("Successfully Deleted");
           })
