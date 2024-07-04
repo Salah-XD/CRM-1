@@ -182,6 +182,7 @@ const ClientTable = () => {
             }));
 
             setSelectedRows([]);
+           // fetchData();
             toast.success("Successfully Deleted");
           })
           .catch((error) => {

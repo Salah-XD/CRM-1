@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Form, Input, Button, message, Spin } from "antd";
+import { Modal, Form, Input, Button, message, Spin, Select } from "antd";
 import axios from "axios";
 import "../css/outletForm.css"; // Import the custom CSS
+
+const { Option } = Select;
 
 const UpdateOutletForm = ({
   isModalVisible,
@@ -180,39 +182,78 @@ const UpdateOutletForm = ({
               </label>
             </div>
           </Form.Item>
+          <Form.Item
+            label={
+              <span className="text-gray-600 font-semibold">
+                Contact Number
+              </span>
+            }
+            name="contact_number"
+          >
+            <Input
+              placeholder="Enter  contact number"
+              className="placeholder-gray-400 p-3 rounded-lg w-full"
+              disabled={isDisabled("primary_contact_number") || !isEditMode}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="Vertical_of_industry"
+            label={
+              <span className="text-gray-600 font-semibold">
+                Vertical of Industry
+              </span>
+            }
+          >
+            <Select
+              placeholder="Select Industry Vertical"
+              size={"large"}
+              disabled={isDisabled("no_of_food_handlers") || !isEditMode}
+            >
+              <Option value="Star hotel">Star hotel</Option>
+              <Option value="Ethnic restaurant">Ethnic restaurant</Option>
+              <Option value="QSR">QSR</Option>
+              <Option value="Industrial catering">Industrial catering</Option>
+              <Option value="Meat Retail">Meat Retail</Option>
+              <Option value="Sweet Retail">Sweet Retail</Option>
+              <Option value="Bakery">Bakery</Option>
+              <Option value="Others">Others</Option>
+            </Select>
+          </Form.Item>
 
           <Form.Item
             label={
               <span className="text-gray-600 font-semibold">
-                Outlet Owned By
+                No. of food handlers
               </span>
             }
-            name="name"
-            rules={[
-              {
-                required: !isDisabled("name"),
-                message: "Please enter owner's name",
-              },
-            ]}
+            name="no_of_food_handlers"
           >
             <Input
-              placeholder="Franchiser’s GST Registered Name"
+              placeholder="Enter number of food handlers"
               className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={isDisabled("name") || !isEditMode}
+              disabled={isDisabled("no_of_food_handlers") || !isEditMode}
             />
           </Form.Item>
-
+          <Form.Item
+            label={
+              <span className="text-gray-600 font-semibold">
+                FSSAI License Number
+              </span>
+            }
+            name="fssai_license_number"
+          >
+            <Input
+              placeholder="Enter FSSAI License"
+              className="placeholder-gray-400 p-3 rounded-lg w-full"
+              disabled={isDisabled("fssai_license_number") || !isEditMode}
+            />
+          </Form.Item>
           <Form.Item
             label={
               <span className="text-gray-600 font-semibold">GST Number</span>
             }
             name="gst_number"
-            rules={[
-              {
-                required: !isDisabled("gst_number"),
-                message: "Please enter GST number",
-              },
-            ]}
           >
             <Input
               placeholder="Enter GST number"
@@ -220,117 +261,6 @@ const UpdateOutletForm = ({
               disabled={isDisabled("gst_number") || !isEditMode}
             />
           </Form.Item>
-
-          <Form.Item
-            label={
-              <span className="text-gray-600 font-semibold">
-                Primary Contact Number
-              </span>
-            }
-            name="primary_contact_number"
-            rules={[
-              {
-                required: !isDisabled("primary_contact_number"),
-                message: "Please enter primary contact number",
-              },
-            ]}
-          >
-            <Input
-              placeholder="Enter primary contact number"
-              className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={isDisabled("primary_contact_number") || !isEditMode}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label={<span className="text-gray-600 font-semibold">Email</span>}
-            name="email"
-            rules={[
-              { required: !isDisabled("email"), message: "Please enter email" },
-              { type: "email", message: "Please enter a valid email" },
-            ]}
-          >
-            <Input
-              placeholder="Enter email"
-              className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={isDisabled("email") || !isEditMode}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label={<span className="text-gray-600 font-semibold">Address</span>}
-            name={["address", "line1"]}
-            rules={[
-              {
-                required: !isDisabled("line1"),
-                message: "Please enter address line 1",
-              },
-            ]}
-          >
-            <Input
-              placeholder="Enter address line 1"
-              className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={isDisabled("line1") || !isEditMode}
-            />
-          </Form.Item>
-
-          <Form.Item name={["address", "line2"]}>
-            <Input
-              placeholder="Enter address line 2 (optional)"
-              className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={isDisabled("line2") || !isEditMode}
-            />
-          </Form.Item>
-
-          <div className="flex justify-between">
-            <Form.Item
-              name={["address", "city"]}
-              className="w-1/3 mr-2"
-              rules={[
-                { required: !isDisabled("city"), message: "Please enter city" },
-              ]}
-            >
-              <Input
-                placeholder="Enter city"
-                className="placeholder-gray-400 p-3 rounded-lg w-full"
-                disabled={isDisabled("city") || !isEditMode}
-              />
-            </Form.Item>
-
-            <Form.Item
-              name={["address", "state"]}
-              className="w-1/3 mr-2"
-              rules={[
-                {
-                  required: !isDisabled("state"),
-                  message: "Please enter state",
-                },
-              ]}
-            >
-              <Input
-                placeholder="Enter state"
-                className="placeholder-gray-400 p-3 rounded-lg w-full"
-                disabled={isDisabled("state") || !isEditMode}
-              />
-            </Form.Item>
-
-            <Form.Item
-              name={["address", "pincode"]}
-              className="w-1/3"
-              rules={[
-                {
-                  required: !isDisabled("pincode"),
-                  message: "Please enter pincode",
-                },
-              ]}
-            >
-              <Input
-                placeholder="Enter pincode"
-                className="placeholder-gray-400 p-3 rounded-lg w-full"
-                disabled={isDisabled("pincode") || !isEditMode}
-              />
-            </Form.Item>
-          </div>
 
           {isEditMode && (
             <div className="flex justify-end space-x-2">

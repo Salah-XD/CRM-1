@@ -13,7 +13,7 @@ const businessSchema = new Schema({
   },
   type_of_industry: {
     type: String,
-    enum: ["Catering", "Meat", "Sweet", "Shop", "Backery"],
+    enum: ["Catering", "Meat", "Sweet", "Shop", "Bakery"],
   },
   Vertical_of_industry: {
     type: String,
@@ -24,7 +24,7 @@ const businessSchema = new Schema({
       "Industrial catering",
       "Meat Retail",
       "Sweet Retail",
-      "Backery",
+      "Bakery",
       "Others(Type)",
     ],
   },

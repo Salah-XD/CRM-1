@@ -5,7 +5,6 @@ import PrivateCompany from "../models/privateModel.js";
 import nodemailer from "nodemailer";
 import mongoose from "mongoose";
 
-
 // Controller function to handle saving client data
 export const saveBusiness = async (req, res) => {
   console.log(req.body);
@@ -56,8 +55,7 @@ export const saveBusiness = async (req, res) => {
   }
 };
 
-
-//Controller function to handle update of client data 
+//Controller function to handle update of client data
 export const updateBusiness = async (req, res) => {
   try {
     const {
@@ -79,7 +77,7 @@ export const updateBusiness = async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!_id ) {
+    if (!_id) {
       return res.status(400).json({
         message: "id is required",
       });
@@ -114,10 +112,6 @@ export const updateBusiness = async (req, res) => {
   }
 };
 
-
-
-
-
 // Controller to fetch business details by form ID or ID
 export const getBusinessDetailsById = async (req, res) => {
   try {
@@ -141,9 +135,6 @@ export const getBusinessDetailsById = async (req, res) => {
   }
 };
 
-
-
-
 //Save The outlet Information
 export const saveOutlet = async (req, res) => {
   console.log(req.body);
@@ -151,11 +142,8 @@ export const saveOutlet = async (req, res) => {
     const {
       branch_name,
       business,
-      name,
       gst_number,
-      address,
-      primary_contact_number,
-      email,
+      contact_number,
       private_owned,
     } = req.body;
 
@@ -188,15 +176,12 @@ export const saveOutlet = async (req, res) => {
       // If the outlet is privately owned
       // Create a new private company document
       const privateCompanyData = {
-        name,
-        fssai_number: req.body.fssai_number,
+        fssai_license_number: req.body.fssai_license_number,
         no_of_food_handlers: req.body.no_of_food_handlers,
-        industry_vertical: req.body.industry_vertical,
-        primary_contact_number,
+        Vertical_of_industry: req.body.Vertical_of_industry,
+        contact_number,
         contact_person: req.body.contact_person,
         gst_number,
-        address,
-        email,
         business,
       };
       const newPrivateCompany = new PrivateCompany(privateCompanyData);
@@ -232,12 +217,12 @@ export const updateOutlet = async (req, res) => {
     const {
       branch_name,
       business,
-      name,
       gst_number,
-      address,
-      primary_contact_number,
-      email,
-      private_owned, // Corrected spelling
+      contact_number,
+      private_owned,
+      fssai_license_number,
+      no_of_food_handlers,
+      Vertical_of_industry,
     } = req.body;
 
     // Check if outletId is provided
@@ -258,7 +243,9 @@ export const updateOutlet = async (req, res) => {
     if (private_owned) {
       // Check if private_owned has a valid value
       if (!["yes", "no"].includes(private_owned)) {
-        return res.status(400).json({ message: "Invalid value for private_owned" });
+        return res
+          .status(400)
+          .json({ message: "Invalid value for private_owned" });
       }
       outlet.private_owned = private_owned;
 
@@ -270,32 +257,38 @@ export const updateOutlet = async (req, res) => {
         // Find or create private company data
         let privateCompany;
         if (outlet.private_company) {
-          privateCompany = await PrivateCompany.findById(outlet.private_company);
+          privateCompany = await PrivateCompany.findById(
+            outlet.private_company
+          );
           if (!privateCompany) {
-            return res.status(404).json({ message: "Associated private company not found" });
+            return res
+              .status(404)
+              .json({ message: "Associated private company not found" });
           }
         } else {
           privateCompany = new PrivateCompany();
         }
 
         // Update private company data
-        if (name) {
-          privateCompany.name = name;
-        }
+
         if (gst_number) {
           privateCompany.gst_number = gst_number;
         }
-        if (address) {
-          privateCompany.address = address;
-        }
-        if (primary_contact_number) {
-          privateCompany.primary_contact_number = primary_contact_number;
-        }
-        if (email) {
-          privateCompany.email = email;
+
+        if (contact_number) {
+          privateCompany.contact_number = contact_number;
         }
         if (business) {
           privateCompany.business = business;
+        }
+        if (fssai_license_number) {
+          privateCompany.fssai_license_number = fssai_license_number;
+        }
+        if (no_of_food_handlers) {
+          privateCompany.no_of_food_handlers = no_of_food_handlers;
+        }
+        if (Vertical_of_industry) {
+          privateCompany.Vertical_of_industry = Vertical_of_industry;
         }
 
         await privateCompany.save();
@@ -315,14 +308,14 @@ export const updateOutlet = async (req, res) => {
     // Save the outlet
     await outlet.save();
 
-    return res.status(200).json({ message: "Outlet updated successfully", data: outlet });
+    return res
+      .status(200)
+      .json({ message: "Outlet updated successfully", data: outlet });
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
-
 
 //Fetch Bussiness name to show in outlets
 export const getBusinesses = async (req, res) => {
@@ -334,8 +327,6 @@ export const getBusinesses = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
-
 
 export const getAllBusinessDetails = async (req, res) => {
   try {
@@ -418,7 +409,6 @@ export const getAllBusinessDetails = async (req, res) => {
   }
 };
 
-
 export const countOutletsForBusinesses = async (req, res) => {
   try {
     // Aggregate outlets to count the number of outlets for each business
@@ -476,7 +466,6 @@ export const deleteFields = async (req, res) => {
   }
 };
 
-
 //Controller to send logic to
 export const sendEmail = async (req, res) => {
   // console.log(req.body);
@@ -496,7 +485,6 @@ export const sendEmail = async (req, res) => {
         pass: process.env.EMAIL_PASSWORD,
       },
     });
-    
 
     const mailOptions = {
       from: `<${process.env.EMAIL_USERNAME}>`,
@@ -618,66 +606,70 @@ export const getOutletDetailsById = async (req, res) => {
   }
 };
 
-
-
-
 //Controller to deltet the array of fields of outlet
- export const deleteOutlets = async (req, res) => {
-  console.log("this is"+req.body);
-   try {
-     const arrayOfOutletIds = req.body; // Assuming an array of arrays of IDs is sent in the request body
-     // Validate the arrayOfOutletIds here if necessary
+export const deleteOutlets = async (req, res) => {
+  console.log("Request body:", req.body);
+  try {
+    const arrayOfOutletIds = req.body; // Assuming an array of arrays of IDs is sent in the request body
 
-     // Assuming Outlet is your Mongoose model
-     const deletionPromises = arrayOfOutletIds.map((outletIds) => {
-       return Outlet.deleteMany({ _id: { $in: outletIds } });
-     });
+    // Validate the arrayOfOutletIds here if necessary
 
-     // Wait for all deletion operations to complete
-     await Promise.all(deletionPromises);
+    // Assuming Outlet is your Mongoose model
+    const deletionPromises = arrayOfOutletIds.map(async (outletIds) => {
+      const outlets = await Outlet.find({ _id: { $in: outletIds } });
 
-     res.status(200).json({ message: "Outlets deleted successfully" });
-   } catch (err) {
-     console.error("Error deleting outlets:", err);
-     res.status(500).json({ error: "Internal server error" });
-   }
- };
+      // Iterate through each outlet and handle deletion
+      for (const outlet of outlets) {
+        if (outlet.private_company) {
+          // Delete the private data first if it exists
+          await PrivateCompany.deleteOne({ _id: outlet.private_company });
+        }
+        // Delete the outlet
+        await Outlet.deleteOne({ _id: outlet._id });
+      }
+    });
 
+    // Wait for all deletion operations to complete
+    await Promise.all(deletionPromises);
 
- export const getParticularOutletDetails = async (req, res) => {
+    res.status(200).json({ message: "Outlets deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting outlets:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const getParticularOutletDetails = async (req, res) => {
   console.log(req.params.id);
-   try {
-     const outletId = req.params.id;
+  try {
+    const outletId = req.params.id;
 
-     // Find the outlet by ID and populate business and private_company references
-     const outlet = await Outlet.findById(outletId)
-       .populate("business")
-       .populate("private_company");
+    // Find the outlet by ID and populate business and private_company references
+    const outlet = await Outlet.findById(outletId)
+      .populate("business")
+      .populate("private_company");
 
-     if (!outlet) {
-       return res.status(404).json({ error: "Outlet not found" });
-     }
+    if (!outlet) {
+      return res.status(404).json({ error: "Outlet not found" });
+    }
 
-     const response = {
-       branch_name: outlet.branch_name,
-       private_owned: !!outlet.private_company,
-     };
+    const response = {
+      branch_name: outlet.branch_name,
+      private_owned: !!outlet.private_company,
+    };
 
-     if (outlet.private_company) {
-       response.private_details = outlet.private_company;
-     }
+    if (outlet.private_company) {
+      response.private_details = outlet.private_company;
+    }
 
-     return res.status(200).json(response);
-   } catch (error) {
-     console.error(error);
-     return res.status(500).json({ error: "Internal Server Error" });
-   }
- };
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
-
-
-
- //Controller to get all the client name
+//Controller to get all the client name
 export const getAllClientName = async (req, res) => {
   try {
     // Fetch all client names and their IDs from the Business model
@@ -697,7 +689,6 @@ export const getAllClientName = async (req, res) => {
     });
   }
 };
-
 
 //Outlet to get the branch name from Outlet Model by specific bussiness id
 
@@ -735,4 +726,3 @@ export const getBranchNamesByBusinessId = async (req, res) => {
     });
   }
 };
-

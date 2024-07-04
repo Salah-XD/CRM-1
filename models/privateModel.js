@@ -3,13 +3,9 @@ import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const privateCompanySchema = new Schema({
- name: {
-    type: String,
-    required: true,
-  },
-  fssai_number: String,
-  no_of_food_handlers: Number,
-  industry_vertical: {
+  fssai_license_number: String,
+  no_of_food_handlers: String,
+  Vertical_of_industry: {
     type: String,
     enum: [
       "Start hotel",
@@ -21,15 +17,13 @@ const privateCompanySchema = new Schema({
       "Bakery",
       "Others",
     ],
-    required: true,
+  
   },
-  primary_contact_number: {
+  contact_number: {
     type: String,
-    required: true,
   },
   contact_person: {
     type: String,
-    required: true,
   },
   gst_number: String,
 });

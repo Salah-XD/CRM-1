@@ -129,24 +129,34 @@ const OutletDetail = ({ businessId }) => {
       key: "branch_name",
     },
     {
-      title: "Business Name",
-      dataIndex: "name",
-      key: "name",
+      title: "FSSAI No",
+      dataIndex: " fssai_license_number",
+      key: " fssai_license_number",
+    },
+    {
+      title: "No of Food Handlers",
+      dataIndex: "no_of_food_handlers",
+      key: "no_of_food_handlers",
+    },
+    {
+      title: "Vertical of industry",
+      dataIndex: "Vertical_of_industry",
+      key: "Vertical_of_industry",
+    },
+    {
+      title: "Contact Number",
+      dataIndex: "contact_number",
+      key: "contact_number",
+    },
+    {
+      title: "Contact Person",
+      dataIndex: "contact_person",
+      key: "contact_person",
     },
     {
       title: "GST NO.",
       dataIndex: "gst_number",
       key: "gst_number",
-    },
-    {
-      title: "City",
-      dataIndex: ["address", "city"], // Use nested data index for nested objects
-      key: "city",
-    },
-    {
-      title: "Source",
-      dataIndex: "source",
-      key: "source",
     },
   ];
 
