@@ -3,7 +3,7 @@ import { Modal, Input, Button, Typography, Form, message } from "antd";
 import { CopyOutlined, CheckOutlined } from "@ant-design/icons";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { v4 as uuidv4 } from "uuid";
+
 
 const SendMailModal = ({ visible, onCancel, onCloseMainModal }) => {
   const [form] = Form.useForm();
@@ -15,10 +15,9 @@ const SendMailModal = ({ visible, onCancel, onCloseMainModal }) => {
   const generateFormLink = () => {
     const currentURL = window.location.href;
     const baseURL = currentURL.split("/").slice(0, 3).join("/");
-    const uniqueId = uuidv4();
-    const newFormLink = `${baseURL}/client-onboarding/${uniqueId}`;
+    const newFormLink = `${baseURL}/client-onboarding`;
     setDefaultFormLink(newFormLink);
-    form.setFieldsValue({ formLink: newFormLink }); // Update form field value
+    form.setFieldsValue({ formLink: newFormLink }); 
   };
 
   useEffect(() => {

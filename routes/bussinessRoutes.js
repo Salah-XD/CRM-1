@@ -12,7 +12,6 @@ import {
   getOutletDetailsById,
   updateBusiness,
   getBusinessDetailsById,
-  checkFormId,
   deleteOutlets,
   getParticularOutletDetails,
   updateOutlet,
@@ -46,8 +45,7 @@ router.get("/getAllBussinessName", verifyToken,getBusinesses);
 router.get("/getAllBussinesDetails", getAllBusinessDetails);
 
 
-// Define the route to check if a form_id exists
-router.get('/checkFormId/:formId', checkFormId);
+
 
 
 // Route to fetch business details by form ID

@@ -19,8 +19,8 @@ import {
   CloudDownloadOutlined,
   MoreOutlined,
   SearchOutlined,
-  EyeOutlined ,
-  CopyOutlined
+  EyeOutlined,
+  CopyOutlined,
 } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
 import { useNavigate } from "react-router-dom";
@@ -489,7 +489,7 @@ const ClientTable = () => {
           <div className="space-x-2">
             <Input
               size="default"
-              placeholder="Search by FBO Name, Phone Number, etc."
+              placeholder="Search"
               prefix={<SearchOutlined />}
               value={searchKeyword}
               style={{ width: 300 }}

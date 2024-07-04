@@ -7,29 +7,12 @@ const UpdateClient = ({ newClientTitle }) => {
   const [selectedOption, setSelectedOption] = useState("addClient");
   const [businessId, setBusinessId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [isEditable, setIsEditable] = useState(false);
-  const [showUpdateButtons, setShowUpdateButtons] = useState(false);
-  const [showUpdateButton, setShowUpdateButton] = useState(true);
-
-  // Determine if the update button should be shown
-  const shouldShowUpdateButton = selectedOption === "addClient" && !isEditable;
-
-  const handleUpdate = () => {
-    setIsEditable(true);
-    setShowUpdateButtons(true);
-    setShowUpdateButton(false);
-  };
 
   return (
     <>
       <div className="top-0 z-50 bg-white">
         <div className="mb-4 border shadow-bottom px-4 py-4 flex justify-between items-center">
           <h2 className="text-2xl font-semibold">{newClientTitle}</h2>
-          {shouldShowUpdateButton && (
-            <Button type="primary" onClick={handleUpdate}>
-              Update
-            </Button>
-          )}
         </div>
       </div>
 
@@ -67,10 +50,8 @@ const UpdateClient = ({ newClientTitle }) => {
       <div className="mt-8">
         {selectedOption === "addClient" && (
           <UpdateBusinessDetail
-            isEditable={isEditable}
             loading={loading}
             setLoading={setLoading}
-            showUpdateButtons={showUpdateButtons}
             setBusinessId={setBusinessId} // Pass the setBusinessId function
           />
         )}

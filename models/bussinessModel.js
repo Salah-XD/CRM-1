@@ -3,11 +3,6 @@ import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const businessSchema = new Schema({
-  form_id: {
-    type: String,
-    unique: true,
-    sparse: true,
-  },
   name: {
     type: String,
     required: true,
@@ -16,14 +11,25 @@ const businessSchema = new Schema({
     type: String,
     required: true,
   },
-  business_type: {
+  type_of_industry: {
     type: String,
-    enum: ["Temple", "Hotel", "Canteen"],
-    required: true,
+    enum: ["Catering", "Meat", "Sweet", "Shop", "Backery"],
+  },
+  Vertical_of_industry: {
+    type: String,
+    enum: [
+      " Start hotel",
+      "Ethnic restaurant",
+      "QSR",
+      "Industrial catering",
+      "Meat Retail",
+      "Sweet Retail",
+      "Backery",
+      "Others(Type)",
+    ],
   },
   fssai_license_number: {
     type: String,
-    required: true,
   },
   phone: {
     type: String,
@@ -35,14 +41,14 @@ const businessSchema = new Schema({
   },
   gst_number: {
     type: String,
-    required: true,
   },
-  address: {
+ address: {
     line1: { type: String },
     line2: { type: String },
     state: { type: String },
     city: { type: String },
     pincode: { type: String },
+  
   },
   added_by: {
     type: String,

@@ -1,56 +1,23 @@
-import React, { useEffect,useState } from "react";
-import { Form, Input, Button, Select,Spin} from "antd";
-import { NavLink, useNavigate, useLocation, useParams, } from "react-router-dom";
-import axios from "axios";
-
+import React from "react";
+import { Form, Input, Button, Select } from "antd";
+import { NavLink, useLocation } from "react-router-dom";
 
 const { Option } = Select;
 
 const BusinessDetail = ({ onSubmit, loading, disabled }) => {
   const [form] = Form.useForm();
-  const [checkingFormId, setCheckingFormId] = useState(true);
-  const navigate = useNavigate();
   const location = useLocation();
-  const { formId } = useParams();
 
-  useEffect(() => {
-    const checkFormId = async () => {
-      try {
-        const response = await axios.get(`/checkFormId/${formId}`);
-        if (response.data.success) {
-          navigate(`/client-success/${formId}`);
-        }
-      } catch (error) {
-        console.error("Error checking form ID:", error);
-      } finally {
-        setCheckingFormId(false);
-      }
-    };
-
-    if (formId) {
-      checkFormId();
-    } else {
-      setCheckingFormId(false);
-    }
-  }, [formId, navigate]);
-
-
- 
   const handleSubmit = async (values) => {
-    if (location.pathname === `/client-onboarding/${formId}`) {
+    if (location.pathname === "/client-onboarding") {
       values.added_by = "Client Form";
-      values.form_id = formId;
     } else {
       values.added_by = "Manual";
     }
     onSubmit(values);
   };
 
-  return checkingFormId ? (
-    <div className="flex justify-center items-center h-screen">
-      <Spin size="large" />
-    </div>
-  ) : (
+  return (
     <div className="">
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <div className="m-6">
@@ -88,40 +55,18 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
             />
           </Form.Item>
           <Form.Item
-            name="business_type"
-            FSSAI
-            License
-            Number
-            className="w-1/4"
+            className="w-1/2"
             label={
-              <span className="text-gray-600 font-semibold">Business Type</span>
+              <span className="text-gray-600 font-semibold">Email ID</span>
             }
-            rules={[{ required: true, message: "Please select business type" }]}
-          >
-            <Select placeholder="Select Business Name">
-              <Option value="Restaurant">Restaurant</Option>
-              <Option value="Temple">Temple</Option>
-              <Option value="Hotel">Hotel</Option>
-              <Option value="Canteen">Canteen</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item
-            label={
-              <span className="text-gray-600 font-semibold">
-                FSSAI License Number
-              </span>
-            }
-            className="w-1/4"
-            name="fssai_license_number"
+            name="email"
             rules={[
-              {
-                required: true,
-                message: "Please enter FSSAI License Number",
-              },
+              { required: true, message: "Please enter email ID" },
+              { type: "email", message: "Please enter a valid email ID" },
             ]}
           >
             <Input
-              placeholder="Enter  your License Number"
+              placeholder="Enter your email address"
               className="placeholder-gray-400 p-3 rounded-lg"
             />
           </Form.Item>
@@ -139,20 +84,23 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
             />
           </Form.Item>
           <Form.Item
-            className="w-1/2"
+            className="w-1/4"
             label={
-              <span className="text-gray-600 font-semibold">Email ID</span>
+              <span className="text-gray-600 font-semibold">
+                FSSAI License Number
+              </span>
             }
-            name="email"
+            name="fssai_license_number"
             rules={[
-              { required: true, message: "Please enter email ID" },
-              { type: "email", message: "Please enter a valid email ID" },
+              {
+                required: false,
+                message: "Please enter FSSAI License Number",
+              },
             ]}
-            required
           >
             <Input
-              placeholder="Enter your email address"
-              className="placeholder-gray-400 p-3 rounded-lg" // Set the color of the placeholder text
+              placeholder="Enter your License Number"
+              className="placeholder-gray-400 p-3 rounded-lg"
             />
           </Form.Item>
           <Form.Item
@@ -161,7 +109,12 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
               <span className="text-gray-600 font-semibold">GST Number</span>
             }
             name="gst_number"
-            rules={[{ required: true }]}
+            rules={[
+              {
+                required: false,
+                message: "Please enter GST number",
+              },
+            ]}
           >
             <Input
               placeholder="Enter your GST number"
@@ -170,31 +123,78 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
           </Form.Item>
 
           <Form.Item
+            name="type_of_industry"
+            className="w-1/4"
+            label={
+              <span className="text-gray-600 font-semibold">
+                Type of Industry
+              </span>
+            }
+            rules={[
+              { required: false, message: "Please select industry type" },
+            ]}
+          >
+            <Select placeholder="Select Industry Type" size={"large"}>
+              <Option value="Catering">Catering</Option>
+              <Option value="Meat">Meat</Option>
+              <Option value="Sweet">Sweet</Option>
+              <Option value="Shop">Shop</Option>
+              <Option value="Bakery">Bakery</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="Vertical_of_industry"
+            className="w-1/4"
+            label={
+              <span className="text-gray-600 font-semibold">
+                Vertical of Industry
+              </span>
+            }
+            rules={[
+              { required: false, message: "Please select industry vertical" },
+            ]}
+          >
+            <Select placeholder="Select Industry Vertical" size={"large"}>
+              <Option value="Star hotel">Star hotel</Option>
+              <Option value="Ethnic restaurant">Ethnic restaurant</Option>
+              <Option value="QSR">QSR</Option>
+              <Option value="Industrial catering">Industrial catering</Option>
+              <Option value="Meat Retail">Meat Retail</Option>
+              <Option value="Sweet Retail">Sweet Retail</Option>
+              <Option value="Bakery">Bakery</Option>
+              <Option value="Others">Others</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
             label={<span className="text-gray-600 font-semibold">Address</span>}
-            name="address.line1"
+            name={["address", "line1"]}
             className="w-1/2"
-            rules={[{ required: true }]}
+            rules={[
+              { required: false, message: "Please enter Address Line 1" },
+            ]}
           >
             <Input
               placeholder="Line 1"
               className="placeholder-gray-400 p-3 rounded-lg"
             />
           </Form.Item>
-
           <Form.Item
-            name="address.line2"
+            name={["address", "line2"]}
             className="w-1/2"
-            rules={[{ required: true }]}
+            rules={[
+              { required: false, message: "Please enter Address Line 2" },
+            ]}
           >
             <Input
-              placeholder="Line 2"
+              placeholder="Line 2(Optional)"
               className="placeholder-gray-400 p-3 rounded-lg"
             />
           </Form.Item>
           <div className="flex justify-between w-1/2">
             <Form.Item
-              name="address.city"
-              rules={[{ required: true }]}
+              name={["address", "city"]}
+              rules={[{ required: false, message: "Please enter city" }]}
               className="w-full mr-2"
             >
               <Input
@@ -202,10 +202,9 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
                 className="placeholder-gray-400 p-3 rounded-lg w-full"
               />
             </Form.Item>
-
             <Form.Item
-              name="address.state"
-              rules={[{ required: true }]}
+              name={["address", "state"]}
+              rules={[{ required: false, message: "Please enter state" }]}
               className="w-full mr-2"
             >
               <Input
@@ -213,10 +212,9 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
                 className="placeholder-gray-400 p-3 rounded-lg w-full"
               />
             </Form.Item>
-
             <Form.Item
-              name="address.pincode"
-              rules={[{ required: true }]}
+              name={["address", "pincode"]}
+              rules={[{ required: false, message: "Please enter pincode" }]}
               className="w-full"
             >
               <Input
@@ -229,7 +227,7 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
 
         <div className="sticky bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">
           <Form.Item>
-            <NavLink to="/client-table">
+            <NavLink to="/client-profile">
               <Button className="border-primary  text- border-2 font-semibold">
                 Cancel
               </Button>

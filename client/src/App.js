@@ -55,7 +55,7 @@ function App() {
         />
 
         <Route
-          path="client-profile/update-client/formId/:formId"
+          path="client-profile/update-client"
           element={
             <>
               <AdminHeader />
