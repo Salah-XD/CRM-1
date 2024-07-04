@@ -101,11 +101,11 @@ function App() {
         />
 
         <Route
-          path="/client-onboarding/:formId"
+          path="/client-onboarding"
           element={<ClientOnboarding />}
         />
         <Route
-          path="/client-success/:formId"
+          path="/client-success"
           element={<ClientOnboardingSuccess />}
         />
       </Routes>

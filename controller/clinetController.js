@@ -156,10 +156,10 @@ export const saveOutlet = async (req, res) => {
       address,
       primary_contact_number,
       email,
-      private_owned, // Corrected spelling
+      private_owned,
     } = req.body;
 
-    // Check if branch_name and private_owned are provided and have valid values
+    // Check if branch_name, private_owned, and business are provided and have valid values
     if (
       !branch_name ||
       !private_owned ||
@@ -170,46 +170,49 @@ export const saveOutlet = async (req, res) => {
 
     // Check if business ID is provided when the outlet is privately owned
     if (private_owned === "yes" && !business) {
-      return res
-        .status(400)
-        .json({
-          message: "Business ID is required when the outlet is privately owned",
-        });
+      return res.status(400).json({
+        message: "Business ID is required when the outlet is privately owned",
+      });
     }
 
     let newOutlet;
 
-    // If the outlet is owned by a business
+    // If the outlet is not privately owned
     if (private_owned === "no") {
       newOutlet = new Outlet({
         branch_name,
         business,
-        private_company: null, // Corrected syntax
+        private_company: null, // Optional field for outlets not owned by private companies
       });
     } else {
-      // If the outlet is owned by a private company
-      newOutlet = new Outlet({
-        branch_name,
-        business,
-      });
-
-      // Save private company data
+      // If the outlet is privately owned
+      // Create a new private company document
       const privateCompanyData = {
         name,
+        fssai_number: req.body.fssai_number,
+        no_of_food_handlers: req.body.no_of_food_handlers,
+        industry_vertical: req.body.industry_vertical,
+        primary_contact_number,
+        contact_person: req.body.contact_person,
         gst_number,
         address,
-        primary_contact_number,
         email,
         business,
       };
       const newPrivateCompany = new PrivateCompany(privateCompanyData);
+
+      // Save the new private company document
       await newPrivateCompany.save();
 
-      // Associate the ObjectId of the private company with the outlet
-      newOutlet.private_company = newPrivateCompany._id;
+      // Create a new outlet document linked to the private company
+      newOutlet = new Outlet({
+        branch_name,
+        business,
+        private_company: newPrivateCompany._id,
+      });
     }
 
-    // Save the outlet
+    // Save the new outlet document
     await newOutlet.save();
 
     return res
@@ -438,12 +441,29 @@ export const countOutletsForBusinesses = async (req, res) => {
 
 export const deleteFields = async (req, res) => {
   try {
-    const arrayOfFieldIds = req.body; // Assuming an array of arrays of IDs is sent in the request body
-    // Validate the arrayOfFieldIds here if necessary
+    const arrayOfBusinessIds = req.body; // Assuming an array of business IDs is sent in the request body
 
-    // Assuming Business is your Mongoose model
-    const deletionPromises = arrayOfFieldIds.map((fieldIds) => {
-      return Business.deleteMany({ _id: { $in: fieldIds } });
+    // Validate arrayOfBusinessIds here if necessary
+
+    const deletionPromises = arrayOfBusinessIds.map(async (businessId) => {
+      // Find all outlets linked to this business
+      const outlets = await Outlet.find({ business: businessId });
+
+      // Extract private company IDs from outlets
+      const privateCompanyIds = outlets
+        .filter((outlet) => outlet.private_company) // Filter only outlets with a private_company
+        .map((outlet) => outlet.private_company);
+
+      // Delete associated PrivateCompany documents first, if any
+      if (privateCompanyIds.length > 0) {
+        await PrivateCompany.deleteMany({ _id: { $in: privateCompanyIds } });
+      }
+
+      // Delete all outlets where business ID matches
+      await Outlet.deleteMany({ business: businessId });
+
+      // Delete Business document
+      await Business.deleteOne({ _id: businessId });
     });
 
     // Wait for all deletion operations to complete
@@ -455,6 +475,7 @@ export const deleteFields = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
 
 //Controller to send logic to
 export const sendEmail = async (req, res) => {

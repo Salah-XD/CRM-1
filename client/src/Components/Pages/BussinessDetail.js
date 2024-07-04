@@ -17,10 +17,15 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
     onSubmit(values);
   };
 
+  const innerDivClass =
+    location.pathname === "/client-onboarding"
+      ? "m-6 p-4   w-3/4 mx-auto"
+      : "ml-6  ";
+
   return (
-    <div className="">
+    <div className="w-full">
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
-        <div className="m-6">
+        <div className={innerDivClass}>
           <Form.Item
             className="w-1/2"
             name="name"
@@ -43,10 +48,7 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
               </span>
             }
             rules={[
-              {
-                required: true,
-                message: "Please enter contact person name",
-              },
+              { required: true, message: "Please enter contact person name" },
             ]}
           >
             <Input
@@ -92,10 +94,7 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
             }
             name="fssai_license_number"
             rules={[
-              {
-                required: false,
-                message: "Please enter FSSAI License Number",
-              },
+              { required: false, message: "Please enter FSSAI License Number" },
             ]}
           >
             <Input
@@ -109,19 +108,13 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
               <span className="text-gray-600 font-semibold">GST Number</span>
             }
             name="gst_number"
-            rules={[
-              {
-                required: false,
-                message: "Please enter GST number",
-              },
-            ]}
+            rules={[{ required: false, message: "Please enter GST number" }]}
           >
             <Input
               placeholder="Enter your GST number"
               className="placeholder-gray-400 p-3 rounded-lg"
             />
           </Form.Item>
-
           <Form.Item
             name="type_of_industry"
             className="w-1/4"
@@ -165,7 +158,6 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
               <Option value="Others">Others</Option>
             </Select>
           </Form.Item>
-
           <Form.Item
             label={<span className="text-gray-600 font-semibold">Address</span>}
             name={["address", "line1"]}
@@ -228,7 +220,7 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
         <div className="sticky bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">
           <Form.Item>
             <NavLink to="/client-profile">
-              <Button className="border-primary  text- border-2 font-semibold">
+              <Button className="border-primary text-border-2 font-semibold">
                 Cancel
               </Button>
             </NavLink>

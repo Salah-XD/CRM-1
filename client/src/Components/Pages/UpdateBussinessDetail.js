@@ -76,7 +76,7 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
 
       if (response.data?.success) {
         toast.success("Business data updated successfully");
-        navigate("/"); // Optionally navigate to another page after success
+     
       } else {
         toast.error("An Error Occurred");
         console.error("Update response: ", response.data);
@@ -209,7 +209,7 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
               <span className="text-gray-600 font-semibold">GST Number</span>
             }
             name="gst_number"
-            rules={[{ required: true, message: "Please enter GST number" }]}
+            
           >
             <Input
               placeholder="Enter your GST number"
@@ -225,7 +225,7 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
                 Vertical of Industry
               </span>
             }
-            rules={[{ required: true, message: "Please select business type" }]}
+           
           >
             <Select
               placeholder="Select Industry Vertical"
@@ -266,7 +266,7 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
             label={<span className="text-gray-600 font-semibold">Address</span>}
             name="address.line1"
             className="w-1/2"
-            rules={[{ required: true, message: "Please enter address line 1" }]}
+           
           >
             <Input
               placeholder="Line 1"
@@ -284,7 +284,7 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
           <div className="flex justify-between w-1/2">
             <Form.Item
               name="address.city"
-              rules={[{ required: true, message: "Please enter city" }]}
+             
               className="w-full mr-2"
             >
               <Input
@@ -295,7 +295,7 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
             </Form.Item>
             <Form.Item
               name="address.state"
-              rules={[{ required: true, message: "Please enter state" }]}
+             
               className="w-full mr-2"
             >
               <Input
@@ -306,7 +306,7 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
             </Form.Item>
             <Form.Item
               name="address.pincode"
-              rules={[{ required: true, message: "Please enter pincode" }]}
+             
               className="w-full"
             >
               <Input

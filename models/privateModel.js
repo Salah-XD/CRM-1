@@ -3,26 +3,35 @@ import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const privateCompanySchema = new Schema({
-  name: {
+ name: {
     type: String,
     required: true,
   },
-  gst_number: String,
-  address: {
-    line1: { type: String },
-    line2: { type: String },
-    city: { type: String },
-    state: { type: String },
-    pincode: { type: String },
+  fssai_number: String,
+  no_of_food_handlers: Number,
+  industry_vertical: {
+    type: String,
+    enum: [
+      "Start hotel",
+      "Ethnic restaurant",
+      "QSR",
+      "Industrial catering",
+      "Meat Retail",
+      "Sweet Retail",
+      "Bakery",
+      "Others",
+    ],
+    required: true,
   },
   primary_contact_number: {
     type: String,
     required: true,
   },
-  email: {
+  contact_person: {
     type: String,
     required: true,
   },
+  gst_number: String,
 });
 
 const PrivateCompany = model("PrivateCompany", privateCompanySchema);

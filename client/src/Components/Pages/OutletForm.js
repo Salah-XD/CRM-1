@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { Modal, Form, Input, message } from "antd";
+import { Modal, Form, Input, message, Button, Select } from "antd";
 import axios from "axios";
 import "../css/outletForm.css"; // Import the custom CSS
+const { Option } = Select;
 
 const OutletForm = ({ isModalVisible, handleOk, handleCancel, businessId }) => {
   const [form] = Form.useForm();
@@ -117,6 +118,36 @@ const OutletForm = ({ isModalVisible, handleOk, handleCancel, businessId }) => {
 
         <Form.Item
           label={
+            <span className="text-gray-600 font-semibold">
+              {" "}
+              No. of food handlers
+            </span>
+          }
+          name="no_of_food_handlers"
+        >
+          <Input
+            placeholder="Enter FSSAI NO"
+            className="placeholder-gray-400 p-3 rounded-lg w-full"
+            disabled={isDisabled("no_of_food_handlers")}
+          />
+        </Form.Item>
+        <Form.Item
+          label={
+            <span className="text-gray-600 font-semibold">
+              {" "}
+              FSSAI License Number
+            </span>
+          }
+          name="fssai_number"
+        >
+          <Input
+            placeholder="Enter FSSAI NO"
+            className="placeholder-gray-400 p-3 rounded-lg w-full"
+            disabled={isDisabled("fssai_number")}
+          />
+        </Form.Item>
+        <Form.Item
+          label={
             <span className="text-gray-600 font-semibold">GST Number</span>
           }
           name="gst_number"
@@ -132,6 +163,26 @@ const OutletForm = ({ isModalVisible, handleOk, handleCancel, businessId }) => {
             className="placeholder-gray-400 p-3 rounded-lg w-full"
             disabled={isDisabled("gst_number")}
           />
+        </Form.Item>
+
+        <Form.Item
+          name="Vertical_of_industry"
+          label={
+            <span className="text-gray-600 font-semibold">
+              Vertical of Industry
+            </span>
+          }
+        >
+          <Select placeholder="Select Industry Vertical" size={"large"}>
+            <Option value="Star hotel">Star hotel</Option>
+            <Option value="Ethnic restaurant">Ethnic restaurant</Option>
+            <Option value="QSR">QSR</Option>
+            <Option value="Industrial catering">Industrial catering</Option>
+            <Option value="Meat Retail">Meat Retail</Option>
+            <Option value="Sweet Retail">Sweet Retail</Option>
+            <Option value="Bakery">Bakery</Option>
+            <Option value="Others">Others</Option>
+          </Select>
         </Form.Item>
 
         <Form.Item

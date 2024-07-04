@@ -188,15 +188,16 @@ const OutletDetail = ({ businessId }) => {
       <div className="flex justify-between items-center m-6">
         <h2 className="text-lg font-semibold">Outlet List</h2>
         <div className="space-x-2">
-          <Button
-            type="danger"
-            shape="round"
-            icon={<DeleteOutlined />}
-            onClick={showDeleteConfirm}
-            disabled={selectedRows.length === 0}
-          >
-            Delete
-          </Button>
+          <Space wrap>
+            <Button
+              onClick={showDeleteConfirm}
+              icon={<DeleteOutlined />}
+              isabled={selectedRowKeys.length === 0}
+              shape="round"
+            >
+              Delete
+            </Button>
+          </Space>
           <Button
             type="primary"
             shape="round"
@@ -208,6 +209,7 @@ const OutletDetail = ({ businessId }) => {
         </div>
       </div>
       <div className="m-6">
+        dele
         <Table
           rowSelection={{
             type: selectionType,
