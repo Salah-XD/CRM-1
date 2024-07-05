@@ -124,53 +124,53 @@ const UpdateOutlet = ({ businessId }) => {
   };
 
  const columns = [
-    {
-      title: "Branch Name",
-      dataIndex: "branch_name",
-      key: "branch_name",
-    },
-    {
-      title: "FSSAI No",
-      dataIndex: " fssai_license_number",
-      key: " fssai_license_number",
-    },
-    {
-      title: "No of Food Handlers",
-      dataIndex: "no_of_food_handlers",
-      key: "no_of_food_handlers",
-    },
-    {
-      title: "Vertical of industry",
-      dataIndex: "Vertical_of_industry",
-      key: "Vertical_of_industry",
-    },
-    {
-      title: "Contact Number",
-      dataIndex: "contact_number",
-      key: "contact_number",
-    },
-    {
-      title: "Contact Person",
-      dataIndex: "contact_person",
-      key: "contact_person",
-    },
-    {
-      title: "GST NO.",
-      dataIndex: "gst_number",
-      key: "gst_number",
-    },
-  
-    {
-      title: "Action",
-      dataIndex: "Action",
-      key: "Action",
-      render: (_, record) => (
-        <Dropdown overlay={menu(record)} trigger={["click"]}>
-          <Button type="link" icon={<MoreOutlined />} />
-        </Dropdown>
-      ),
-    },
-  ];
+   {
+     title: "Outlet Name",
+     dataIndex: "outlet_name",
+     key: "outlet_name",
+   },
+   {
+     title: "FSSAI No",
+     dataIndex: "fssai_license_number",
+     key: "fssai_license_number",
+   },
+   {
+     title: "No of Food Handlers",
+     dataIndex: "no_of_food_handlers",
+     key: "no_of_food_handlers",
+   },
+   {
+     title: "Vertical of industry",
+     dataIndex: "Vertical_of_industry",
+     key: "Vertical_of_industry",
+   },
+   {
+     title: "Contact Number",
+     dataIndex: "contact_number",
+     key: "contact_number",
+   },
+   {
+     title: "Contact Person",
+     dataIndex: "contact_person",
+     key: "contact_person",
+   },
+   {
+     title: "GST NO.",
+     dataIndex: "gst_number",
+     key: "gst_number",
+   },
+
+   {
+     title: "Action",
+     dataIndex: "Action",
+     key: "Action",
+     render: (_, record) => (
+       <Dropdown overlay={menu(record)} trigger={["click"]}>
+         <Button type="link" icon={<MoreOutlined />} />
+       </Dropdown>
+     ),
+   },
+ ];
 
   const menu = (record) => (
     <Menu>

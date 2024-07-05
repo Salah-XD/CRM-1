@@ -40,13 +40,13 @@ const OutletForm = ({ isModalVisible, handleOk, handleCancel, businessId }) => {
       className="h-80vh overflow-hidden"
       title={<span className="text-xl">Add Outlet</span>}
       visible={isModalVisible}
-      onOk={handleSubmit}
       onCancel={handleCancel}
+      footer={null}
     >
       <Form form={form} layout="vertical" initialValues={initialValues}>
         <Form.Item
           label={
-            <span className="text-gray-600 font-semibold">Branch Name</span>
+            <span className="text-gray-600 font-semibold">Outlet Name</span>
           }
           name="branch_name"
           rules={[{ required: true, message: "Please enter branch name" }]}
@@ -108,6 +108,18 @@ const OutletForm = ({ isModalVisible, handleOk, handleCancel, businessId }) => {
             disabled={isDisabled("contact_number")}
           />
         </Form.Item>
+        <Form.Item
+          label={
+            <span className="text-gray-600 font-semibold">Contact person</span>
+          }
+          name="contact_person"
+        >
+          <Input
+            placeholder="Enter contact person name"
+            className="placeholder-gray-400 p-3 rounded-lg w-full"
+            disabled={isDisabled("contact_person")}
+          />
+        </Form.Item>
 
         <Form.Item
           name="Vertical_of_industry"
@@ -143,7 +155,7 @@ const OutletForm = ({ isModalVisible, handleOk, handleCancel, businessId }) => {
           name="no_of_food_handlers"
         >
           <Input
-            placeholder="Enter FSSAI NO"
+            placeholder="Number of food handlers"
             className="placeholder-gray-400 p-3 rounded-lg w-full"
             disabled={isDisabled("no_of_food_handlers")}
           />
@@ -175,6 +187,16 @@ const OutletForm = ({ isModalVisible, handleOk, handleCancel, businessId }) => {
             disabled={isDisabled("gst_number")}
           />
         </Form.Item>
+        <div className="flex justify-center">
+          <div className="flex justify-between space-x-2">
+            <Button className="mr-5">
+              Cancel
+            </Button>
+            <Button type="primary" className="ml-5" onClick={handleSubmit}>
+             Save
+            </Button>
+          </div>
+        </div>
       </Form>
     </Modal>
   );

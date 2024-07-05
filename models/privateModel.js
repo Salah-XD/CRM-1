@@ -8,7 +8,7 @@ const privateCompanySchema = new Schema({
   Vertical_of_industry: {
     type: String,
     enum: [
-      "Start hotel",
+      "Star hotel",
       "Ethnic restaurant",
       "QSR",
       "Industrial catering",

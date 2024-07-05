@@ -128,7 +128,7 @@ const UpdateOutletForm = ({
           <Form.Item
             label={
               <span className="text-gray-fed600 font-semibold">
-                Branch Name
+                Outlet Name
               </span>
             }
             name="branch_name"
@@ -192,6 +192,20 @@ const UpdateOutletForm = ({
           >
             <Input
               placeholder="Enter  contact number"
+              className="placeholder-gray-400 p-3 rounded-lg w-full"
+              disabled={isDisabled("primary_contact_number") || !isEditMode}
+            />
+          </Form.Item>
+          <Form.Item
+            label={
+              <span className="text-gray-600 font-semibold">
+                Contact Person
+              </span>
+            }
+            name="contact_person"
+          >
+            <Input
+              placeholder="Enter contact person name"
               className="placeholder-gray-400 p-3 rounded-lg w-full"
               disabled={isDisabled("primary_contact_number") || !isEditMode}
             />
@@ -263,11 +277,13 @@ const UpdateOutletForm = ({
           </Form.Item>
 
           {isEditMode && (
-            <div className="flex justify-end space-x-2">
-              <Button onClick={() => setIsEditMode(false)}>Cancel</Button>
-              <Button type="primary" onClick={handleSubmit}>
-                OK
-              </Button>
+            <div className="flex justify-center">
+              <div className="flex justify-between space-x-2">
+                <Button onClick={() => setIsEditMode(false)} className="mr-5">Cancel</Button>
+                <Button type="primary" className="ml-5" onClick={handleSubmit}>
+                  Update
+                </Button>
+              </div>
             </div>
           )}
         </Form>

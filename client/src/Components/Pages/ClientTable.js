@@ -64,6 +64,7 @@ const ClientTable = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
+  const [shouldFetch, setShouldFetch] = useState(false);
   const navigate = useNavigate();
 
   // Toggling
@@ -132,6 +133,15 @@ const ClientTable = () => {
     fetchData();
   }, [fetchData]);
 
+  // Fetch data when shouldFetch changes
+  useEffect(() => {
+    if (shouldFetch) {
+      fetchData();
+      setShouldFetch(false);
+    }
+  }, [shouldFetch, fetchData]);
+
+
   // Pagination
   const handleTableChange = (pagination, filters, sorter) => {
     setTableParams({
@@ -153,47 +163,48 @@ const ClientTable = () => {
   };
 
   // Show confirm Delete
-  const showDeleteConfirm = () => {
-    confirm({
-      title: "Are you sure delete?",
-      icon: <ExclamationCircleFilled />,
-      okText: "Yes",
-      okType: "danger",
-      cancelText: "No",
-      onOk() {
-        axios
-          .delete("deleteSelectedFields", { data: selectedRows })
-          .then((response) => {
-            const currentPage = tableParams.pagination.current;
-            const pageSize = tableParams.pagination.pageSize;
-            const newTotal = tableParams.pagination.total - selectedRows.length;
-            const newCurrentPage = Math.min(
-              currentPage,
-              Math.ceil(newTotal / pageSize)
-            );
+   const showDeleteConfirm = () => {
+     confirm({
+       title: "Are you sure delete?",
+       icon: <ExclamationCircleFilled />,
+       okText: "Yes",
+       okType: "danger",
+       cancelText: "No",
+       onOk() {
+         axios
+           .delete("deleteSelectedFields", { data: selectedRows })
+           .then((response) => {
+             const currentPage = tableParams.pagination.current;
+             const pageSize = tableParams.pagination.pageSize;
+             const newTotal =
+               tableParams.pagination.total - selectedRows.length;
+             const newCurrentPage = Math.min(
+               currentPage,
+               Math.ceil(newTotal / pageSize)
+             );
 
-            setTableParams((prevState) => ({
-              ...prevState,
-              pagination: {
-                ...prevState.pagination,
-                total: newTotal,
-                current: newCurrentPage,
-              },
-            }));
+             setTableParams((prevState) => ({
+               ...prevState,
+               pagination: {
+                 ...prevState.pagination,
+                 total: newTotal,
+                 current: newCurrentPage,
+               },
+             }));
 
-            setSelectedRows([]);
-           // fetchData();
-            toast.success("Successfully Deleted");
-          })
-          .catch((error) => {
-            console.error("Error deleting rows:", error);
-          });
-      },
-      onCancel() {
-        console.log("Cancel");
-      },
-    });
-  };
+             setSelectedRows([]);
+             setShouldFetch(true); // Trigger data fetch
+             toast.success("Successfully Deleted");
+           })
+           .catch((error) => {
+             console.error("Error deleting rows:", error);
+           });
+       },
+       onCancel() {
+         console.log("Cancel");
+       },
+     });
+   };
 
   // Handle Menu
   const handleMenuClick = (record, { key }) => {

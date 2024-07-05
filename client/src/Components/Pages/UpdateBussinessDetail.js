@@ -276,7 +276,7 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
           </Form.Item>
           <Form.Item name="address.line2" className="w-1/2">
             <Input
-              placeholder="Line 2(Optional)"
+              placeholder="Line 2 (Optional)"
               className="placeholder-gray-400 p-3 rounded-lg"
               disabled={!isEditable}
             />

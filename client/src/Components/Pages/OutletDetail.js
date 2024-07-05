@@ -114,8 +114,8 @@ const OutletDetail = ({ businessId }) => {
 
     // Perform form submission logic here
     // Check if the current route is "client-onboarding"
-    if (location.pathname.startsWith("/client-onboarding") && formId) {
-      navigate(`/client-success/${formId}`);
+    if (location.pathname.startsWith("/client-onboarding")) {
+      navigate(`/client-success`);
     } else {
       navigate("/");
       toast.success("Succesfully Saved");
@@ -124,14 +124,14 @@ const OutletDetail = ({ businessId }) => {
 
   const columns = [
     {
-      title: "Branch Name",
-      dataIndex: "branch_name",
-      key: "branch_name",
+      title: "outlet Name",
+      dataIndex: "outlet_name",
+      key: "outlet_name",
     },
     {
       title: "FSSAI No",
-      dataIndex: " fssai_license_number",
-      key: " fssai_license_number",
+      dataIndex: "fssai_license_number",
+      key: "fssai_license_number",
     },
     {
       title: "No of Food Handlers",

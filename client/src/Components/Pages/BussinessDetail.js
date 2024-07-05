@@ -183,7 +183,7 @@ const baseDivClass = location.pathname === "/client-onboarding" ? "ml-16" : "mar
             ]}
           >
             <Input
-              placeholder="Line 2(Optional)"
+              placeholder="Line 2 (Optional)"
               className="placeholder-gray-400 p-3 rounded-lg"
             />
           </Form.Item>

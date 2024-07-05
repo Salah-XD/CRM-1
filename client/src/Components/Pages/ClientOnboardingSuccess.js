@@ -4,9 +4,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import { CheckCircleOutlined } from "@ant-design/icons";
 
 function ClientOnboardingSuccess() {
-  const location = useLocation();
-  const { formId } = useParams();
-  const updateLink = `/update-client/formId/${formId}`;
+
 
   return (
     <div>
@@ -18,11 +16,9 @@ function ClientOnboardingSuccess() {
         </p>
         <div className="flex items-center">
           <p className="text-gray-600">
-            In case of any issues, you can update the form by clicking this
+            In case of any issues, you can update by contacting Admin.
           </p>
-          <Link to={updateLink} className="text-blue-500 ml-1 underline">
-            Client onboarding form
-          </Link>
+
         </div>
       </div>
     </div>

@@ -566,24 +566,26 @@ export const getOutletDetailsById = async (req, res) => {
         const privateCompany = outlet.private_company;
         data = {
           _id: outlet._id, // Include outlet ID
-          branch_name: outlet.branch_name,
-          name: privateCompany.name,
+          outlet_name: outlet.branch_name,
+          fssai_license_number: privateCompany.fssai_license_number,
+          contact_number: privateCompany.contact_number,
+          contact_person: privateCompany.contact_person,
+          no_of_food_handlers: privateCompany.no_of_food_handlers,
+          Vertical_of_industry: privateCompany.Vertical_of_industry,
           gst_number: privateCompany.gst_number,
-          address: privateCompany.address,
-          email: privateCompany.email,
-          source: "PrivateCompany", // Indicate the source of data
         };
       } else if (outlet.business) {
         // If business is not null, extract data from Business model
         const business = outlet.business;
         data = {
           _id: outlet._id, // Include outlet ID
-          branch_name: outlet.branch_name,
-          name: business.name,
+          outlet_name: outlet.branch_name,
+          fssai_license_number: business.fssai_license_number,
+          no_of_food_handlers: business.no_of_food_handlers,
+          Vertical_of_industry: business.Vertical_of_industry,
           gst_number: business.gst_number,
-          address: business.address,
-          email: outlet.email,
-          source: "Business", // Indicate the source of data
+          contact_number: business.phone,
+          contact_person: business.contact_person,
         };
       }
 
