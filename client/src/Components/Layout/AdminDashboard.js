@@ -107,8 +107,8 @@ const AdminDashboard = ({ children }) => {
       children: [
         {
           label: "Enquiry from customers",
-          key: "/enquiry-from-customers",
-          link: "/enquiry-from-customers",
+          key: "/enquiry",
+          link: "/enquiry",
         },
         { label: "Proposal", key: "/proposal", link: "/proposal" },
         { label: "Invoice", key: "/invoice", link: "/invoice" },

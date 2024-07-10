@@ -19,10 +19,9 @@ import {
   CloudDownloadOutlined,
   MoreOutlined,
   SearchOutlined,
-  MailOutlined ,
+  MailOutlined,
   EditOutlined,
   EyeOutlined,
-
   CopyOutlined,
 } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
@@ -30,10 +29,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { NavLink } from "react-router-dom";
 import toast from "react-hot-toast";
-import GenerateAgreementModal from "./GenrateAgreementModal";
-import GenrateInvoiceModal from "./GenrateInvoiceModal";
 import { ExclamationCircleFilled } from "@ant-design/icons";
-
 
 const { confirm } = Modal;
 const { Search } = Input;
@@ -54,7 +50,7 @@ const debounce = (func, delay) => {
 // Define your debounce delay (e.g., 300ms)
 const debounceDelay = 300;
 
-const PropsalTable = () => {
+const InvoiceTable = () => {
   const [flattenedTableData, setFlattenedTableData] = useState([]);
   const [sortData, setSortData] = useState("alllist");
   const [selectionType, setSelectionType] = useState("checkbox");
@@ -68,38 +64,24 @@ const PropsalTable = () => {
     },
   });
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isModalVisibleInvoice, setIsModalVisibleInvoice] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [shouldFetch, setShouldFetch] = useState(false);
   const navigate = useNavigate();
 
   // Toggling
-    const showModal = () => {
-      setIsModalVisible(true);
-    };
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
 
-    const handleOk = () => {
-      // Handle OK action here
-      setIsModalVisible(false);
-    };
+  const handleOk = () => {
+    // Handle OK action here
+    setIsModalVisible(false);
+  };
 
-    const handleCancel = () => {
-      setIsModalVisible(false);
-    };
-
-    const showModalInvoice = () => {
-      setIsModalVisibleInvoice(true);
-    };
-
-    const handleInvoiceOk = () => {
-      // Handle OK action here
-      setIsModalVisibleInvoice(false);
-    };
-
-    const handleInvoiceCancel = () => {
-      setIsModalVisibleInvoice(false);
-    };
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
   // Fetch data function
   const fetchData = useCallback(() => {
     setLoading(true);
@@ -238,11 +220,22 @@ const PropsalTable = () => {
       case "generate_agreement":
         showModal();
         break;
-
-      case "generate_invoice":
-        showModalInvoice();
+      case "add":
+        // Navigate to add outlet page or handle add outlet action
+        console.log(`Add Outlet for ${record._id}`);
         break;
-
+      case "form-link":
+        const formLink = `${window.location.origin}/client-profile/update-client-form/id/${record._id}`;
+        navigator.clipboard
+          .writeText(formLink)
+          .then(() => {
+            toast.success("Form link copied to clipboard");
+          })
+          .catch((err) => {
+            toast.error("Failed to copy form link");
+            console.error("Error copying form link:", err);
+          });
+        break;
       default:
         break;
     }
@@ -253,27 +246,9 @@ const PropsalTable = () => {
       onClick={(e) => handleMenuClick(record, e)}
       style={{ padding: "8px" }}
     >
-      <Menu.Item
-        key="generate_agreement"
-        style={{ margin: "8px 0", backgroundColor: "#E0F7FA" }}
-      >
-        <span
-          style={{ color: "#00796B", fontWeight: "bold", fontSize: "12px" }}
-        >
-          Generate Agreement
-        </span>
-      </Menu.Item>
-      <Menu.Item
-        key="generate_invoice"
-        style={{ margin: "8px 0", backgroundColor: "#E0F7FA" }}
-      >
-        <span
-          style={{ color: "#00796B", fontWeight: "bold", fontSize: "12px" }}
-        >
-          Generate Invoice
-        </span>
-      </Menu.Item>
-      {/* <Menu.Item
+    
+    
+       <Menu.Item
         key="send-mail"
         style={{ margin: "8px 0", backgroundColor: "#FFE0B2" }}
       >
@@ -282,7 +257,7 @@ const PropsalTable = () => {
         >
           <MailOutlined /> Send Mail
         </span>
-      </Menu.Item> */}
+      </Menu.Item> 
       <Menu.Item
         key="delete"
         style={{ margin: "8px 0", backgroundColor: "#FFCDD2" }}
@@ -348,19 +323,29 @@ const PropsalTable = () => {
       key: "name",
     },
     {
-      title: "Date created",
-      dataIndex: "created_at",
-      key: "created_at",
+      title: "Proposal Number",
+      dataIndex: "proposal_number",
+      key: "proposal_number",
     },
     {
-      title: "Total No. of Outlets",
-      dataIndex: "outletCount",
-      key: "outletCount",
+      title: "Invoice Date",
+      dataIndex: "invoice_date",
+      key: "invoice_date",
     },
     {
-      title: "No. of Outlets Invoiced",
-      dataIndex: "no_of_outlets_invoiced",
-      key: "no_of_outlets_invoiced",
+      title: "Phone Number",
+      dataIndex: "phone",
+      key: "phone",
+    },
+    {
+      title: "Mail Id",
+      dataIndex: "email",
+      key: "email",
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
     },
     {
       title: "Created By",
@@ -471,7 +456,7 @@ const PropsalTable = () => {
                   fontWeight: sortData === "alllist" ? "normal" : "500",
                 }}
               >
-                New Proposal
+                New Invoices
               </Radio.Button>
             </Radio.Group>
           </ConfigProvider>
@@ -519,18 +504,13 @@ const PropsalTable = () => {
           </ConfigProvider>
         </div>
       </div>
-      <GenerateAgreementModal
+      {/* <GenrateAgreement
         visible={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
-      />
-      <GenrateInvoiceModal
-        visible={isModalVisibleInvoice}
-        onOk={handleInvoiceOk}
-        onCancel={handleInvoiceCancel}
-      />
+      /> */}
     </AdminDashboard>
   );
 };
 
-export default PropsalTable;
+export default InvoiceTable;

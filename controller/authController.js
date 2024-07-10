@@ -48,7 +48,9 @@ export const registerUser = async (req, res) => {
     // Save user to the database
     await newUser.save();
 
-    res.status(201).json({ message: "User registered successfully" });
+    res
+      .status(201)
+      .json({ message: "User registered successfully", success: true });
   } catch (error) {
     console.error("Error registering user:", error); // Log error to console
     res.status(500).json({ message: "Server error" });
@@ -220,3 +222,17 @@ export const setNewPassword = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
+
+//Get all user 
+export const fetchAllUsers = async (req, res) => {
+  try {
+    // Fetch all users
+    const users = await User.find({}, "userId role");
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error); // Log error to console
+    res.status(500).json({ message: "Server error" });
+  }
+};
+

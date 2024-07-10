@@ -16,10 +16,13 @@ import LoginPage from "./Components/Auth/LoginPage";
 import ForgotPasswordPage from "./Components/Auth/ForgotPassword";
 import Agreement from "./Components/Pages/Agreement";
 import AuditPlan from "./Components/Pages/AuditPlan";
-import Enquiry from "./Components/Pages/Enquiry";
-import Invoice from "./Components/Pages/Invoice";
+
+import InvoiceTable from "./Components/Pages/InvoiceTable";
 import ProtectedRoute from "./Components/Context/ProtectedRoute";
 import Dashboard from "./Components/Pages/Dashboard";
+import AddUserPage from "./Components/Auth/AddUserPage";
+import EnquiryTable from "./Components/Pages/EnquiryTable";
+import WebEnquiryTable from "./Components/Pages/WebEnquiryTable";
 
 
 
@@ -33,11 +36,14 @@ function App() {
       </Route> */}
 
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/enquiry" element={<EnquiryTable />} />
+        <Route path="/web-enquiry" element={<WebEnquiryTable />} />
+        <Route path="/add-user" element={<AddUserPage />} />
         <Route path="/client-profile" element={<ClientTable />} />
         <Route path="/audit-plan" element={<AuditPlan />} />
         <Route path="/aggrement" element={<Agreement />} />
-        <Route path="/enquiry" element={<Enquiry />} />
-        <Route path="/invoice" element={<Invoice />} />
+        {/* <Route path="/enquiry" element={<Enquiry />} /> */}
+        <Route path="/invoice" element={<InvoiceTable />} />
 
         <Route path="/proposal" element={<ProposalTable />} />
         <Route path="/" element={<LoginPage />} />
@@ -100,14 +106,8 @@ function App() {
           }
         />
 
-        <Route
-          path="/client-onboarding"
-          element={<ClientOnboarding />}
-        />
-        <Route
-          path="/client-success"
-          element={<ClientOnboardingSuccess />}
-        />
+        <Route path="/client-onboarding" element={<ClientOnboarding />} />
+        <Route path="/client-success" element={<ClientOnboardingSuccess />} />
       </Routes>
       <Toaster />
     </>

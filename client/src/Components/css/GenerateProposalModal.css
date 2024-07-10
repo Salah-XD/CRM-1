@@ -1,0 +1,9 @@
+.title {
+    position: relative;
+    padding-bottom: 10px;
+  }
+
+ /* GenerateProposalModal.css */
+.ant-modal-body {
+  padding: 0 !important;
+}

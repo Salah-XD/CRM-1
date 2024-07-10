@@ -1,7 +1,7 @@
 import React from 'react'
 import AdminDashboard from '../Layout/AdminDashboard'
 
-function Enquiry() {
+function EnquiryForm() {
   return (
     <div>
       <AdminDashboard/>
@@ -9,4 +9,4 @@ function Enquiry() {
   )
 }
 
-export default Enquiry
+export default EnquiryForm 

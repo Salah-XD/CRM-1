@@ -19,10 +19,9 @@ import {
   CloudDownloadOutlined,
   MoreOutlined,
   SearchOutlined,
-  MailOutlined ,
+  MailOutlined,
   EditOutlined,
   EyeOutlined,
-
   CopyOutlined,
 } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
@@ -30,13 +29,11 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { NavLink } from "react-router-dom";
 import toast from "react-hot-toast";
-import GenerateAgreementModal from "./GenrateAgreementModal";
-import GenrateInvoiceModal from "./GenrateInvoiceModal";
+import GenerateProposalModal from "./GenerateProposalModal";
 import { ExclamationCircleFilled } from "@ant-design/icons";
-
-
 const { confirm } = Modal;
 const { Search } = Input;
+
 
 // Debounce function definition
 const debounce = (func, delay) => {
@@ -54,7 +51,7 @@ const debounce = (func, delay) => {
 // Define your debounce delay (e.g., 300ms)
 const debounceDelay = 300;
 
-const PropsalTable = () => {
+const EnquiryTable = () => {
   const [flattenedTableData, setFlattenedTableData] = useState([]);
   const [sortData, setSortData] = useState("alllist");
   const [selectionType, setSelectionType] = useState("checkbox");
@@ -68,38 +65,26 @@ const PropsalTable = () => {
     },
   });
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isModalVisibleInvoice, setIsModalVisibleInvoice] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [shouldFetch, setShouldFetch] = useState(false);
   const navigate = useNavigate();
+ 
+  
 
   // Toggling
-    const showModal = () => {
-      setIsModalVisible(true);
-    };
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
 
-    const handleOk = () => {
-      // Handle OK action here
-      setIsModalVisible(false);
-    };
+  const handleOk = () => {
+    setIsModalVisible(false);
+  };
 
-    const handleCancel = () => {
-      setIsModalVisible(false);
-    };
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
 
-    const showModalInvoice = () => {
-      setIsModalVisibleInvoice(true);
-    };
-
-    const handleInvoiceOk = () => {
-      // Handle OK action here
-      setIsModalVisibleInvoice(false);
-    };
-
-    const handleInvoiceCancel = () => {
-      setIsModalVisibleInvoice(false);
-    };
   // Fetch data function
   const fetchData = useCallback(() => {
     setLoading(true);
@@ -235,44 +220,46 @@ const PropsalTable = () => {
   // Handle Menu
   const handleMenuClick = (record, { key }) => {
     switch (key) {
-      case "generate_agreement":
-        showModal();
+      case "generate_proposal":
+    showModal();
         break;
-
-      case "generate_invoice":
-        showModalInvoice();
+      case "add":
+        // Navigate to add outlet page or handle add outlet action
+        console.log(`Add Outlet for ${record._id}`);
         break;
-
+      case "form-link":
+        const formLink = `${window.location.origin}/client-profile/update-client-form/id/${record._id}`;
+        navigator.clipboard
+          .writeText(formLink)
+          .then(() => {
+            toast.success("Form link copied to clipboard");
+          })
+          .catch((err) => {
+            toast.error("Failed to copy form link");
+            console.error("Error copying form link:", err);
+          });
+        break;
       default:
         break;
     }
   };
-
+  
   const menu = (record) => (
     <Menu
       onClick={(e) => handleMenuClick(record, e)}
       style={{ padding: "8px" }}
     >
       <Menu.Item
-        key="generate_agreement"
+        key="generate_proposal"
         style={{ margin: "8px 0", backgroundColor: "#E0F7FA" }}
       >
         <span
           style={{ color: "#00796B", fontWeight: "bold", fontSize: "12px" }}
         >
-          Generate Agreement
+          Generate Proposal
         </span>
       </Menu.Item>
-      <Menu.Item
-        key="generate_invoice"
-        style={{ margin: "8px 0", backgroundColor: "#E0F7FA" }}
-      >
-        <span
-          style={{ color: "#00796B", fontWeight: "bold", fontSize: "12px" }}
-        >
-          Generate Invoice
-        </span>
-      </Menu.Item>
+     
       {/* <Menu.Item
         key="send-mail"
         style={{ margin: "8px 0", backgroundColor: "#FFE0B2" }}
@@ -348,41 +335,58 @@ const PropsalTable = () => {
       key: "name",
     },
     {
-      title: "Date created",
-      dataIndex: "created_at",
-      key: "created_at",
+      title: "Contact Person",
+      dataIndex: "contact_person",
+      key: "contact_person",
     },
     {
-      title: "Total No. of Outlets",
-      dataIndex: "outletCount",
-      key: "outletCount",
+      title: "Services",
+      dataIndex: "services",
+      key: "services",
     },
     {
-      title: "No. of Outlets Invoiced",
-      dataIndex: "no_of_outlets_invoiced",
-      key: "no_of_outlets_invoiced",
+      title: "Phone Number",
+      dataIndex: "phone",
+      key: "phone",
     },
     {
-      title: "Created By",
-      dataIndex: "added_by",
-      key: "added_by",
-      render: (addedBy) => {
-        let color;
-        if (addedBy === "Manual") {
-          color = "volcano";
-        } else if (addedBy === "Web Enquiry") {
-          color = "green";
-        } else {
-          color = "geekblue"; // Default color
-        }
-        return <Tag color={color}>{addedBy.toUpperCase()}</Tag>;
-      },
+      title: "Enquiry Date",
+      dataIndex: "enquiry_date",
+      key: "enquiry_date",
     },
     {
       title: "Status",
-      dataIndex: "status",
-      key: "status",
+      dataIndex: "proposal_status",
+      key: "proposal_status",
+      // render: (proposal_status) => {
+      //   let color;
+      //   if (proposal_status === "New Enquiry") {
+      //     color = "volcano";
+      //   } else if (proposal_status === "Proposal Done") {
+      //     color = "green";
+      //   } else {
+      //     color = "red";
+      //   }
+      //   return <Tag color={color}>{proposal_status.toUpperCase()}</Tag>;
+      // },
     },
+
+    //{
+    //   title: "Created By",
+    //   dataIndex: "added_by",
+    //   key: "added_by",
+    //   render: (addedBy) => {
+    //     let color;
+    //     if (addedBy === "Manual") {
+    //       color = "volcano";
+    //     } else if (addedBy === "Web Enquiry") {
+    //       color = "green";
+    //     } else {
+    //       color = "geekblue"; // Default color
+    //     }
+    //     return <Tag color={color}>{addedBy.toUpperCase()}</Tag>;
+    //   },
+    // },
     {
       title: "Action",
       key: "action",
@@ -471,7 +475,7 @@ const PropsalTable = () => {
                   fontWeight: sortData === "alllist" ? "normal" : "500",
                 }}
               >
-                New Proposal
+                Newly Added
               </Radio.Button>
             </Radio.Group>
           </ConfigProvider>
@@ -519,18 +523,14 @@ const PropsalTable = () => {
           </ConfigProvider>
         </div>
       </div>
-      <GenerateAgreementModal
+      <GenerateProposalModal
         visible={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
-      />
-      <GenrateInvoiceModal
-        visible={isModalVisibleInvoice}
-        onOk={handleInvoiceOk}
-        onCancel={handleInvoiceCancel}
+      
       />
     </AdminDashboard>
   );
 };
 
-export default PropsalTable;
+export default EnquiryTable;

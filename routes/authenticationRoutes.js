@@ -4,7 +4,8 @@ import {
   loginUser,
   forgotPassword,
   verifyOTP,
-  setNewPassword
+  setNewPassword,
+  fetchAllUsers,
 } from "../controller/authController.js";
 import { verifyJWT } from "../middleware/verifyOTP.js";
 
@@ -16,5 +17,6 @@ router.post("/login", loginUser);
 router.post("/forgotPassword", forgotPassword);
 router.post("/verifyOtp", verifyOTP);
 router.post("/setNewPassword", verifyJWT, setNewPassword);
+router.post("/getAllUsers", verifyJWT, fetchAllUsers);
 
 export default router;
