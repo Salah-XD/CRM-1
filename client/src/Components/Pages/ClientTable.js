@@ -62,15 +62,18 @@ const ClientTable = () => {
     },
   });
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [shouldFetch, setShouldFetch] = useState(false);
   const navigate = useNavigate();
 
   // Toggling
-  const toggleModal = () => {
-    setIsModalVisible(!isModalVisible);
-  };
+ const toggleModal = () => {
+   setIsModalVisible(!isModalVisible);
+   setIsModalOpen(!isModalOpen);
+ };
+
 
   // Fetch data function
   const fetchData = useCallback(() => {
@@ -320,39 +323,43 @@ const ClientTable = () => {
   //  );
 
   // Handle search on key press
-  const handleKeyDown = (event) => {
-    const { key, target } = event;
+ const handleKeyDown = (event) => {
+   if (isModalOpen) return;
 
-    if (/^[a-z0-9]$/i.test(key)) {
-      setSearchKeyword((prevKeyword) => prevKeyword + key);
-      debounce(fetchDataWithDebounce, debounceDelay)();
-    } else if (key === "Backspace") {
-      // Check if all text is selected and backspace is pressed
-      if (
-        target.selectionStart === 0 &&
-        target.selectionEnd === target.value.length
-      ) {
-        setSearchKeyword("");
-      } else {
-        setSearchKeyword((prevKeyword) =>
-          prevKeyword.slice(0, prevKeyword.length - 1)
-        );
-      }
-      debounce(fetchDataWithDebounce, debounceDelay)();
-    } else if (key === " ") {
-      setSearchKeyword((prevKeyword) => prevKeyword + " ");
-      debounce(fetchDataWithDebounce, debounceDelay)();
-    }
-  };
-  // Keyboard event listener
-  useEffect(() => {
-    const keydownHandler = (event) => handleKeyDown(event);
-    document.addEventListener("keydown", keydownHandler);
+   const { key, target } = event;
 
-    return () => {
-      document.removeEventListener("keydown", keydownHandler);
-    };
-  }, [fetchDataWithDebounce]);
+   if (/^[a-z0-9]$/i.test(key)) {
+     setSearchKeyword((prevKeyword) => prevKeyword + key);
+     debounce(fetchDataWithDebounce, debounceDelay)();
+   } else if (key === "Backspace") {
+     // Check if all text is selected and backspace is pressed
+     if (
+       target.selectionStart === 0 &&
+       target.selectionEnd === target.value.length
+     ) {
+       setSearchKeyword("");
+     } else {
+       setSearchKeyword((prevKeyword) =>
+         prevKeyword.slice(0, prevKeyword.length - 1)
+       );
+     }
+     debounce(fetchDataWithDebounce, debounceDelay)();
+   } else if (key === " ") {
+     setSearchKeyword((prevKeyword) => prevKeyword + " ");
+     debounce(fetchDataWithDebounce, debounceDelay)();
+   }
+ };
+
+ // Keyboard event listener
+ useEffect(() => {
+   const keydownHandler = (event) => handleKeyDown(event);
+   document.addEventListener("keydown", keydownHandler);
+
+   return () => {
+     document.removeEventListener("keydown", keydownHandler);
+   };
+ }, [fetchDataWithDebounce, isModalOpen]);
+
 
   const columns = [
     {

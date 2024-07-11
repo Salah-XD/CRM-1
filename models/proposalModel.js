@@ -9,5 +9,9 @@ const proposalSchema = new Schema({
     ref: "Business",
     required:true,
   },
-   status
+  proposal_date:{
+    
+  }
+   status{ New Enquiry,Proposal Done , Dropped},
+   
 });

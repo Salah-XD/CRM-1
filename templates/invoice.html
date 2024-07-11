@@ -11,11 +11,11 @@
     <style>
       body {
         background-color: #f7fafc;
-        font-size: 12px;
+        font-size: 10px; /* Reduced font size */
       }
       .container {
         background-color: #ffffff;
-        padding: 16px;
+        padding: 8px; /* Reduced padding */
         max-width: 100%;
         margin: auto;
       }
@@ -26,7 +26,7 @@
       }
       table {
         border-collapse: collapse;
-        font-size: 12px;
+        font-size: 10px; /* Reduced font size */
       }
       th {
         background-color: #edf2f7;
@@ -34,7 +34,7 @@
       th,
       td {
         border: 1px solid #e2e8f0;
-        padding: 4px 8px;
+        padding: 2px 4px; /* Reduced padding */
       }
       .header-info,
       .bill-info,
@@ -42,13 +42,13 @@
       .bank-info,
       .declaration,
       .signature {
-        margin-bottom: 8px;
+        margin-bottom: 4px; /* Reduced margin */
       }
       .header-info h2,
       .bill-info h2,
       .bank-info h2,
       .declaration h2 {
-        font-size: 14px;
+        font-size: 12px; /* Reduced font size */
       }
       .text-right p {
         margin: 0;
@@ -56,59 +56,38 @@
     </style>
   </head>
   <body class="p-4">
-    <div class="container mx-auto mt-10 shadow-lg rounded-lg">
-<div class="header-info flex justify-between items-center border p-4 border-gray-400 rounded">
+    <div class="container mx-auto mt-4 shadow-lg rounded-lg">
+      <div class="header-info flex justify-between items-center border p-2 border-gray-400 rounded">
         <div>
-    <h2 class="text-xl font-bold" style="color: #13A6B8;">UNAVAR FOOD INSPECTION AND CERTIFICATION PRIVATE LIMITED</h2>
-    <p style="color: #13A6B8;">MM ILLAM MKN ROAD, ALANDUR CHENNAI - 600016.</p>
-    <p style="color: #13A6B8;">Tel: + 9894398096 | Email: vivekanand@unavar.com</p>
-    <p style="color: #13A6B8;">GSTIN: 33AADCU1306M1ZI | PAN: AADCU1306M</p>
-</div>
-
-
-        <img
-          src="data:image/png;base64,{{imageData}}"
-          alt="Your Image Alt Text"
-          width="80"
-          height="80"
-        />
+          <h2 class="text-lg font-bold" style="color: #13A6B8;">UNAVAR FOOD INSPECTION AND CERTIFICATION PRIVATE LIMITED</h2>
+          <p style="color: #13A6B8;">MM ILLAM MKN ROAD, ALANDUR CHENNAI - 600016.</p>
+          <p style="color: #13A6B8;">Tel: + 9894398096 | Email: vivekanand@unavar.com</p>
+          <p style="color: #13A6B8;">GSTIN: 33AADCU1306M1ZI | PAN: AADCU1306M</p>
+        </div>
+        <img src="data:image/png;base64,{{imageData}}" alt="Your Image Alt Text" width="80" height="80" />
       </div>
 
-      <h1 class="text-2xl font-bold my-4 text-center text-gray-700">
-        TAX INVOICE
-      </h1>
+      <h1 class="text-xl font-bold my-2 text-center text-gray-700">TAX INVOICE</h1>
 
       <div class="grid grid-cols-2 gap-2 mb-2">
         <div>
-          <p>
-            <span class="font-semibold">Invoice No:</span> {{Invoice Number}}
-          </p>
-          <p>
-            <span class="font-semibold">Invoice Date:</span> {{Invoice Date}}
-          </p>
-          <p>
-            <span class="font-semibold">Order Ref No:</span> {{Order Ref No}}
-          </p>
-          <p>
-            <span class="font-semibold">Cust. P.O. No:</span> {{Cust. P.O. No}}
-          </p>
+          <p><span class="font-semibold">Invoice No:</span> {{Invoice Number}}</p>
+          <p><span class="font-semibold">Invoice Date:</span> {{Invoice Date}}</p>
+          <p><span class="font-semibold">Order Ref No:</span> {{Order Ref No}}</p>
+          <p><span class="font-semibold">Cust. P.O. No:</span> {{Cust. P.O. No}}</p>
         </div>
         <div>
-          <p>
-            <span class="font-semibold">Field Executive Name:</span>{{Field Executive Name}}</p>
-          <p>
-            <span class="font-semibold">Team Leader Name:</span>{{Team Leader Name}}</p>
+          <p><span class="font-semibold">Field Executive Name:</span>{{Field Executive Name}}</p>
+          <p><span class="font-semibold">Team Leader Name:</span>{{Team Leader Name}}</p>
         </div>
       </div>
 
       <div class="bill-info mb-2">
-        <h2 class="text-lg font-semibold text-gray-700">Bill to Party</h2>
+        <h2 class="text-md font-semibold text-gray-700">Bill to Party</h2>
         <p><span class="font-semibold">Name:</span> {{Customer Name}}</p>
         <p><span class="font-semibold">Address:</span> {{Customer Address}}</p>
         <p><span class="font-semibold">GSTIN:</span> {{Customer GSTIN}}</p>
-        <p>
-          <span class="font-semibold">State (Place of Supply):</span> {{State}}
-        </p>
+        <p><span class="font-semibold">State (Place of Supply):</span> {{State}}</p>
         <p><span class="font-semibold">State Code:</span> {{State Code}}</p>
       </div>
 
@@ -116,89 +95,72 @@
         <p><span class="font-semibold">SAC:</span> 998399 (18%)</p>
       </div>
 
-      <table class="table-auto w-full my-4">
+      <table class="table-auto w-full my-2">
         <thead>
           <tr>
-            <th class="px-4 py-2">Services Rendered</th>
-            <th class="px-4 py-2">UOM</th>
-            <th class="px-4 py-2">Qty</th>
-            <th class="px-4 py-2">Rate</th>
-            <th class="px-4 py-2">Amount</th>
-            <th class="px-4 py-2">Discount</th>
-            <th class="px-4 py-2">Taxable Value</th>
-            <th class="px-4 py-2">GST Rate</th>
-            <th class="px-4 py-2">GST Amount</th>
-            <th class="px-4 py-2">Total</th>
+            <th class="px-2 py-1">Services Rendered</th>
+            <th class="px-2 py-1">UOM</th>
+            <th class="px-2 py-1">Qty</th>
+            <th class="px-2 py-1">Rate</th>
+            <th class="px-2 py-1">Amount</th>
+            <th class="px-2 py-1">Discount</th>
+            <th class="px-2 py-1">Taxable Value</th>
+            <th class="px-2 py-1">GST Rate</th>
+            <th class="px-2 py-1">GST Amount</th>
+            <th class="px-2 py-1">Total</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td class="px-4 py-2">{{Service}}</td>
-            <td class="px-4 py-2">{{UOM}}</td>
-            <td class="px-4 py-2">{{Qty}}</td>
-            <td class="px-4 py-2">{{Rate}}</td>
-            <td class="px-4 py-2">{{Amount}}</td>
-            <td class="px-4 py-2">{{Discount}}</td>
-            <td class="px-4 py-2">{{Taxable Value}}</td>
-            <td class="px-4 py-2">{{GST Rate}}</td>
-            <td class="px-4 py-2">{{GST Amount}}</td>
-            <td class="px-4 py-2">{{Total Amount Including Tax}}</td>
+            <td class="px-2 py-1">{{Service}}</td>
+            <td class="px-2 py-1">{{UOM}}</td>
+            <td class="px-2 py-1">{{Qty}}</td>
+            <td class="px-2 py-1">{{Rate}}</td>
+            <td class="px-2 py-1">{{Amount}}</td>
+            <td class="px-2 py-1">{{Discount}}</td>
+            <td class="px-2 py-1">{{Taxable Value}}</td>
+            <td class="px-2 py-1">{{GST Rate}}</td>
+            <td class="px-2 py-1">{{GST Amount}}</td>
+            <td class="px-2 py-1">{{Total Amount Including Tax}}</td>
           </tr>
-          <!-- Repeat for each service rendered -->
+          <!-- Repeat for each service rendered, total 6 rows -->
         </tbody>
       </table>
 
-      <div class="total-info mb-4">
+      <div class="total-info mb-2">
         <p class="font-semibold text-gray-700">
           Total Invoice amount in words:
           <span class="font-normal">{{Total Amount In Word}}</span>
         </p>
-        <p>
-          <span class="font-semibold">Total Amount before Tax:</span>{{Amount Before Tax}}</p>
+        <p><span class="font-semibold">Total Amount before Tax:</span>{{Amount Before Tax}}</p>
         <p><span class="font-semibold">Add: IGST:</span>{{IGST}}</p>
         <p><span class="font-semibold">Add: CGST:</span>{{CGST}}</p>
         <p><span class="font-semibold">Add: SGST:</span>{{SGST}}</p>
-        <p>
-          <span class="font-semibold">Total Amount after Tax:</span>{{Total Amount}}</p>
-        <p>
-          <span class="font-semibold">Gst On Reverse Charge</span>{{Gst Charge}}</p>
+        <p><span class="font-semibold">Total Amount after Tax:</span>{{Total Amount}}</p>
+        <p><span class="font-semibold">Gst On Reverse Charge:</span>{{Gst Charge}}</p>
       </div>
 
-      <div class="bank-info my-4">
-        <h2 class="text-lg font-semibold text-gray-700">
-          Bank Account Details
-        </h2>
-        <p>
-          <span class="font-semibold">Account Holder's Name:</span> UNAVAR FOOD
-          INSPECTION AND CERTIFICATION PVT LTD
-        </p>
+      <div class="bank-info my-2">
+        <h2 class="text-md font-semibold text-gray-700">Bank Account Details</h2>
+        <p><span class="font-semibold">Account Holder's Name:</span> UNAVAR FOOD INSPECTION AND CERTIFICATION PVT LTD</p>
         <p><span class="font-semibold">Bank Name:</span> HDFC BANK</p>
         <p><span class="font-semibold">Bank Branch:</span> West Mambalam</p>
         <p><span class="font-semibold">IFSC Code:</span> HDFC0000575</p>
         <p><span class="font-semibold">Account No:</span> 50200078830737</p>
       </div>
 
-      <div class="declaration my-4">
-        <h2 class="text-lg font-semibold text-gray-700">Declaration:</h2>
+      <div class="declaration my-2">
+        <h2 class="text-md font-semibold text-gray-700">Declaration:</h2>
         <p>1. E& O.E,</p>
         <p>2. Please Quote Invoice no while making payment,</p>
-        <p>
-          3. Invoice Payable within 7 days failing which interest @2% per month
-          will be charged.
-        </p>
+        <p>3. Invoice Payable within 7 days failing which interest @2% per month will be charged.</p>
         <br />
         <p class="font-semibold text-gray-700">Udyog Aadhar No. UDYAM-TN-02-0162170</p>
-        <p>
-          Payment to be made as per our agreed terms. Delay in payment to us
-          beyond 45 days from the date of receipt of invoice would attract
-          interest of 24% p.a. as per MSMED Act, 2006.
-        </p>
+        <p>Payment to be made as per our agreed terms. Delay in payment to us beyond 45 days from the date of receipt of invoice would attract interest of 24% p.a. as per MSMED Act, 2006.</p>
       </div>
 
-      <div class="signature text-right mt-6">
-        <p class="font-semibold">
-          Certified that the particulars given above are true and correct
-        </p>
+      <div class="signature text-right mt-4">
+        <p class="font-semibold">Certified that the particulars given above are true and correct</p>
         <p>For UNAVAR Food Inspection & Certification Pvt Ltd</p>
         <p class="mt-2">Authorised signatory</p>
       </div>

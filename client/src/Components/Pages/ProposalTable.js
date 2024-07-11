@@ -332,14 +332,14 @@ const PropsalTable = () => {
     }
   };
   // Keyboard event listener
-  useEffect(() => {
-    const keydownHandler = (event) => handleKeyDown(event);
-    document.addEventListener("keydown", keydownHandler);
+  // useEffect(() => {
+  //   const keydownHandler = (event) => handleKeyDown(event);
+  //   document.addEventListener("keydown", keydownHandler);
 
-    return () => {
-      document.removeEventListener("keydown", keydownHandler);
-    };
-  }, [fetchDataWithDebounce]);
+  //   return () => {
+  //     document.removeEventListener("keydown", keydownHandler);
+  //   };
+  // }, [fetchDataWithDebounce]);
 
   const columns = [
     {
