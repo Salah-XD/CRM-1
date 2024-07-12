@@ -32,6 +32,7 @@ const AdminDashboard = ({ children }) => {
     Cookies.get("selectedKey") || location.pathname
   );
 
+
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -76,78 +77,152 @@ const AdminDashboard = ({ children }) => {
     setOpenKeys(keys);
   };
 
-  const menuItems = [
-    {
-      label: "Home",
-      key: "/dashboard",
-      icon: <DashboardOutlined />,
-      link: "/dashboard",
-    },
-    {
-      label: "Customers",
-      key: "/customers",
-      icon: <MessageOutlined />,
-      children: [
-        {
-          label: "Web Enquiry (leads)",
-          key: "/web-enquiry",
-          link: "/web-enquiry",
-        },
-        {
-          label: "Client Profile",
-          key: "/client-profile",
-          link: "/client-profile",
-        },
-      ],
-    },
-    {
-      label: "Accounts Management",
-      key: "/accounts",
-      icon: <MessageOutlined />,
-      children: [
-        {
-          label: "Enquiry from customers",
-          key: "/enquiry",
-          link: "/enquiry",
-        },
-        { label: "Proposal", key: "/proposal", link: "/proposal" },
-        { label: "Invoice", key: "/invoice", link: "/invoice" },
-        { label: "Audit Plan", key: "/audit-plan", link: "/audit-plan" },
-        { label: "Agreement", key: "/agreement", link: "/agreement" },
-      ],
-    },
-    {
-      label: "Audit Management",
-      key: "/audit",
-      icon: <FileTextOutlined />,
-      children: [
-        { label: "All Audits", key: "/all-audits", link: "/all-audits" },
-        {
-          label: "New Audit Approvals",
-          key: "/new-approvals",
-          link: "/new-approvals",
-        },
-        { label: "Audit Report - CRUD", key: "/crud", link: "/crud" },
-        {
-          label: "Auditor User Management",
-          key: "/auditor-management",
-          link: "/auditor-management",
-        },
-      ],
-    },
-    {
-      label: "Settings",
-      key: "/settings",
-      icon: <SettingOutlined />,
-      link: "/settings",
-    },
-    {
-      label: "Logout",
-      key: "logout",
-      icon: <LogoutOutlined />,
-      action: handleLogout,
-    },
-  ];
+  const getRoleLabel = (role) => {
+    switch (role) {
+      case "SUPER_ADMIN":
+        return "SUPER ADMIN";
+      case "ACCOUNT_ADMIN":
+        return "ACCOUNT ADMIN";
+      case "AUDIT_ADMIN":
+        return "AUDIT ADMIN";
+      default:
+        return "User";
+    }
+  };
+
+  const roles = getRoleLabel(user?.role);
+  const role=user?.role;
+  
+ const menuItems = [
+   {
+     label: "Home",
+     key: "/dashboard",
+     icon: <DashboardOutlined />,
+     link: "/dashboard",
+     roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN", "AUDIT_ADMIN"],
+   },
+   {
+     label: "Customers",
+     key: "/customers",
+     icon: <MessageOutlined />,
+     roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
+     children: [
+       {
+         label: "Web Enquiry (leads)",
+         key: "/web-enquiry",
+         link: "/web-enquiry",
+         roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
+       },
+       {
+         label: "Client Profile",
+         key: "/client-profile",
+         link: "/client-profile",
+         roles: ["SUPER_ADMIN"],
+       },
+     ],
+   },
+   {
+     label: "Accounts Management",
+     key: "/accounts",
+     icon: <MessageOutlined />,
+     roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
+     children: [
+       {
+         label: "Enquiry from customers",
+         key: "/enquiry",
+         link: "/enquiry",
+         roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
+       },
+       {
+         label: "Proposal",
+         key: "/proposal",
+         link: "/proposal",
+         roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
+       },
+       {
+         label: "Invoice",
+         key: "/invoice",
+         link: "/invoice",
+         roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
+       },
+       {
+         label: "Audit Plan",
+         key: "/audit-plan",
+         link: "/audit-plan",
+         roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
+       },
+       {
+         label: "Agreement",
+         key: "/agreement",
+         link: "/agreement",
+         roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
+       },
+     ],
+   },
+   {
+     label: "Audit Management",
+     key: "/audit",
+     icon: <FileTextOutlined />,
+     roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+     children: [
+       {
+         label: "All Audits",
+         key: "/all-audits",
+         link: "/all-audits",
+         roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+       },
+       {
+         label: "New Audit Approvals",
+         key: "/new-approvals",
+         link: "/new-approvals",
+         roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+       },
+       {
+         label: "Audit Report - CRUD",
+         key: "/crud",
+         link: "/crud",
+         roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+       },
+       {
+         label: "Auditor User Management",
+         key: "/auditor-management",
+         link: "/auditor-management",
+         roles: ["SUPER_ADMIN"],
+       },
+     ],
+   },
+   {
+     label: "Settings",
+     key: "/settings",
+     icon: <SettingOutlined />,
+     link: "/settings",
+     roles: ["SUPER_ADMIN"],
+   },
+   {
+     label: "Logout",
+     key: "logout",
+     icon: <LogoutOutlined />,
+     action: handleLogout,
+     roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN", "AUDIT_ADMIN"],
+   },
+ ];
+
+ const filterMenuItems = (items, role) => {
+   return items
+     .filter((item) => item.roles.includes(role))
+     .map((item) => {
+       if (item.children) {
+         return {
+           ...item,
+           children: filterMenuItems(item.children, role),
+         };
+       }
+       return item;
+     });
+ };
+
+ const filteredMenuItems = filterMenuItems(menuItems, role);
+
 
   return (
     <ConfigProvider
@@ -190,9 +265,9 @@ const AdminDashboard = ({ children }) => {
                   </div>
                   <div>
                     <div className="text-600 text-lg font-semibold">
-                      {user?.name ? user.name : "Venkat"}
+                      {user?.userName ? user.userName : "User"}
                     </div>
-                    <div className="text-xs text-lightGrey">Super Admin</div>
+                    <div className="text-xs text-lightGrey"> {roles}</div>
                   </div>
                 </div>
               )}
@@ -204,7 +279,7 @@ const AdminDashboard = ({ children }) => {
                 theme="light"
                 className="custom-menu"
               >
-                {menuItems.map((item) =>
+                {filteredMenuItems.map((item) =>
                   item.children ? (
                     <Menu.SubMenu
                       key={item.key}

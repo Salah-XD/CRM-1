@@ -5,10 +5,9 @@ import {
   Form,
   InputNumber,
   Input,
-  Select,
-  Checkbox,
   Button,
   Table,
+  Select
 } from "antd";
 import "../css/GenerateProposalModal.css";
 import GenerateSendMail from "./GenerateSendMail";
@@ -81,10 +80,10 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
     setShowForm(true);
   };
 
-   const handleGenerate = () => {
-     onCancel(); // Close the GenerateProposalModal
-     setShowSendMailModal(true); // Show the GenerateSendMail modal
-   };
+  const handleGenerate = () => {
+    onCancel(); // Close the GenerateProposalModal
+    setShowSendMailModal(true); // Show the GenerateSendMail modal
+  };
 
   const handleInputChange = (index, field, value) => {
     const newItems = [...items];
@@ -119,23 +118,105 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
 
   const { subTotal, tax, total } = calculateTotals();
 
-  const columns = [
+  const outletsColumns = [
     {
-      title: "Outlet name",
+      title: "Outlet Name",
       dataIndex: "name",
-     
+      key: "name",
     },
     {
       title: "No of Food Handlers",
       dataIndex: "foodHandlers",
+      key: "foodHandlers",
     },
     {
       title: "Man Days",
       dataIndex: "manDays",
+      key: "manDays",
     },
     {
       title: "Amount",
       dataIndex: "amount",
+      key: "amount",
+      render: (amount) =>
+        amount.toLocaleString("en-IN", {
+          style: "currency",
+          currency: "INR",
+        }),
+    },
+  ];
+
+  const itemsColumns = [
+    {
+      title: "Outlet name",
+      dataIndex: "outletName",
+      key: "outletName",
+      render: (_, item, index) => (
+        <Input
+          value={item.outletName}
+          onChange={(e) =>
+            handleInputChange(index, "outletName", e.target.value)
+          }
+          className="w-full"
+        />
+      ),
+    },
+    {
+      title: "No of Food Handlers",
+      dataIndex: "foodHandlers",
+      key: "foodHandlers",
+      render: (_, item, index) => (
+        <InputNumber
+          min={0}
+          value={item.foodHandlers}
+          onChange={(value) => handleInputChange(index, "foodHandlers", value)}
+          className="w-full"
+        />
+      ),
+    },
+    {
+      title: "Man Days",
+      dataIndex: "manDays",
+      key: "manDays",
+      render: (_, item, index) => (
+        <InputNumber
+          min={0}
+          value={item.manDays}
+          onChange={(value) => handleInputChange(index, "manDays", value)}
+          className="w-full"
+        />
+      ),
+    },
+    {
+      title: "Unit Cost",
+      dataIndex: "unitCost",
+      key: "unitCost",
+      render: (_, item, index) => (
+        <InputNumber
+          min={0}
+          value={item.unitCost}
+          onChange={(value) => handleInputChange(index, "unitCost", value)}
+          className="w-full"
+        />
+      ),
+    },
+    {
+      title: "Discount",
+      dataIndex: "discount",
+      key: "discount",
+      render: (_, item, index) => (
+        <InputNumber
+          min={0}
+          value={item.discount}
+          onChange={(value) => handleInputChange(index, "discount", value)}
+          className="w-full"
+        />
+      ),
+    },
+    {
+      title: "Amount",
+      dataIndex: "amount",
+      key: "amount",
       render: (amount) =>
         amount.toLocaleString("en-IN", {
           style: "currency",
@@ -146,185 +227,128 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
 
   return (
     <>
-      <Modal visible={visible} onCancel={onCancel} footer={null} width={800}>
+      <Modal
+        visible={visible}
+        onCancel={onCancel}
+        footer={null}
+        width={800}
+        className="acc-modal"
+      >
         <Form layout="vertical" form={form}>
+          <div
+            className="text-center align-middle font-medium text-xl bg-blue-50 p-4"
+            style={{ boxShadow: "0 4px 2px -2px lightgrey" }}
+          >
+            Generate invoice
+          </div>
           {!showForm ? (
             <>
-              <div className="text-center font-bold text-xl mb-5 bg-blue-50 p-2 rounded-md shadow-sm">
-                Select outlets
-              </div>
-              <Table
-                dataSource={outlets}
-                columns={columns}
-                pagination={false}
-                rowClassName="text-left"
-                rowSelection={{
-                  selectedRowKeys: selectedOutlets.map((outlet) => outlet.key),
-                  onSelect: handleSelect,
-                  onSelectAll: handleSelectAll,
-                }}
-              />
-              <div className="text-center mt-4">
-                <Button type="primary" onClick={handleNext}>
-                  Next
-                </Button>
+              <div className="p-6" style={{ backgroundColor: "#F6FAFB" }}>
+                <div className="text-center font-medium text-xl mb-5 rounded-md">
+                  Select outlets
+                </div>
+                <Table
+                  dataSource={outlets}
+                  columns={outletsColumns}
+                  pagination={false}
+                  rowClassName="text-left"
+                  rowSelection={{
+                    selectedRowKeys: selectedOutlets.map(
+                      (outlet) => outlet.key
+                    ),
+                    onSelect: handleSelect,
+                    onSelectAll: handleSelectAll,
+                  }}
+                />
+                <div className="text-center mt-4">
+                  <button
+                    className="bg-buttonModalColor px-4 py-2 text-white rounded"
+                    onClick={handleNext}
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             </>
           ) : (
-            <Form layout="vertical">
-              <div
-                className="title text-center font-bold text-xl mb-5 title-div bg-blue-50"
-                style={{ boxShadow: "0 4px 2px -2px lightgrey" }}
-              >
-                Generate Invoice
+            <div className="p-6" style={{ backgroundColor: "#F6FAFB" }}>
+              <div className="text-center font-medium text-xl mb-5 rounded-md">
+                Invoice Details
               </div>
-
-              <div className="flex space-x-4">
+              <Form layout="vertical">
                 <Form.Item label="FBO name (Business Name)" className="flex-1">
-                  <input
-                    type="text"
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </Form.Item>
-              </div>
-              <div className="flex space-x-4">
-                <Form.Item
-                  label="Proposal date"
-                  className="flex-1"
-                  size="large"
-                >
-                  <DatePicker className="w-full" />
-                </Form.Item>
-                <Form.Item
-                  label="Proposal number(Order Ref No.)"
-                  className="flex-1"
-                >
                   <Input
-                    placeholder="Auto Generated"
+                    type="text"
                     className="w-full p-2 border border-gray-300 rounded"
                   />
                 </Form.Item>
-                <Form.Item label="Invoice number" className="flex-1">
+                <div className="flex space-x-4">
+                  <Form.Item
+                    label="Proposal date"
+                    className="flex-1"
+                    size="large"
+                  >
+                    <DatePicker className="w-full" />
+                  </Form.Item>
+                  <Form.Item
+                    label="Proposal number(Order Ref No.)"
+                    className="flex-1"
+                  >
+                    <Input
+                      placeholder="Auto Generated"
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </Form.Item>
+                  <Form.Item label="Invoice number" className="flex-1">
+                    <Input
+                      placeholder="Auto Generated"
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </Form.Item>
+                </div>
+                <Form.Item label="FBO Address">
                   <Input
-                    placeholder="Auto Generated"
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </Form.Item>
-              </div>
-
-              <Form.Item label="FBO Address">
-                <input
-                  type="text"
-                  className="w-full p-2 border border-gray-300 rounded"
-                />
-              </Form.Item>
-              <Form.Item>
-                <input
-                  type="text"
-                  className="w-full p-2 border border-gray-300 rounded"
-                />
-              </Form.Item>
-              <div className="flex space-x-4">
-                <Form.Item label="Pincode" className="flex-1">
-                  <input
                     type="text"
                     className="w-full p-2 border border-gray-300 rounded"
                   />
                 </Form.Item>
-                <Form.Item label="Place Of Supply" className="flex-1">
-                  <input
-                    type="text"
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </Form.Item>
-              </div>
-              <div className="flex space-x-4">
-                <Form.Item label="Field Executie Name " className="flex-1">
-                  <input
-                    type="text"
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </Form.Item>
-                <Form.Item label="Team leader Name" className="flex-1">
-                  <input
-                    type="text"
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
-                </Form.Item>
-              </div>
+                <div className="flex space-x-4">
+                  <Form.Item label="Pincode" className="flex-1">
+                    <Input
+                      type="text"
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </Form.Item>
+                  <Form.Item label="Place Of Supply" className="flex-1">
+                    <Input
+                      type="text"
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </Form.Item>
+                </div>
+                <div className="flex space-x-4">
+                  <Form.Item label="Field Executie Name " className="flex-1">
+                    <Input
+                      type="text"
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </Form.Item>
+                  <Form.Item label="Team leader Name" className="flex-1">
+                    <Input
+                      type="text"
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </Form.Item>
+                </div>
+              </Form>
               <div className="my-4">
                 <h3 className="text-lg font-semibold mb-2">Items table</h3>
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr>
-                      <th className="p-2 border-b">Outlet name</th>
-                      <th className="p-2 border-b">No of Food Handlers</th>
-                      <th className="p-2 border-b">Man Days</th>
-                      <th className="p-2 border-b">Unit Cost</th>
-                      <th className="p-2 border-b">Discount</th>
-                      <th className="p-2 border-b">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {items.map((item, index) => (
-                      <tr key={index}>
-                        <td className="p-2 border-b">
-                          <Input value={item.outletName} className="w-full" />
-                        </td>
-                        <td className="p-2 border-b">
-                          <InputNumber
-                            min={0}
-                            value={item.foodHandlers}
-                            onChange={(value) =>
-                              handleInputChange(index, "foodHandlers", value)
-                            }
-                            className="w-full"
-                          />
-                        </td>
-                        <td className="p-2 border-b">
-                          <InputNumber
-                            min={0}
-                            value={item.manDays}
-                            onChange={(value) =>
-                              handleInputChange(index, "manDays", value)
-                            }
-                            className="w-full"
-                          />
-                        </td>
-                        <td className="p-2 border-b">
-                          <InputNumber
-                            min={0}
-                            value={item.unitCost}
-                            onChange={(value) =>
-                              handleInputChange(index, "unitCost", value)
-                            }
-                            className="w-full"
-                          />
-                        </td>
-                        <td className="p-2 border-b">
-                          <InputNumber
-                            min={0}
-                            value={item.discount}
-                            onChange={(value) =>
-                              handleInputChange(index, "discount", value)
-                            }
-                            className="w-full"
-                          />
-                        </td>
-                        <td className="p-2 border-b">
-                          <InputNumber
-                            min={0}
-                            value={item.amount}
-                            onChange={(value) =>
-                              handleInputChange(index, "amount", value)
-                            }
-                            className="w-full"
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <Table
+                  dataSource={items}
+                  columns={itemsColumns}
+                  pagination={false}
+                  rowClassName="text-left"
+                />
               </div>
               <div className="my-4 p-4 border rounded w-1/2 ml-auto bg-gray-50">
                 <div className="flex justify-between items-center">
@@ -365,25 +389,26 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
                 </div>
               </div>
               <div className="text-center mt-4">
-                <Button type="primary" onClick={handleGenerate}>
+                <button
+                  className="bg-buttonModalColor px-4 py-2 text-white rounded"
+                  onClick={handleGenerate}
+                >
                   Generate
-                </Button>
+                </button>
               </div>
-            </Form>
+            </div>
           )}
         </Form>
       </Modal>
       {showSendMailModal && (
         <GenerateSendMail
-    onClose={() => setShowSendMailModal(false)}
-     title="Generate Invoice"
-    inputPlaceholder="Greeting from unavar"
-    successMessage="Your custom success message"
-    />)
-      }
-
-       </>
-    
+          onClose={() => setShowSendMailModal(false)}
+          title="Generate Invoice"
+          inputPlaceholder="Greeting from unavar"
+          successMessage="Your custom success message"
+        />
+      )}
+    </>
   );
 };
 

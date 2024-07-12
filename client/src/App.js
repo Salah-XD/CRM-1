@@ -16,13 +16,12 @@ import LoginPage from "./Components/Auth/LoginPage";
 import ForgotPasswordPage from "./Components/Auth/ForgotPassword";
 import Agreement from "./Components/Pages/Agreement";
 import AuditPlan from "./Components/Pages/AuditPlan";
-
 import InvoiceTable from "./Components/Pages/InvoiceTable";
-import ProtectedRoute from "./Components/Context/ProtectedRoute";
 import Dashboard from "./Components/Pages/Dashboard";
 import AddUserPage from "./Components/Auth/AddUserPage";
 import EnquiryTable from "./Components/Pages/EnquiryTable";
 import WebEnquiryTable from "./Components/Pages/WebEnquiryTable";
+import { SuperAdminRoute,AccountAdminRoute,AuditAdminRoute} from "./Components/Context/ProtectedRoute";
 
 
 
@@ -31,23 +30,28 @@ function App() {
   return (
     <>
       <Routes>
-        {/* <Route  element={<ProtectedRoute />} >
-         <Route path="/dashboard" element={<ClientTable />} />
-      </Route> */}
-
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/enquiry" element={<EnquiryTable />} />
-        <Route path="/web-enquiry" element={<WebEnquiryTable />} />
-        <Route path="/add-user" element={<AddUserPage />} />
-        <Route path="/client-profile" element={<ClientTable />} />
-        <Route path="/audit-plan" element={<AuditPlan />} />
-        <Route path="/aggrement" element={<Agreement />} />
-        {/* <Route path="/enquiry" element={<Enquiry />} /> */}
-        <Route path="/invoice" element={<InvoiceTable />} />
-
-        <Route path="/proposal" element={<ProposalTable />} />
         <Route path="/" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+        <Route path="/dashboard" element={<Dashboard />} />
+
+        <Route element={<SuperAdminRoute />}>
+          <Route path="/add-user" element={<AddUserPage />} />
+        </Route>
+     
+        <Route element={<AccountAdminRoute />}>
+          <Route path="/enquiry" element={<EnquiryTable />} />
+          <Route path="/web-enquiry" element={<WebEnquiryTable />} />
+          <Route path="/client-profile" element={<ClientTable />} />
+          <Route path="/invoice" element={<InvoiceTable />} />
+          <Route path="/proposal" element={<ProposalTable />} />
+        </Route>
+
+        <Route element={<AuditAdminRoute />}>
+          <Route path="/audit-plan" element={<AuditPlan />} />
+          <Route path="/aggrement" element={<Agreement />} />
+        </Route>
+
 
         <Route
           path="/client-profile/add-business"

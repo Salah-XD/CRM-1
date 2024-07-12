@@ -264,63 +264,6 @@ const ClientTable = () => {
     </Menu>
   );
 
-  //  const menu = (record) => (
-  //    <Menu
-  //      onClick={(e) => handleMenuClick(record, e)}
-  //      style={{ padding: "8px" }}
-  //    >
-  //      <Menu.Item
-  //        key="generate-agreement"
-  //        style={{ margin: "8px 0", backgroundColor: "#E0F7FA" }}
-  //      >
-  //        <span
-  //          style={{ color: "#00796B", fontWeight: "bold", fontSize: "12px" }}
-  //        >
-  //          Generate Agreement
-  //        </span>
-  //      </Menu.Item>
-  //      <Menu.Item
-  //        key="generate-invoice"
-  //        style={{ margin: "8px 0", backgroundColor: "#E0F7FA" }}
-  //      >
-  //        <span
-  //          style={{ color: "#00796B", fontWeight: "bold", fontSize: "12px" }}
-  //        >
-  //          Generate Invoice
-  //        </span>
-  //      </Menu.Item>
-  //      <Menu.Item
-  //        key="send-mail"
-  //        style={{ margin: "8px 0", backgroundColor: "#FFE0B2" }}
-  //      >
-  //        <span
-  //          style={{ color: "#E65100", fontWeight: "bold", fontSize: "12px" }}
-  //        >
-  //          Send Mail
-  //        </span>
-  //      </Menu.Item>
-  //      <Menu.Item
-  //        key="delete"
-  //        style={{ margin: "8px 0", backgroundColor: "#FFCDD2" }}
-  //      >
-  //        <span
-  //          style={{ color: "#B71C1C", fontWeight: "bold", fontSize: "12px" }}
-  //        >
-  //          Delete
-  //        </span>
-  //      </Menu.Item>
-  //      <Menu.Item
-  //        key="edit"
-  //        style={{ margin: "8px 0", backgroundColor: "#E1BEE7" }}
-  //      >
-  //        <span
-  //          style={{ color: "#4A148C", fontWeight: "bold", fontSize: "12px" }}
-  //        >
-  //          Edit
-  //        </span>
-  //      </Menu.Item>
-  //    </Menu>
-  //  );
 
   // Handle search on key press
  const handleKeyDown = (event) => {

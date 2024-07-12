@@ -11,10 +11,12 @@ const AddUserPage = () => {
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
+  const [userName, setUserName] = useState("");
 
   const handleSubmit = async (values) => {
     try {
       const response = await axios.post("/auth/registerUser", {
+        userName:values.userName,
         userId: values.userId,
         password: values.password,
         role: values.role,
@@ -38,6 +40,17 @@ const AddUserPage = () => {
           Add New User
         </Title>
         <Form layout="vertical" onFinish={handleSubmit}>
+          <Form.Item
+            label="User Name"
+            name="userName"
+            rules={[{ required: true, message: "Please input the user Name!" }]}
+          >
+            <Input
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="User Name"
+            />
+          </Form.Item>
           <Form.Item
             label="User ID"
             name="userId"

@@ -21,7 +21,11 @@ export const verifyToken = (req, res, next) => {
 
   try {
     const verified = jwt.verify(token, JWT_SECRET);
-    req.user = verified;
+    req.user = {
+      userName: verified.userName,
+      userId: verified.userId,
+      role: verified.role,
+    };
     next();
   } catch (error) {
     console.error("Invalid Token:", error);

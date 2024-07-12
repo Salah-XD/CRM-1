@@ -7,3 +7,7 @@
 .ant-modal-body {
   padding: 0 !important;
 }
+
+.acc-modal .ant-modal-content{
+    padding: 0  !important;
+}

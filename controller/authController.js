@@ -25,7 +25,7 @@ const generateOTP = () => {
 export const registerUser = async (req, res) => {
   console.log(req.body);
   try {
-    const { userId, password, role } = req.body;
+    const {userName, userId, password, role } = req.body;
 
     // Check if userId already exists
     const existingUser = await User.findOne({ userId });
@@ -40,6 +40,7 @@ export const registerUser = async (req, res) => {
 
     // Create New User
     const newUser = new User({
+      userName,
       userId,
       password: hashedPassword,
       role,
@@ -61,7 +62,7 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   console.log(req.body);
   try {
-    const { userId, password } = req.body;
+    const { userId, password, role } = req.body;
 
     // Check if user exists
     const user = await User.findOne({ userId });
@@ -77,9 +78,18 @@ export const loginUser = async (req, res) => {
       return res.status(200).json({ message: "Invalid user ID or password" });
     }
 
+    // Check if role matches
+    if (user.role !== role) {
+      console.error("Unauthorized role");
+      return res
+        .status(403)
+        .json({ message: "You are not authorized for this role" });
+    }
+
     // Generate JWT Token
     const token = jwt.sign(
       {
+        userName: user.userName,
         userId: user.userId,
         role: user.role,
       },
@@ -93,6 +103,7 @@ export const loginUser = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
+
 
 //Controller for forgot password
 export const forgotPassword = async (req, res) => {

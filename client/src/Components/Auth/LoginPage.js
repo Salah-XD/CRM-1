@@ -29,7 +29,7 @@ const LoginPage = () => {
       const response = await axios.post("/auth/login", {
         userId: values.userID,
         password: values.password,
-        businessType: values.businessType,
+        role: values.businessType, // Sending role as businessType
       });
 
       if (response.data.success) {
@@ -37,10 +37,14 @@ const LoginPage = () => {
         login(response.data.token);
         navigate("/dashboard");
       } else {
-        message.error("incorrect email or password.");
+        message.error("Incorrect email or password.");
       }
     } catch (error) {
-      message.error("some error occured.");
+      if (error.response && error.response.status === 403) {
+        message.error("You are not authorized for this role.");
+      } else {
+        message.error("Some error occurred.");
+      }
     }
   };
 
@@ -48,7 +52,6 @@ const LoginPage = () => {
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full ml-5 flex max-w-sm py-3">
         <img src="logo.png" alt="Company Logo" className="h-12 w-12" />
-
         <label className="text-400 ml-3 text-2xl font-semibold">
           Unavar Admin Dashboard
         </label>
@@ -75,13 +78,13 @@ const LoginPage = () => {
               onChange={(value) => setBusinessType(value)}
               placeholder="Select Business Type"
             >
-              <Option className="boldGrey" value="Super Admin">
+              <Option className="boldGrey" value="SUPER_ADMIN">
                 Super Admin
               </Option>
-              <Option className="boldGrey" value="Account Admin">
+              <Option className="boldGrey" value="ACCOUNT_ADMIN">
                 Account Admin
               </Option>
-              <Option className="boldGrey" value="Audit Admin">
+              <Option className="boldGrey" value="AUDIT_ADMIN">
                 Audit Admin
               </Option>
             </Select>
@@ -116,7 +119,6 @@ const LoginPage = () => {
             <Form.Item name="remember" valuePropName="checked" noStyle>
               <Checkbox>Remember me</Checkbox>
             </Form.Item>
-
             <NavLink
               to="/forgot-password"
               className="text-sm text-blue-600 ml-2 login-form-forgot"

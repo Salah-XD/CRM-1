@@ -13,6 +13,7 @@ module.exports = {
         primary: "#0070FF",
         BlueGlobal: "#16A7B9",
         lightBlue: "#E6F7FF",
+        buttonModalColor: "#349FA7",
       },
     },
   },

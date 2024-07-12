@@ -9,14 +9,19 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // Initialize loading state
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const login = (token, userId, role) => {
-    localStorage.setItem("authToken", token);
-    // Optionally, you can store userId and role in localStorage or state if needed
-    setUser({ userId, role });
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    checkAuth();
+  const login = async (token, userId, role) => {
+    try {
+      localStorage.setItem("authToken", token);
+      setUser({ userId, role });
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      await checkAuth();
+    } catch (err) {
+      console.error("Login failed:", err);
+      setError(err.message);
+    }
   };
 
   const logout = () => {
@@ -31,15 +36,22 @@ export const AuthProvider = ({ children }) => {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       try {
         const response = await axios.get("/auth/protected");
-        setUser({ userId: response.data.userId, role: response.data.role });
+        console.log("this is response",response);
+        setUser({
+          userId: response.data.user.userId,
+          role: response.data.user.role,
+          userName: response.data.user.userName,
+        });
+        setError(null);
       } catch (error) {
         console.error("Auth check failed:", error);
         setUser(null);
+        setError("Authentication check failed. Please log in again.");
       }
     } else {
       setUser(null);
     }
-    setLoading(false); // Set loading to false once authentication check is complete
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -48,7 +60,8 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
-    loading, // Make loading state available in context
+    loading,
+    error,
     login,
     logout,
   };

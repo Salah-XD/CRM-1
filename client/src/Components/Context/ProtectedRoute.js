@@ -5,10 +5,18 @@ import { Spin, Typography } from "antd";
 
 const { Text } = Typography;
 
+const userRoles = {
+  SUPER_ADMIN: "SUPER_ADMIN",
+  ACCOUNT_ADMIN: "ACCOUNT_ADMIN",
+  AUDIT_ADMIN: "AUDIT_ADMIN",
+};
+
 const ProtectedRoute = ({ roles }) => {
   const { user, loading } = useAuth();
 
-  // If authentication check is in progress, display a loading spinner
+  console.log("User:", user);
+  console.log("Roles required:", roles);
+
   if (loading) {
     return (
       <div
@@ -28,14 +36,22 @@ const ProtectedRoute = ({ roles }) => {
     );
   }
 
-  // Check if user is authenticated and has required role
-  const hasRequiredRole = roles ? roles.includes(user?.role) : true;
+  const hasRequiredRole =
+    user?.role === userRoles.SUPER_ADMIN || roles.includes(user?.role);
+
+  console.log("Has required role:", hasRequiredRole);
 
   return user && hasRequiredRole ? (
     <Outlet />
   ) : (
-    <Navigate to="/dashboard" replace />
+    <Navigate to="/" replace />
   );
 };
 
-export default ProtectedRoute;
+export const SuperAdminRoute = () => <ProtectedRoute roles={[]} />;
+export const AccountAdminRoute = () => (
+  <ProtectedRoute roles={[userRoles.ACCOUNT_ADMIN]} />
+);
+export const AuditAdminRoute = () => (
+  <ProtectedRoute roles={[userRoles.AUDIT_ADMIN]} />
+);
