@@ -80,7 +80,7 @@ const ClientTable = () => {
     setLoading(true);
 
     // Construct the URL with the businessId included in the path
-    const url = "/getAllBussinesDetails";
+    const url = "/api/getAllBussinesDetails";
 
     axios
       .get(url, {
@@ -123,13 +123,12 @@ const ClientTable = () => {
     searchKeyword,
   ]);
 
-  // Fetch data with debounce
-  const fetchDataWithDebounce = useCallback(
-    debounce(() => {
-      fetchData();
-    }, 500),
-    [fetchData]
-  );
+  const fetchDataWithDebounce = debounce(() => {
+    if (searchKeyword.trim()) {
+      // Your backend call logic here
+      console.log("Fetching data for keyword:", searchKeyword);
+    }
+  }, debounceDelay);
 
   // Fetch initial data on component mount
   useEffect(() => {
@@ -175,7 +174,7 @@ const ClientTable = () => {
        cancelText: "No",
        onOk() {
          axios
-           .delete("deleteSelectedFields", { data: selectedRows })
+           .delete("/api/deleteSelectedFields", { data: selectedRows })
            .then((response) => {
              const currentPage = tableParams.pagination.current;
              const pageSize = tableParams.pagination.pageSize;
@@ -209,32 +208,62 @@ const ClientTable = () => {
      });
    };
 
-  // Handle Menu
-  const handleMenuClick = (record, { key }) => {
-    switch (key) {
-      case "view":
-        navigate(`/client-profile/update-client/id/${record._id}`);
-        break;
-      case "add":
-        // Navigate to add outlet page or handle add outlet action
-        console.log(`Add Outlet for ${record._id}`);
-        break;
-      case "form-link":
-        const formLink = `${window.location.origin}/client-profile/update-client-form/id/${record._id}`;
-        navigator.clipboard
-          .writeText(formLink)
-          .then(() => {
-            toast.success("Form link copied to clipboard");
-          })
-          .catch((err) => {
-            toast.error("Failed to copy form link");
-            console.error("Error copying form link:", err);
-          });
-        break;
-      default:
-        break;
-    }
-  };
+
+   //const single delete
+const showSingleDeleteConfirm = (id) => {
+  confirm({
+    title: "Are you sure delete?",
+    icon: <ExclamationCircleFilled />,
+    okText: "Yes",
+    okType: "danger",
+    cancelText: "No",
+    onOk() {
+      axios
+        .delete("/api/deleteSelectedFields", { data: [id] }) // Send ID as an array
+        .then((response) => {
+          const currentPage = tableParams.pagination.current;
+          const pageSize = tableParams.pagination.pageSize;
+          const newTotal = tableParams.pagination.total - 1; // Only one row is deleted
+          const newCurrentPage = Math.min(
+            currentPage,
+            Math.ceil(newTotal / pageSize)
+          );
+
+          setTableParams((prevState) => ({
+            ...prevState,
+            pagination: {
+              ...prevState.pagination,
+              total: newTotal,
+              current: newCurrentPage,
+            },
+          }));
+
+          setShouldFetch(true); // Trigger data fetch
+          toast.success("Successfully Deleted");
+        })
+        .catch((error) => {
+          console.error("Error deleting row:", error);
+        });
+    },
+    onCancel() {
+      console.log("Cancel");
+    },
+  });
+};
+
+// Updated handleMenuClick function
+const handleMenuClick = (record, { key }) => {
+  switch (key) {
+    case "view":
+      navigate(`/client-profile/update-client/id/${record._id}`);
+      break;
+    case "delete":
+      showSingleDeleteConfirm(record._id); // Pass the correct record ID
+      break;
+    default:
+      break;
+  }
+};
 
   const menu = (record) => (
     <Menu
@@ -251,57 +280,40 @@ const ClientTable = () => {
           <EyeOutlined /> View/Update
         </span>
       </Menu.Item>
-      <Menu.Item
-        key="form-link"
-        style={{ margin: "8px 0", backgroundColor: "#E0F7FA" }}
+       <Menu.Item
+        key="delete"
+        style={{ margin: "8px 0", backgroundColor: "#FFCDD2" }}
       >
         <span
-          style={{ color: "#00796B", fontWeight: "bold", fontSize: "12px" }}
+          style={{ color: "#B71C1C", fontWeight: "bold", fontSize: "12px" }}
         >
-          <CopyOutlined /> Copy Form Link
+          <DeleteOutlined /> Delete
         </span>
       </Menu.Item>
     </Menu>
   );
 
 
-  // Handle search on key press
- const handleKeyDown = (event) => {
-   if (isModalOpen) return;
 
-   const { key, target } = event;
 
-   if (/^[a-z0-9]$/i.test(key)) {
-     setSearchKeyword((prevKeyword) => prevKeyword + key);
-     debounce(fetchDataWithDebounce, debounceDelay)();
-   } else if (key === "Backspace") {
-     // Check if all text is selected and backspace is pressed
-     if (
-       target.selectionStart === 0 &&
-       target.selectionEnd === target.value.length
-     ) {
-       setSearchKeyword("");
-     } else {
-       setSearchKeyword((prevKeyword) =>
-         prevKeyword.slice(0, prevKeyword.length - 1)
-       );
-     }
-     debounce(fetchDataWithDebounce, debounceDelay)();
-   } else if (key === " ") {
-     setSearchKeyword((prevKeyword) => prevKeyword + " ");
-     debounce(fetchDataWithDebounce, debounceDelay)();
-   }
- };
+const handleInputChange = (event) => {
+  if (isModalOpen) return;
 
- // Keyboard event listener
- useEffect(() => {
-   const keydownHandler = (event) => handleKeyDown(event);
-   document.addEventListener("keydown", keydownHandler);
+  const { value } = event.target;
+  setSearchKeyword(value);
+};
 
-   return () => {
-     document.removeEventListener("keydown", keydownHandler);
-   };
- }, [fetchDataWithDebounce, isModalOpen]);
+useEffect(() => {
+  if (searchKeyword.trim()) {
+    fetchDataWithDebounce();
+  } else {
+    // Reset fields to normal state
+    // Your code to reset fields here
+    console.log("Resetting fields to normal state");
+  }
+}, [searchKeyword, fetchDataWithDebounce]);
+
+
 
 
   const columns = [
@@ -384,7 +396,7 @@ const ClientTable = () => {
                 Delete
               </Button>
             </Space>
-            <Button shape="round" icon={<FilterOutlined />} size="default">
+            {/* <Button shape="round" icon={<FilterOutlined />} size="default">
               Filters
             </Button>
             <Button
@@ -393,7 +405,7 @@ const ClientTable = () => {
               size="default"
             >
               Export
-            </Button>
+            </Button> */}
             <NavLink to="/client-profile/add-business">
               <Button
                 type="primary"
@@ -470,8 +482,9 @@ const ClientTable = () => {
               placeholder="Search by FBO Name, Phone Number, etc."
               prefix={<SearchOutlined />}
               value={searchKeyword}
+              onChange={handleInputChange}
               style={{ width: 300 }}
-              onChange={(e) => setSearchKeyword(e.target.value)}
+              
             />
           </div>
         </div>

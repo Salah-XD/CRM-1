@@ -16,7 +16,7 @@ const AddClient = ({ newClientTitle, children }) => {
 
   const handleNavigation = (value) => {
     setSelectedOption(value);
-    const route = value === "addClient" ? "/add-business" : "/add-outlet";
+    const route = value === "addClient" ? "/api/add-business" : "/api/add-outlet";
     navigate(route);
   };
 

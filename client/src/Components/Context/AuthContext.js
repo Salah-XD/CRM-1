@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       try {
-        const response = await axios.get("/auth/protected");
+        const response = await axios.get("/api/auth/protected");
         console.log("this is response",response);
         setUser({
           userId: response.data.user.userId,

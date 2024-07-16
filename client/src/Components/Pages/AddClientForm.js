@@ -14,7 +14,7 @@ const AddClient = ({ newClientTitle }) => {
   const handleBusinessSubmit = async (details) => {
     setLoading(true);
     try {
-      const { data } = await axios.post("/saveClientData", details);
+      const { data } = await axios.post("/api/saveClientData", details);
       if (data?.success) {
         setBusinessId(data.data._id);
         console.log("this is data" + data.data._id);

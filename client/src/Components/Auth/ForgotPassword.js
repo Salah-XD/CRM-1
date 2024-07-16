@@ -20,7 +20,7 @@ const ForgotPasswordPage = () => {
      setLoading(true);
     try {
       // Call API to send OTP
-      await axios.post("/auth/forgotPassword", { userId });
+      await axios.post("/api/auth/forgotPassword", { userId });
       setOtpSent(true);
       message.success("OTP sent successfully!");
     }  catch (error) {
@@ -37,7 +37,7 @@ const ForgotPasswordPage = () => {
   const handleVerifyOtp = async () => {
     try {
       // Call API to verify OTP
-      const response = await axios.post("/auth/verifyOtp", {
+      const response = await axios.post("/api/auth/verifyOtp", {
         userId,
         otp,
       });

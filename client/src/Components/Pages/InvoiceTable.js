@@ -87,7 +87,7 @@ const InvoiceTable = () => {
     setLoading(true);
 
     // Construct the URL with the businessId included in the path
-    const url = "/getAllBussinesDetails";
+    const url = "/api/getAllBussinesDetails";
 
     axios
       .get(url, {

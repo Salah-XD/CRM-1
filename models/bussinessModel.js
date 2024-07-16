@@ -58,7 +58,7 @@ const businessSchema = new Schema({
   status: {
     type: String,
     enum: ["pending", "approved", "rejected"],
-    default: "approved",
+    default: "pending",
   },
   created_at: {
     type: Date,

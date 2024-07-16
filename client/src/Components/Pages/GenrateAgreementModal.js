@@ -195,7 +195,7 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel }) => {
                 <div className="text-center mt-4">
                   <button
                     className="bg-buttonModalColor px-4 py-2 text-white rounded"
-                    onClick={handleGenerate}
+                   // onClick={}
                   >
                     Generate
                   </button>

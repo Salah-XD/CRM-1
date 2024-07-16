@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Router } from "express";
 import { verifyToken } from "../middleware/auth.js";
 
 import {
@@ -17,6 +17,8 @@ import {
   updateOutlet,
   getAllClientName,
   getBranchNamesByBusinessId,
+  getAllClientDetails,
+  updateBusinessStatus,
 } from "../controller/clinetController.js";
 const router = express.Router();
  
@@ -39,7 +41,7 @@ router.post("/saveClientData", saveBusiness);
 router.put("/updateClientData", updateBusiness);
 
 //Route to get the bussiness name
-router.get("/getAllBussinessName", verifyToken,getBusinesses);
+router.get("/getAllBussinessName",getBusinesses);
 
 //Route to get all Bussiness deatils
 router.get("/getAllBussinesDetails", getAllBusinessDetails);
@@ -65,7 +67,7 @@ router.delete("/deleteOutletFields", deleteOutlets);
 router.post("/sendFormlink", sendEmail);
 
 
-//Rout to get total outlet
+//Route to get total outlet
 router.get("/getTotalOutlet",countOutletsForBusinesses);
 
 //Route to save outlet
@@ -82,7 +84,7 @@ router.get("/getOutletDetails/:businessId", getOutletDetailsById);
 router.get("/getParticularOutletDetails/:id",getParticularOutletDetails);
 
 //Route to get all the client name
-router.get("/getAllBussinessName", verifyToken,getAllClientName);
+router.get("/getAllBussinessName",getAllClientName);
 
 router.get("/protected", verifyToken, (req, res) => {
   res
@@ -98,6 +100,10 @@ router.get(
 );
 
 
+router.get("/getAllClientDetail", getAllClientDetails);
+
+
+router.put("/updateBusinessStatus/:id", updateBusinessStatus);
 
 
 export default router;

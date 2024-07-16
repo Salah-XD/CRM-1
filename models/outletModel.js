@@ -2,21 +2,35 @@ import mongoose from "mongoose";
 
 const { Schema, model } = mongoose;
 
-const outletSchema = new Schema({
-  branch_name: {
-    type: String,
-    required: true,
+const outletSchema = new Schema(
+  {
+    branch_name: {
+      type: String,
+      required: true,
+    },
+    business: {
+      type: Schema.Types.ObjectId,
+      ref: "Business",
+      required: true,
+    },
+    fssai_license_number: {
+      type: String,
+    },
+    no_of_food_handlers: {
+      type: String,
+    },
+    contact_number: {
+      type: String,
+    },
+    contact_person: {
+      type: String,
+    },
+    gst_number: {
+      type: String,
+    },
   },
-  business: {
-    type: Schema.Types.ObjectId,
-    ref: "Business",
-    required: true,
-  },
-  private_company: {
-    type: Schema.Types.ObjectId,
-    ref: "PrivateCompany",
-  },
-});
+  { timestamps: true }
+);
 
 const Outlet = model("Outlet", outletSchema);
 

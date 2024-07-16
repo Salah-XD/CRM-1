@@ -4,6 +4,7 @@ import Outlet from "../models/outletModel.js";
 import PrivateCompany from "../models/privateModel.js";
 import nodemailer from "nodemailer";
 import mongoose from "mongoose";
+import Enquiry from "../models/enquiryModel.js"
 
 // Controller function to handle saving client data
 export const saveBusiness = async (req, res) => {
@@ -20,6 +21,7 @@ export const saveBusiness = async (req, res) => {
       gst_number,
       address,
       added_by,
+      status,
     } = req.body;
 
     // Validate required fields
@@ -41,7 +43,7 @@ export const saveBusiness = async (req, res) => {
       gst_number,
       address, // Directly use the address object from req.body
       added_by,
-      status: "approved", // Set status to "approved" for a new form
+      status, // Set status to "approved" for a new form
       created_at: new Date(), // Record creation timestamp
     });
 
@@ -135,83 +137,44 @@ export const getBusinessDetailsById = async (req, res) => {
   }
 };
 
-//Save The outlet Information
+// Controller function to save outlet information
 export const saveOutlet = async (req, res) => {
-  console.log(req.body);
   try {
     const {
       branch_name,
-      business,
-      gst_number,
       contact_number,
-      private_owned,
+      contact_person,
+      no_of_food_handlers,
+      fssai_license_number,
+      gst_number,
+      business,
     } = req.body;
 
-    // Check if branch_name, private_owned, and business are provided and have valid values
-    if (
-      !branch_name ||
-      !private_owned ||
-      !["yes", "no"].includes(private_owned)
-    ) {
-      return res.status(400).json({ message: "Invalid request data" });
-    }
+    // Create a new outlet instance with the provided data
+    const newOutlet = new Outlet({
+      branch_name,
+      contact_number,
+      contact_person,
+      no_of_food_handlers,
+      fssai_license_number,
+      gst_number,
+      business,
+    });
 
-    // Check if business ID is provided when the outlet is privately owned
-    if (private_owned === "yes" && !business) {
-      return res.status(400).json({
-        message: "Business ID is required when the outlet is privately owned",
-      });
-    }
-
-    let newOutlet;
-
-    // If the outlet is not privately owned
-    if (private_owned === "no") {
-      newOutlet = new Outlet({
-        branch_name,
-        business,
-        private_company: null, // Optional field for outlets not owned by private companies
-      });
-    } else {
-      // If the outlet is privately owned
-      // Create a new private company document
-      const privateCompanyData = {
-        fssai_license_number: req.body.fssai_license_number,
-        no_of_food_handlers: req.body.no_of_food_handlers,
-        Vertical_of_industry: req.body.Vertical_of_industry,
-        contact_number,
-        contact_person: req.body.contact_person,
-        gst_number,
-        business,
-      };
-      const newPrivateCompany = new PrivateCompany(privateCompanyData);
-
-      // Save the new private company document
-      await newPrivateCompany.save();
-
-      // Create a new outlet document linked to the private company
-      newOutlet = new Outlet({
-        branch_name,
-        business,
-        private_company: newPrivateCompany._id,
-      });
-    }
-
-    // Save the new outlet document
+    // Save the outlet to the database
     await newOutlet.save();
 
-    return res
-      .status(201)
-      .json({ message: "Outlet saved successfully", data: newOutlet });
+    res.status(201).json({ message: "Outlet data saved successfully" });
   } catch (error) {
-    console.error("Error:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    console.error("Error saving outlet data:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to save outlet data. Please try again later." });
   }
 };
-
 // Update The outlet Information
 export const updateOutlet = async (req, res) => {
-  console.log(req.body);
+
   try {
     const { outletId } = req.params;
     const {
@@ -219,7 +182,6 @@ export const updateOutlet = async (req, res) => {
       business,
       gst_number,
       contact_number,
-      private_owned,
       fssai_license_number,
       no_of_food_handlers,
       Vertical_of_industry,
@@ -237,73 +199,15 @@ export const updateOutlet = async (req, res) => {
     }
 
     // Update the fields that are provided
-    if (branch_name) {
-      outlet.branch_name = branch_name;
-    }
-    if (private_owned) {
-      // Check if private_owned has a valid value
-      if (!["yes", "no"].includes(private_owned)) {
-        return res
-          .status(400)
-          .json({ message: "Invalid value for private_owned" });
-      }
-      outlet.private_owned = private_owned;
-
-      if (private_owned === "yes") {
-        if (business) {
-          outlet.business = business;
-        }
-
-        // Find or create private company data
-        let privateCompany;
-        if (outlet.private_company) {
-          privateCompany = await PrivateCompany.findById(
-            outlet.private_company
-          );
-          if (!privateCompany) {
-            return res
-              .status(404)
-              .json({ message: "Associated private company not found" });
-          }
-        } else {
-          privateCompany = new PrivateCompany();
-        }
-
-        // Update private company data
-
-        if (gst_number) {
-          privateCompany.gst_number = gst_number;
-        }
-
-        if (contact_number) {
-          privateCompany.contact_number = contact_number;
-        }
-        if (business) {
-          privateCompany.business = business;
-        }
-        if (fssai_license_number) {
-          privateCompany.fssai_license_number = fssai_license_number;
-        }
-        if (no_of_food_handlers) {
-          privateCompany.no_of_food_handlers = no_of_food_handlers;
-        }
-        if (Vertical_of_industry) {
-          privateCompany.Vertical_of_industry = Vertical_of_industry;
-        }
-
-        await privateCompany.save();
-
-        // Associate the ObjectId of the private company with the outlet
-        outlet.private_company = privateCompany._id;
-      } else {
-        outlet.business = business;
-        outlet.private_company = null;
-      }
-    } else {
-      if (business) {
-        outlet.business = business;
-      }
-    }
+    if (branch_name) outlet.branch_name = branch_name;
+    if (business) outlet.business = business;
+    if (gst_number) outlet.gst_number = gst_number;
+    if (contact_number) outlet.contact_number = contact_number;
+    if (fssai_license_number)
+      outlet.fssai_license_number = fssai_license_number;
+    if (no_of_food_handlers) outlet.no_of_food_handlers = no_of_food_handlers;
+    if (Vertical_of_industry)
+      outlet.Vertical_of_industry = Vertical_of_industry;
 
     // Save the outlet
     await outlet.save();
@@ -316,6 +220,8 @@ export const updateOutlet = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
 
 //Fetch Bussiness name to show in outlets
 export const getBusinesses = async (req, res) => {
@@ -348,8 +254,10 @@ export const getAllBusinessDetails = async (req, res) => {
         .json({ message: "Invalid page or pageSize parameter" });
     }
 
-    // Base query
-    let query = Business.find({});
+    // Base query with status condition
+    let query = Business.find({
+      status: "approved", // Filter for businesses with status "pending"
+    });
 
     // Apply search keyword if provided
     if (keyword) {
@@ -409,6 +317,8 @@ export const getAllBusinessDetails = async (req, res) => {
   }
 };
 
+
+
 export const countOutletsForBusinesses = async (req, res) => {
   try {
     // Aggregate outlets to count the number of outlets for each business
@@ -430,26 +340,14 @@ export const countOutletsForBusinesses = async (req, res) => {
 };
 
 export const deleteFields = async (req, res) => {
+  //console.log(req.body);
   try {
-    const arrayOfBusinessIds = req.body; // Assuming an array of business IDs is sent in the request body
+    const arrayOfBusinessIds = req.body; 
 
     // Validate arrayOfBusinessIds here if necessary
 
     const deletionPromises = arrayOfBusinessIds.map(async (businessId) => {
-      // Find all outlets linked to this business
-      const outlets = await Outlet.find({ business: businessId });
-
-      // Extract private company IDs from outlets
-      const privateCompanyIds = outlets
-        .filter((outlet) => outlet.private_company) // Filter only outlets with a private_company
-        .map((outlet) => outlet.private_company);
-
-      // Delete associated PrivateCompany documents first, if any
-      if (privateCompanyIds.length > 0) {
-        await PrivateCompany.deleteMany({ _id: { $in: privateCompanyIds } });
-      }
-
-      // Delete all outlets where business ID matches
+      // Delete all outlets linked to this business
       await Outlet.deleteMany({ business: businessId });
 
       // Delete Business document
@@ -508,14 +406,8 @@ export const getOutletDetailsById = async (req, res) => {
     let { page, pageSize, sort } = req.query;
 
     // Convert page and pageSize to numbers and validate
-    page = parseInt(page, 10);
-    pageSize = parseInt(pageSize, 10);
-    if (isNaN(page) || page <= 0) {
-      page = 1;
-    }
-    if (isNaN(pageSize) || pageSize <= 0) {
-      pageSize = 10;
-    }
+    page = parseInt(page, 10) || 1;
+    pageSize = parseInt(pageSize, 10) || 10;
     const skip = (page - 1) * pageSize;
 
     // Check if businessId exists
@@ -532,7 +424,6 @@ export const getOutletDetailsById = async (req, res) => {
     // Initialize query with pagination
     let query = Outlet.find({ business: businessId })
       .populate("business")
-      .populate("private_company")
       .skip(skip)
       .limit(pageSize);
 
@@ -556,42 +447,15 @@ export const getOutletDetailsById = async (req, res) => {
       });
     }
 
-    const populatedData = [];
-
-    for (const outlet of outlets) {
-      let data;
-
-      if (outlet.private_company) {
-        // If private_company is not null, extract data from Private model
-        const privateCompany = outlet.private_company;
-        data = {
-          _id: outlet._id, // Include outlet ID
-          outlet_name: outlet.branch_name,
-          fssai_license_number: privateCompany.fssai_license_number,
-          contact_number: privateCompany.contact_number,
-          contact_person: privateCompany.contact_person,
-          no_of_food_handlers: privateCompany.no_of_food_handlers,
-          Vertical_of_industry: privateCompany.Vertical_of_industry,
-          gst_number: privateCompany.gst_number,
-        };
-      } else if (outlet.business) {
-        // If business is not null, extract data from Business model
-        const business = outlet.business;
-        data = {
-          _id: outlet._id, // Include outlet ID
-          outlet_name: outlet.branch_name,
-          fssai_license_number: business.fssai_license_number,
-          no_of_food_handlers: business.no_of_food_handlers,
-          Vertical_of_industry: business.Vertical_of_industry,
-          gst_number: business.gst_number,
-          contact_number: business.phone,
-          contact_person: business.contact_person,
-        };
-      }
-
-      // Add extracted data to the populatedData array
-      if (data) populatedData.push(data);
-    }
+    const populatedData = outlets.map((outlet) => ({
+      _id: outlet._id, // Include outlet ID
+      outlet_name: outlet.branch_name,
+      fssai_license_number: outlet.fssai_license_number,
+      contact_number: outlet.contact_number,
+      contact_person: outlet.contact_person,
+      no_of_food_handlers: outlet.no_of_food_handlers,
+      gst_number: outlet.gst_number,
+    }));
 
     console.log(`Populated data: ${JSON.stringify(populatedData)}`);
 
@@ -608,9 +472,10 @@ export const getOutletDetailsById = async (req, res) => {
   }
 };
 
+
 //Controller to deltet the array of fields of outlet
 export const deleteOutlets = async (req, res) => {
-  console.log("Request body:", req.body);
+  
   try {
     const arrayOfOutletIds = req.body; // Assuming an array of arrays of IDs is sent in the request body
 
@@ -618,17 +483,8 @@ export const deleteOutlets = async (req, res) => {
 
     // Assuming Outlet is your Mongoose model
     const deletionPromises = arrayOfOutletIds.map(async (outletIds) => {
-      const outlets = await Outlet.find({ _id: { $in: outletIds } });
-
-      // Iterate through each outlet and handle deletion
-      for (const outlet of outlets) {
-        if (outlet.private_company) {
-          // Delete the private data first if it exists
-          await PrivateCompany.deleteOne({ _id: outlet.private_company });
-        }
-        // Delete the outlet
-        await Outlet.deleteOne({ _id: outlet._id });
-      }
+      // Delete outlets by their IDs
+      return Outlet.deleteMany({ _id: { $in: outletIds } });
     });
 
     // Wait for all deletion operations to complete
@@ -641,15 +497,13 @@ export const deleteOutlets = async (req, res) => {
   }
 };
 
-export const getParticularOutletDetails = async (req, res) => {
-  console.log(req.params.id);
-  try {
-    const outletId = req.params.id;
 
-    // Find the outlet by ID and populate business and private_company references
-    const outlet = await Outlet.findById(outletId)
-      .populate("business")
-      .populate("private_company");
+export const getParticularOutletDetails = async (req, res) => {
+  const outletId = req.params.id;
+
+  try {
+    // Find the outlet by ID without populating other references
+    const outlet = await Outlet.findById(outletId);
 
     if (!outlet) {
       return res.status(404).json({ error: "Outlet not found" });
@@ -657,19 +511,26 @@ export const getParticularOutletDetails = async (req, res) => {
 
     const response = {
       branch_name: outlet.branch_name,
-      private_owned: !!outlet.private_company,
+      outlet_id: outlet._id,
+      fssai_license_number: outlet.fssai_license_number,
+      contact_number: outlet.contact_number,
+      contact_person: outlet.contact_person,
+      no_of_food_handlers: outlet.no_of_food_handlers,
+      gst_number: outlet.gst_number,
     };
 
+    // Include private company details if applicable
     if (outlet.private_company) {
       response.private_details = outlet.private_company;
     }
 
     return res.status(200).json(response);
   } catch (error) {
-    console.error(error);
+    console.error("Error:", error);
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
 
 //Controller to get all the client name
 export const getAllClientName = async (req, res) => {
@@ -726,5 +587,112 @@ export const getBranchNamesByBusinessId = async (req, res) => {
       message: "An error occurred while fetching branches",
       error,
     });
+  }
+};
+
+//check client onboarding approved or not
+export const getAllClientDetails = async (req, res) => {
+  try {
+    const { page, pageSize, sort, keyword } = req.query;
+
+    // Convert page and pageSize to integers
+    const pageNumber = parseInt(page);
+    const sizePerPage = parseInt(pageSize);
+
+    // Validate page number and page size
+    if (
+      isNaN(pageNumber) ||
+      pageNumber < 1 ||
+      isNaN(sizePerPage) ||
+      sizePerPage < 1
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid page or pageSize parameter" });
+    }
+
+    // Base query with added conditions
+    let query = Business.find({
+      added_by: "Client Form",
+      status: "pending", 
+    });
+
+    // Apply search keyword if provided
+    if (keyword) {
+      const searchRegex = new RegExp(keyword, "i"); // Case-insensitive regex
+      query = query.or([
+        { name: searchRegex },
+        { contact_person: searchRegex },
+        { phone: searchRegex },
+        { email: searchRegex },
+      ]);
+    }
+
+    // Apply sorting based on the 'sort' parameter
+    if (sort === "newlyadded") {
+      query = query.sort({ created_at: -1 });
+    }
+
+    // Count total number of businesses
+    const totalBusinesses = await Business.countDocuments(query.getQuery());
+
+    // Retrieve businesses with pagination
+    const businesses = await query
+      .skip((pageNumber - 1) * sizePerPage)
+      .limit(sizePerPage)
+      .select(
+        "-address -business_type -fssai_license_number -gst_number -updated_at"
+      );
+
+    // Retrieve outlet counts for each business
+    const businessIds = businesses.map((business) => business._id);
+    const outletCounts = await Outlet.aggregate([
+      { $match: { business: { $in: businessIds } } },
+      { $group: { _id: "$business", count: { $sum: 1 } } },
+    ]);
+
+    // Combine business data with outlet counts and format created_at field
+    const businessesWithCountsAndFormattedDate = businesses.map((business) => {
+      const outletCount = outletCounts.find((count) =>
+        count._id.equals(business._id)
+      );
+      const formattedCreatedAt = moment(business.created_at).fromNow(); // Format created_at using Moment.js
+      return {
+        ...business.toObject(),
+        outletCount: outletCount ? outletCount.count : 0,
+        created_at: formattedCreatedAt, // Update created_at with formatted date
+      };
+    });
+
+    res.json({
+      total: totalBusinesses, // Total number of businesses
+      currentPage: pageNumber,
+      data: businessesWithCountsAndFormattedDate,
+    });
+  } catch (error) {
+    console.error("Error fetching businesses:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+export const updateBusinessStatus = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const updatedBusiness = await Business.findByIdAndUpdate(
+      id,
+      { status: "approved" }, // Set the status to 'approved'
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedBusiness) {
+      return res.status(404).json({ message: "Business not found" });
+    }
+
+    return res.status(200).json(updatedBusiness);
+  } catch (error) {
+    console.error("Error updating business status:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 };

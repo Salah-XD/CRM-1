@@ -1,11 +1,9 @@
 import React from "react";
 import AdminHeader from "../Layout/AdminHeader";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { CheckCircleOutlined } from "@ant-design/icons";
 
 function ClientOnboardingSuccess() {
-
-
   return (
     <div>
       <AdminHeader />
@@ -14,12 +12,9 @@ function ClientOnboardingSuccess() {
         <p className="text-lg font-semibold text-center mb-4">
           Your response has been saved successfully.
         </p>
-        <div className="flex items-center">
-          <p className="text-gray-600">
-            In case of any issues, you can update by contacting Admin.
-          </p>
-
-        </div>
+        <Link to="/client-onboarding" className="text-blue-500 underline">
+          Fill New Form
+        </Link>
       </div>
     </div>
   );

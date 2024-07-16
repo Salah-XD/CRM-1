@@ -20,7 +20,7 @@ import InvoiceTable from "./Components/Pages/InvoiceTable";
 import Dashboard from "./Components/Pages/Dashboard";
 import AddUserPage from "./Components/Auth/AddUserPage";
 import EnquiryTable from "./Components/Pages/EnquiryTable";
-import WebEnquiryTable from "./Components/Pages/WebEnquiryTable";
+import ClientApprovalTable from "./Components/Pages/ClientApprovalTable";
 import { SuperAdminRoute,AccountAdminRoute,AuditAdminRoute} from "./Components/Context/ProtectedRoute";
 
 
@@ -35,13 +35,15 @@ function App() {
 
         <Route path="/dashboard" element={<Dashboard />} />
 
-        <Route element={<SuperAdminRoute />}>
+        <Route path="/add-user" element={<AddUserPage />} />
+
+        {/* <Route element={<SuperAdminRoute />}>
           <Route path="/add-user" element={<AddUserPage />} />
-        </Route>
-     
+        </Route> */}
+
         <Route element={<AccountAdminRoute />}>
           <Route path="/enquiry" element={<EnquiryTable />} />
-          <Route path="/web-enquiry" element={<WebEnquiryTable />} />
+          <Route path="/client-approval" element={<ClientApprovalTable />} />
           <Route path="/client-profile" element={<ClientTable />} />
           <Route path="/invoice" element={<InvoiceTable />} />
           <Route path="/proposal" element={<ProposalTable />} />
@@ -52,12 +54,11 @@ function App() {
           <Route path="/aggrement" element={<Agreement />} />
         </Route>
 
-
         <Route
           path="/client-profile/add-business"
           element={
             <AdminDashboard>
-              <AddClient newClientTitle={"New Client"}>
+              <AddClient newClientTitle={"Client Details Form"}>
                 <BusinessDetail />
               </AddClient>
             </AdminDashboard>

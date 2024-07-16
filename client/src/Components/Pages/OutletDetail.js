@@ -51,7 +51,7 @@ const OutletDetail = ({ businessId }) => {
     setLoading(true);
 
     // Construct the URL with the businessId included in the path
-    const url = `/getOutletDetails/${businessId}`;
+    const url = `/api/getOutletDetails/${businessId}`;
 
     axios
       .get(url, {
@@ -180,7 +180,7 @@ const OutletDetail = ({ businessId }) => {
       onOk() {
         const selectedIds = selectedRows.map((row) => row._id);
         axios
-          .delete(`/deleteOutletFields`, { data: selectedIds })
+          .delete(`/api/deleteOutletFields`, { data: selectedIds })
           .then(() => {
             fetchData(); // Fetch updated data after deletion
             setSelectedRowKeys([]); // Clear selected row keys

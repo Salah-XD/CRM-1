@@ -13,7 +13,6 @@ const UpdateOutletForm = ({
   businessId,
 }) => {
   const [form] = Form.useForm();
-  const [ownership, setOwnership] = useState("yes");
   const [loading, setLoading] = useState(true); // State to handle loading
   const [isEditMode, setIsEditMode] = useState(false); // State to manage edit mode
 
@@ -21,18 +20,19 @@ const UpdateOutletForm = ({
     const fetchOutletDetails = async () => {
       try {
         const response = await axios.get(
-          `/getParticularOutletDetails/${outletId}`
+          `/api/getParticularOutletDetails/${outletId}`
         );
         const outlet = response.data;
-
-        // Set initial ownership state based on fetched data
-        setOwnership(outlet.private_owned ? "yes" : "no");
 
         // Set initial values for the form
         form.setFieldsValue({
           branch_name: outlet.branch_name,
-          private_owned: outlet.private_owned ? "yes" : "no",
-          ...outlet.private_details,
+          contact_number: outlet.contact_number,
+          contact_person: outlet.contact_person,
+          no_of_food_handlers: outlet.no_of_food_handlers,
+          fssai_license_number: outlet.fssai_license_number,
+          gst_number: outlet.gst_number,
+          Vertical_of_industry: outlet.Vertical_of_industry,
           address: outlet.private_details?.address,
         });
 
@@ -53,9 +53,6 @@ const UpdateOutletForm = ({
     }
   }, [outletId, form]);
 
-  const handleOwnershipChange = (e) => {
-    setOwnership(e.target.value);
-  };
 
   const handleSubmit = async () => {
     try {
@@ -67,11 +64,11 @@ const UpdateOutletForm = ({
       // Check if outletId is present to determine create or update
       if (outletId) {
         // Update existing outlet
-        await axios.put(`/updateOutlet/${outletId}`, outletData);
+        await axios.put(`/api/updateOutlet/${outletId}`, outletData);
         message.success("Outlet data updated successfully");
       } else {
         // Create new outlet
-        await axios.post("/saveOutlet", outletData);
+        await axios.post("/api/saveOutlet", outletData);
         message.success("Outlet data saved successfully");
       }
 
@@ -91,9 +88,6 @@ const UpdateOutletForm = ({
       }
     }
   };
-
-  const isDisabled = (fieldName) =>
-    ownership === "no" && fieldName !== "private_owned";
 
   return (
     <Modal
@@ -127,7 +121,7 @@ const UpdateOutletForm = ({
         <Form form={form} layout="vertical">
           <Form.Item
             label={
-              <span className="text-gray-fed600 font-semibold">
+              <span className="text-gray-600 font-semibold">
                 Outlet Name
               </span>
             }
@@ -144,58 +138,19 @@ const UpdateOutletForm = ({
           <Form.Item
             label={
               <span className="text-gray-600 font-semibold">
-                Is the branch/outlet owned by others?
-              </span>
-            }
-            name="private_owned"
-          >
-            <div className="flex space-x-4">
-              <label className="custom-radio">
-                <input
-                  type="radio"
-                  value="yes"
-                  checked={ownership === "yes"}
-                  onChange={handleOwnershipChange}
-                  disabled={!isEditMode}
-                />
-                <span
-                  className={`radio-btn ${
-                    ownership === "yes" ? "radio-checked" : ""
-                  }`}
-                ></span>
-                Yes
-              </label>
-              <label className="custom-radio">
-                <input
-                  type="radio"
-                  value="no"
-                  checked={ownership === "no"}
-                  onChange={handleOwnershipChange}
-                  disabled={!isEditMode}
-                />
-                <span
-                  className={`radio-btn ${
-                    ownership === "no" ? "radio-checked" : ""
-                  }`}
-                ></span>
-                No
-              </label>
-            </div>
-          </Form.Item>
-          <Form.Item
-            label={
-              <span className="text-gray-600 font-semibold">
                 Contact Number
               </span>
             }
             name="contact_number"
+      
           >
             <Input
-              placeholder="Enter  contact number"
+              placeholder="Enter contact number"
               className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={isDisabled("primary_contact_number") || !isEditMode}
+              disabled={!isEditMode}
             />
           </Form.Item>
+
           <Form.Item
             label={
               <span className="text-gray-600 font-semibold">
@@ -203,38 +158,16 @@ const UpdateOutletForm = ({
               </span>
             }
             name="contact_person"
+       
           >
             <Input
               placeholder="Enter contact person name"
               className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={isDisabled("primary_contact_number") || !isEditMode}
+              disabled={!isEditMode}
             />
           </Form.Item>
 
-          <Form.Item
-            name="Vertical_of_industry"
-            label={
-              <span className="text-gray-600 font-semibold">
-                Vertical of Industry
-              </span>
-            }
-          >
-            <Select
-              placeholder="Select Industry Vertical"
-              size={"large"}
-              disabled={isDisabled("no_of_food_handlers") || !isEditMode}
-            >
-              <Option value="Star hotel">Star hotel</Option>
-              <Option value="Ethnic restaurant">Ethnic restaurant</Option>
-              <Option value="QSR">QSR</Option>
-              <Option value="Industrial catering">Industrial catering</Option>
-              <Option value="Meat Retail">Meat Retail</Option>
-              <Option value="Sweet Retail">Sweet Retail</Option>
-              <Option value="Bakery">Bakery</Option>
-              <Option value="Others">Others</Option>
-            </Select>
-          </Form.Item>
-
+         
           <Form.Item
             label={
               <span className="text-gray-600 font-semibold">
@@ -242,13 +175,15 @@ const UpdateOutletForm = ({
               </span>
             }
             name="no_of_food_handlers"
+ 
           >
             <Input
               placeholder="Enter number of food handlers"
               className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={isDisabled("no_of_food_handlers") || !isEditMode}
+              disabled={!isEditMode}
             />
           </Form.Item>
+
           <Form.Item
             label={
               <span className="text-gray-600 font-semibold">
@@ -260,9 +195,10 @@ const UpdateOutletForm = ({
             <Input
               placeholder="Enter FSSAI License"
               className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={isDisabled("fssai_license_number") || !isEditMode}
+              disabled={!isEditMode}
             />
           </Form.Item>
+
           <Form.Item
             label={
               <span className="text-gray-600 font-semibold">GST Number</span>
@@ -272,7 +208,7 @@ const UpdateOutletForm = ({
             <Input
               placeholder="Enter GST number"
               className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={isDisabled("gst_number") || !isEditMode}
+              disabled={!isEditMode}
             />
           </Form.Item>
 

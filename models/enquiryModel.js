@@ -3,7 +3,12 @@ import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 const enquirySchema = new Schema({
-  services: {
+  business: {
+    type: Schema.Types.ObjectId,
+    ref: "Business",
+    required: true,
+  },
+  service: {
     type: String,
     enum: [
       "TPA",
@@ -16,13 +21,14 @@ const enquirySchema = new Schema({
     ],
     required: true,
   },
-  no_of_outlets: {
-    type: Number,
-    default: 0,
-  },
-  no_of_food_handlers: {
-    type: Number,
-    default: 0,
+  status:{
+    type:String,
+    enum:[
+      "New Enquiry",
+      "Proposal Done",
+      "Dropped",
+      "Mail Sent"
+    ]
   },
   created_at: {
     type: Date,

@@ -11,16 +11,16 @@ import {
   Dropdown,
   Menu,
   ConfigProvider,
+  message,
 } from "antd";
 import {
   DeleteOutlined,
   PlusOutlined,
   FilterOutlined,
   CloudDownloadOutlined,
+  ExclamationCircleOutlined ,
   MoreOutlined,
   SearchOutlined,
-  MailOutlined,
-  EditOutlined,
   EyeOutlined,
   CopyOutlined,
 } from "@ant-design/icons";
@@ -50,7 +50,7 @@ const debounce = (func, delay) => {
 // Define your debounce delay (e.g., 300ms)
 const debounceDelay = 300;
 
-const WebEnquiryTable = () => {
+const ClientApprovalTable = () => {
   const [flattenedTableData, setFlattenedTableData] = useState([]);
   const [sortData, setSortData] = useState("alllist");
   const [selectionType, setSelectionType] = useState("checkbox");
@@ -64,6 +64,7 @@ const WebEnquiryTable = () => {
     },
   });
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [shouldFetch, setShouldFetch] = useState(false);
@@ -72,6 +73,7 @@ const WebEnquiryTable = () => {
   // Toggling
   const toggleModal = () => {
     setIsModalVisible(!isModalVisible);
+    setIsModalOpen(!isModalOpen);
   };
 
   // Fetch data function
@@ -79,7 +81,7 @@ const WebEnquiryTable = () => {
     setLoading(true);
 
     // Construct the URL with the businessId included in the path
-    const url = "/getAllBussinesDetails";
+    const url = "/api/getAllClientDetail";
 
     axios
       .get(url, {
@@ -122,13 +124,12 @@ const WebEnquiryTable = () => {
     searchKeyword,
   ]);
 
-  // Fetch data with debounce
-  const fetchDataWithDebounce = useCallback(
-    debounce(() => {
-      fetchData();
-    }, 500),
-    [fetchData]
-  );
+  const fetchDataWithDebounce = debounce(() => {
+    if (searchKeyword.trim()) {
+      // Your backend call logic here
+      console.log("Fetching data for keyword:", searchKeyword);
+    }
+  }, debounceDelay);
 
   // Fetch initial data on component mount
   useEffect(() => {
@@ -173,7 +174,7 @@ const WebEnquiryTable = () => {
       cancelText: "No",
       onOk() {
         axios
-          .delete("deleteSelectedFields", { data: selectedRows })
+          .delete("/api/deleteSelectedFields", { data: selectedRows })
           .then((response) => {
             const currentPage = tableParams.pagination.current;
             const pageSize = tableParams.pagination.pageSize;
@@ -206,116 +207,112 @@ const WebEnquiryTable = () => {
     });
   };
 
+  //Confimr Approval of client list
+const confirmApproval = (id) => {
+  confirm({
+    title: "Approve or Reject?",
+    icon: <ExclamationCircleFilled />,
+    okText: "Approve",
+    okType: "primary",
+    cancelText: "Reject",
+    cancelType: "danger",
+    onOk() {
+      // Handle approval
+      axios
+        .put(`/api/updateBusinessStatus/${id}`)
+        .then((response) => {
+         fetchData();
+        message.success("Client is Approved");
+        })
+        .catch((error) => {
+          console.error("Approval error:", error);
+          // Handle error
+        });
+    },
+    onCancel() {
+      axios
+        .delete("deleteSelectedFields", { data: [id] }) // Send ID as an array
+        .then((response) => {
+          const currentPage = tableParams.pagination.current;
+          const pageSize = tableParams.pagination.pageSize;
+          const newTotal = tableParams.pagination.total - 1; // Only one row is deleted
+          const newCurrentPage = Math.min(
+            currentPage,
+            Math.ceil(newTotal / pageSize)
+          );
+
+          setTableParams((prevState) => ({
+            ...prevState,
+            pagination: {
+              ...prevState.pagination,
+              total: newTotal,
+              current: newCurrentPage,
+            },
+          }));
+
+          setShouldFetch(true); // Trigger data fetch
+          message.success("Client is Rejected");
+        })
+        .catch((error) => {
+          console.error("Error deleting row:", error);
+        });
+    },
+  });
+};
+
+
+
   // Handle Menu
-  const handleMenuClick = (record, { key }) => {
-    switch (key) {
-      case "view":
-        navigate(`/client-profile/update-client/id/${record._id}`);
-        break;
-      case "add":
-        // Navigate to add outlet page or handle add outlet action
-        console.log(`Add Outlet for ${record._id}`);
-        break;
-      case "form-link":
-        const formLink = `${window.location.origin}/client-profile/update-client-form/id/${record._id}`;
-        navigator.clipboard
-          .writeText(formLink)
-          .then(() => {
-            toast.success("Form link copied to clipboard");
-          })
-          .catch((err) => {
-            toast.error("Failed to copy form link");
-            console.error("Error copying form link:", err);
-          });
-        break;
-      default:
-        break;
-    }
+ const handleMenuClick = (record, { key }) => {
+   switch (key) {
+     case "view":
+       navigate(`/client-profile/update-client/id/${record._id}`);
+       break;
+     case "approve":
+       confirmApproval(record._id); // No need for template string
+       break;
+     default:
+       break;
+   }
+ };
+
+ const menu = (record) => (
+   <Menu onClick={(e) => handleMenuClick(record, e)} style={{ padding: "8px" }}>
+     <Menu.Item
+       key="view"
+       style={{ margin: "8px 0", backgroundColor: "#FFE0B2" }}
+     >
+       <span style={{ color: "#E65100", fontWeight: "bold", fontSize: "12px" }}>
+         <EyeOutlined /> View/Update
+       </span>
+     </Menu.Item>
+     <Menu.Item
+       key="approve"
+       style={{ margin: "8px 0", backgroundColor: "#E0F7FA" }}
+     >
+       <span style={{ color: "#00796B", fontWeight: "bold", fontSize: "12px" }}>
+         <ExclamationCircleOutlined /> Approve
+       </span>
+     </Menu.Item>
+   </Menu>
+ );
+
+  const handleInputChange = (event) => {
+    if (isModalOpen) return;
+
+    const { value } = event.target;
+    setSearchKeyword(value);
   };
 
-  const menu = (record) => (
-    <Menu
-      onClick={(e) => handleMenuClick(record, e)}
-      style={{ padding: "8px" }}
-    >
-      <Menu.Item
-        key="generate-agreement"
-        style={{ margin: "8px 0", backgroundColor: "#E0F7FA" }}
-      >
-        <span
-          style={{ color: "#00796B", fontWeight: "bold", fontSize: "12px" }}
-        >
-          Generate Proposal
-        </span>
-      </Menu.Item>
-
-      {/* <Menu.Item
-        key="send-mail"
-        style={{ margin: "8px 0", backgroundColor: "#FFE0B2" }}
-      >
-        <span
-          style={{ color: "#E65100", fontWeight: "bold", fontSize: "12px" }}
-        >
-          <MailOutlined /> Send Mail
-        </span>
-      </Menu.Item> */}
-      <Menu.Item
-        key="delete"
-        style={{ margin: "8px 0", backgroundColor: "#FFCDD2" }}
-      >
-        <span
-          style={{ color: "#B71C1C", fontWeight: "bold", fontSize: "12px" }}
-        >
-          <DeleteOutlined /> Delete
-        </span>
-      </Menu.Item>
-      <Menu.Item
-        key="edit"
-        style={{ margin: "8px 0", backgroundColor: "#E1BEE7" }}
-      >
-        <span
-          style={{ color: "#4A148C", fontWeight: "bold", fontSize: "12px" }}
-        >
-          <EditOutlined /> Edit
-        </span>
-      </Menu.Item>
-    </Menu>
-  );
-
-  // Handle search on key press
-  const handleKeyDown = (event) => {
-    const { key, target } = event;
-
-    if (/^[a-z0-9]$/i.test(key)) {
-      setSearchKeyword((prevKeyword) => prevKeyword + key);
-      debounce(fetchDataWithDebounce, debounceDelay)();
-    } else if (key === "Backspace") {
-      // Check if all text is selected and backspace is pressed
-      if (
-        target.selectionStart === 0 &&
-        target.selectionEnd === target.value.length
-      ) {
-        setSearchKeyword("");
-      } else {
-        setSearchKeyword((prevKeyword) =>
-          prevKeyword.slice(0, prevKeyword.length - 1)
-        );
-      }
-      debounce(fetchDataWithDebounce, debounceDelay)();
-    } else if (key === " ") {
-      setSearchKeyword((prevKeyword) => prevKeyword + " ");
-      debounce(fetchDataWithDebounce, debounceDelay)();
-    }
-  };
-  // Keyboard event listener
   useEffect(() => {
-    const keydownHandler = (event) => handleKeyDown(event);
-    document.addEventListener("keydown", keydownHandler);
-
-    return () => {
-      document.removeEventListener("keydown", keydownHandler);
-    };
-  }, [fetchDataWithDebounce]);
+    if (searchKeyword.trim()) {
+      fetchDataWithDebounce();
+    } else {
+      // Reset fields to normal state
+      // Your code to reset fields here
+      console.log("Resetting fields to normal state");
+    }
+  }, [searchKeyword, fetchDataWithDebounce]);
 
   const columns = [
     {
@@ -324,14 +321,9 @@ const WebEnquiryTable = () => {
       key: "name",
     },
     {
-      title: "Contact Person",
+      title: "Contact Number",
       dataIndex: "contact_person",
       key: "contact_person",
-    },
-    {
-      title: "services",
-      dataIndex: "services",
-      key: "services",
     },
     {
       title: "Phone Number",
@@ -339,32 +331,36 @@ const WebEnquiryTable = () => {
       key: "phone",
     },
     {
-      title: "Enquiry Date",
-      dataIndex: "enquiry_date",
-      key: "enquiry_date",
+      title: "Mail ID",
+      dataIndex: "email",
+      key: "email",
     },
     {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
+      title: "Outlet",
+      dataIndex: "outletCount",
+      key: "outletCount",
     },
-
-    //{
-    //   title: "Created By",
-    //   dataIndex: "added_by",
-    //   key: "added_by",
-    //   render: (addedBy) => {
-    //     let color;
-    //     if (addedBy === "Manual") {
-    //       color = "volcano";
-    //     } else if (addedBy === "Web Enquiry") {
-    //       color = "green";
-    //     } else {
-    //       color = "geekblue"; // Default color
-    //     }
-    //     return <Tag color={color}>{addedBy.toUpperCase()}</Tag>;
-    //   },
-    // },
+    {
+      title: "Added By",
+      dataIndex: "added_by",
+      key: "added_by",
+      render: (addedBy) => {
+        let color;
+        if (addedBy === "Manual") {
+          color = "volcano";
+        } else if (addedBy === "Web Enquiry") {
+          color = "green";
+        } else {
+          color = "geekblue"; // Default color
+        }
+        return <Tag color={color}>{addedBy.toUpperCase()}</Tag>;
+      },
+    },
+    {
+      title: "Created On",
+      dataIndex: "created_at",
+      key: "created_at",
+    },
     {
       title: "Action",
       key: "action",
@@ -386,7 +382,7 @@ const WebEnquiryTable = () => {
     <AdminDashboard>
       <div className="bg-blue-50 m-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Proposal</h2>
+          <h2 className="text-xl font-semibold">Client Approval</h2>
           <div className="space-x-2">
             <Space wrap>
               <Button
@@ -398,16 +394,6 @@ const WebEnquiryTable = () => {
                 Delete
               </Button>
             </Space>
-            <Button shape="round" icon={<FilterOutlined />} size="default">
-              Filters
-            </Button>
-            <Button
-              shape="round"
-              icon={<CloudDownloadOutlined />}
-              size="default"
-            >
-              Export
-            </Button>
           </div>
         </div>
 
@@ -464,8 +450,8 @@ const WebEnquiryTable = () => {
               placeholder="Search by FBO Name, Phone Number, etc."
               prefix={<SearchOutlined />}
               value={searchKeyword}
+              onChange={handleInputChange}
               style={{ width: 300 }}
-              onChange={(e) => setSearchKeyword(e.target.value)}
             />
           </div>
         </div>
@@ -506,4 +492,4 @@ const WebEnquiryTable = () => {
   );
 };
 
-export default WebEnquiryTable;
+export default ClientApprovalTable;

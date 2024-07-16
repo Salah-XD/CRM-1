@@ -15,7 +15,7 @@ const AddUserPage = () => {
 
   const handleSubmit = async (values) => {
     try {
-      const response = await axios.post("/auth/registerUser", {
+      const response = await axios.post("/api/auth/registerUser", {
         userName:values.userName,
         userId: values.userId,
         password: values.password,
@@ -24,7 +24,7 @@ const AddUserPage = () => {
 
       if (response.data.success) {
         message.success("User added successfully!");
-        navigate("/dashboard");
+        navigate("/api/dashboard");
       } else {
         message.error("Failed to add user.");
       }

@@ -9,10 +9,13 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
   const location = useLocation();
 
   const handleSubmit = async (values) => {
+   
     if (location.pathname === "/client-onboarding") {
+       values.status = "pending";
       values.added_by = "Client Form";
     } else {
       values.added_by = "Manual";
+      values.status = "approved";
     }
     onSubmit(values);
   };
@@ -24,7 +27,7 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
 
 
  
-const baseDivClass = location.pathname === "/client-onboarding" ? "ml-16" : "margin";
+const baseDivClass = location.pathname === "/api/client-onboarding" ? "ml-16" : "margin";
 
   return (
     <div className="w-full">
@@ -163,7 +166,7 @@ const baseDivClass = location.pathname === "/client-onboarding" ? "ml-16" : "mar
             </Select>
           </Form.Item>
           <Form.Item
-            label={<span className="text-gray-600 font-semibold">Address</span>}
+            label={<span className="text-gray-600 font-semibold">Registerd Address</span>}
             name={["address", "line1"]}
             className="w-1/2"
             rules={[

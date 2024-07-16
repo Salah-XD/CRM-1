@@ -26,7 +26,7 @@ const LoginPage = () => {
 
   const handleSubmit = async (values) => {
     try {
-      const response = await axios.post("/auth/login", {
+      const response = await axios.post("/api/auth/login", {
         userId: values.userID,
         password: values.password,
         role: values.businessType, // Sending role as businessType

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   DatePicker,
@@ -9,121 +9,180 @@ import {
   Table,
   Button,
 } from "antd";
+import moment from "moment";
+import axios from "axios";
 import "../css/GenerateProposalModal.css";
 
 const { Option } = Select;
 
-const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
- const [items, setItems] = useState([
-   {
-     outletName: "Outlet 1",
-     foodHandlers: 50,
-     manDays: 0.5,
-     unitCost: 8000,
-     discount: 0,
-     amount: 4000,
-   },
-   {
-     outletName: "Outlet 3",
-     foodHandlers: 100,
-     manDays: 1,
-     unitCost: 8000,
-     discount: 0,
-     amount: 8000,
-   },
- ]);
+const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
+  const [items, setItems] = useState([]);
+  const [proposal_date, setProposalDate] = useState(moment());
+  const [proposal_number, setProposalNumber] = useState("");
+  const [outlets, setOutlets] = useState([]);
+  const [businessDetails, setBusinessDetails] = useState({
+    businessName: "",
+    address: "",
+    pincode: "",
+    gstNumber: "",
+    contactPersonName: "",
+    contactPersonNumber: "",
+  });
 
- const outlets = [
-   {
-     name: "Outlet 1",
-     foodHandlers: 50,
-     unitCost: 8000,
-   },
-   {
-     name: "Outlet 2",
-     foodHandlers: 70,
-     unitCost: 7500,
-   },
-   {
-     name: "Outlet 3",
-     foodHandlers: 100,
-     unitCost: 8000,
-   },
- ];
+  useEffect(() => {
+    if (visible) {
+      const newProposalNumber = `PROP-${Math.floor(Math.random() * 100000)}`;
+      setProposalNumber(newProposalNumber);
+      setProposalDate(moment());
 
- const addItem = () => {
-   setItems([
-     ...items,
-     {
-       outletName: "",
-       foodHandlers: 0,
-       manDays: 0,
-       unitCost: 0,
-       discount: 0,
-       amount: 0,
-     },
-   ]);
- };
+      const fetchOutlets = async () => {
+        try {
+          const response = await axios.get(
+            `/api/proposal/getOutletDetailsById/${enquiryId}`
+          );
+          setOutlets(response.data);
+        } catch (error) {
+          console.error("Error fetching outlets", error);
+        }
+      };
 
- const calculateManDays = (foodHandlers) => {
-   if (foodHandlers <= 50) return 4;
-   if (foodHandlers <= 100) return 0.5;
-   if (foodHandlers <= 300) return 1;
-   if (foodHandlers <= 600) return 1.5;
-   if (foodHandlers <= 1000) return 2.5;
-   return 3;
- };
+      const fetchBusinessDetails = async () => {
+        try {
+          const response = await axios.get(
+            `/apiproposal/getBusinessDetailsByEnquiryId/${enquiryId}`
+          );
+          setBusinessDetails(response.data);
+        } catch (error) {
+          console.error("Error fetching business details", error);
+        }
+      };
 
- const handleInputChange = (index, field, value) => {
-   const newItems = [...items];
-   if (field === "outletName") {
-     const selectedOutlet = outlets.find((outlet) => outlet.name === value);
-     const manDays = calculateManDays(
-       selectedOutlet ? selectedOutlet.foodHandlers : 0
-     );
-     newItems[index] = {
-       ...newItems[index],
-       outletName: value,
-       foodHandlers: selectedOutlet ? selectedOutlet.foodHandlers : 0,
-       manDays,
-       unitCost: selectedOutlet ? selectedOutlet.unitCost : 0,
-     };
-   } else {
-     newItems[index][field] = value;
-     if (field === "foodHandlers") {
-       newItems[index].manDays = calculateManDays(value);
-     }
+      fetchOutlets();
+      fetchBusinessDetails();
+    }
+  }, [visible]);
+
+ const handleGenerate = async () => {
+   const formData = new FormData();
+   formData.append("proposal_date", proposal_date.format("YYYY-MM-DD"));
+   formData.append("proposal_number", proposal_number);
+   formData.append("enquiryId", enquiryId);
+   formData.append("items", JSON.stringify(items)); // Append items as a JSON string
+   formData.append("subTotal", subTotal);
+   formData.append("tax", tax);
+   formData.append("total", total);
+   
+
+   // Log form data to console
+   for (let pair of formData.entries()) {
+     console.log(`${pair[0]}: ${pair[1]}`);
    }
-   newItems[index].amount =
-     newItems[index].foodHandlers *
-       newItems[index].manDays *
-       newItems[index].unitCost -
-     newItems[index].discount;
-   setItems(newItems);
+
+   try {
+     const response = await axios.post(
+       "/api/proposal/createProposalAndOutlet",
+       formData,
+       {
+         headers: {
+           "Content-Type": "multipart/form-data",
+         },
+       }
+     );
+     if (response.status === 200) {
+       // Assuming onOk will handle what to do after a successful response
+       onOk();
+     } else {
+       console.error("Failed to generate proposal", response.data);
+     }
+   } catch (error) {
+     console.error("Error generating proposal", error);
+   }
  };
 
- const calculateTotals = () => {
-   const subTotal = items.reduce((sum, item) => sum + item.amount, 0);
-   const tax = subTotal * 0.09;
-   const total = subTotal + 2 * tax;
-   return { subTotal, tax, total };
- };
 
- const { subTotal, tax, total } = calculateTotals();
+
+
+  const addItem = () => {
+    setItems([
+      ...items,
+      {
+        outletId: "",
+        foodHandlers: 0,
+        manDays: 0,
+        unitCost: 0,
+        discount: 0,
+        amount: 0,
+      },
+    ]);
+  };
+
+  const removeItem = (index) => {
+    const newItems = items.filter((item, i) => i !== index);
+    setItems(newItems);
+  };
+
+  const calculateManDays = (foodHandlers) => {
+    if (foodHandlers <= 50) return 0.5;
+    if (foodHandlers <= 100) return 1;
+    if (foodHandlers <= 300) return 1.5;
+    if (foodHandlers <= 600) return 2;
+    if (foodHandlers <= 1000) return 2.5;
+    return 3;
+  };
+
+  const handleInputChange = (index, field, value) => {
+    const newItems = [...items];
+    if (field === "outletId") {
+      const selectedOutlet = outlets.find((outlet) => outlet._id === value);
+      const manDays = calculateManDays(
+        selectedOutlet ? selectedOutlet.foodHandlers : 0
+      );
+      newItems[index] = {
+        ...newItems[index],
+        outletId: value,
+        foodHandlers: selectedOutlet ? selectedOutlet.foodHandlers : 0,
+        manDays,
+        unitCost: selectedOutlet ? selectedOutlet.unitCost : 0,
+      };
+    } else {
+      newItems[index][field] = value;
+      if (field === "foodHandlers") {
+        newItems[index].manDays = calculateManDays(value);
+      }
+    }
+    newItems[index].amount =
+      newItems[index].foodHandlers *
+        newItems[index].manDays *
+        newItems[index].unitCost -
+      newItems[index].discount;
+    setItems(newItems);
+  };
+
+
+
+  const calculateTotals = () => {
+    const subTotal = items.reduce((sum, item) => sum + item.amount, 0);
+    const tax = subTotal * 0.09;
+    const total = subTotal + tax;
+    return { subTotal, tax, total };
+  };
+
+  const { subTotal, tax, total } = calculateTotals();
 
   const columns = [
     {
       title: "Outlet name",
-      dataIndex: "outletName",
+      dataIndex: "outletId",
       render: (text, record, index) => (
         <Select
           value={text}
-          onChange={(value) => handleInputChange(index, "outletName", value)}
+          onChange={(value) => handleInputChange(index, "outletId", value)}
           className="w-full"
+          style={{ width: 120 }}
         >
           {outlets.map((outlet) => (
-            <Option key={outlet.name} value={outlet.name}>
-              {outlet.name}
+            <Option key={outlet._id} value={outlet._id}>
+              {outlet.branch_name}
             </Option>
           ))}
         </Select>
@@ -186,6 +245,15 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
           currency: "INR",
         }),
     },
+    {
+      title: "Action",
+      dataIndex: "action",
+      render: (_, __, index) => (
+        <Button onClick={() => removeItem(index)} type="link" danger>
+          Remove
+        </Button>
+      ),
+    },
   ];
 
   return (
@@ -211,15 +279,24 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
               <Input
                 type="text"
                 className="w-full p-2 border border-gray-300 rounded"
+                value={businessDetails.name}
               />
             </Form.Item>
             <Form.Item label="Proposal date" className="flex-1" size="large">
-              <DatePicker className="w-full" />
+              <DatePicker
+                className="w-full"
+                value={proposal_date}
+                onChange={(date) => setProposalDate(date)}
+                disabled
+              />
             </Form.Item>
             <Form.Item label="Proposal number" className="flex-1">
               <Input
+                disabled
                 placeholder="Auto Generated"
                 className="w-full p-2 border border-gray-300 rounded"
+                value={proposal_number}
+                readOnly
               />
             </Form.Item>
           </div>
@@ -228,25 +305,34 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
             <Input
               type="text"
               className="w-full p-2 border border-gray-300 rounded"
+              value={`${businessDetails.address.line1}${
+                businessDetails.address.line2
+                  ? " " + businessDetails.address.line2
+                  : ""
+              }`}
             />
           </Form.Item>
           <Form.Item>
             <Input
               type="text"
               className="w-full p-2 border border-gray-300 rounded"
+              value={`${businessDetails.address.city}, ${businessDetails.address.state}`}
             />
           </Form.Item>
+
           <div className="flex space-x-4">
             <Form.Item label="Pincode" className="flex-1">
               <Input
                 type="text"
                 className="w-full p-2 border border-gray-300 rounded"
+                value={businessDetails.address.pincode}
               />
             </Form.Item>
             <Form.Item label="GST Number" className="flex-1">
               <Input
                 type="text"
                 className="w-full p-2 border border-gray-300 rounded"
+                value={businessDetails.gst_number}
               />
             </Form.Item>
           </div>
@@ -255,12 +341,14 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
               <Input
                 type="text"
                 className="w-full p-2 border border-gray-300 rounded"
+                value={businessDetails.contact_person}
               />
             </Form.Item>
             <Form.Item label="Contact Person Number" className="flex-1">
               <Input
                 type="text"
                 className="w-full p-2 border border-gray-300 rounded"
+                value={businessDetails.phone}
               />
             </Form.Item>
           </div>
@@ -271,7 +359,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
               onClick={addItem}
               className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
             >
-              + Add New row
+              + Add New Row
             </button>
           </div>
           <div className="my-4 p-4 border rounded w-1/2 ml-auto bg-gray-50">
@@ -285,26 +373,17 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
               </div>
             </div>
             <div className="flex justify-between items-center">
-              <div className="text-sm font-medium">CGST [9%]:</div>
+              <div className="text-sm font-medium">Tax (9%):</div>
               <div className="text-sm font-medium">
-                {(tax * 0.09).toLocaleString("en-IN", {
+                {tax.toLocaleString("en-IN", {
                   style: "currency",
                   currency: "INR",
                 })}
               </div>
             </div>
             <div className="flex justify-between items-center">
-              <div className="text-sm font-medium">SGST [9%]:</div>
+              <div className="text-sm font-medium">Total:</div>
               <div className="text-sm font-medium">
-                {(tax * 0.09).toLocaleString("en-IN", {
-                  style: "currency",
-                  currency: "INR",
-                })}
-              </div>
-            </div>
-            <div className="flex justify-between items-center">
-              <div className="text-lg font-bold">Total:</div>
-              <div className="text-lg font-bold">
                 {total.toLocaleString("en-IN", {
                   style: "currency",
                   currency: "INR",
@@ -312,11 +391,10 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
               </div>
             </div>
           </div>
-
-          <div className="text-center">
+          <div className="text-center mt-4">
             <button
-              className="px-4 py-2 bg-buttonModalColor text-white  rounded "
-              onClick={onOk}
+              className="bg-buttonModalColor px-4 py-2 text-white rounded"
+              onClick={handleGenerate}
             >
               Generate
             </button>

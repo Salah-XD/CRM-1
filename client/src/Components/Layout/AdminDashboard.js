@@ -104,13 +104,13 @@ const AdminDashboard = ({ children }) => {
    {
      label: "Customers",
      key: "/customers",
-     icon: <MessageOutlined />,
+     icon: <UserOutlined />,
      roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
      children: [
        {
-         label: "Web Enquiry (leads)",
-         key: "/web-enquiry",
-         link: "/web-enquiry",
+         label: "Client Approval",
+         key: "/client-approval",
+         link: "/client-approval",
          roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
        },
        {

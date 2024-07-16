@@ -5,9 +5,9 @@ import AddClient from './AddClientForm';
 function ClientOnboarding() {
   return (
     <div>
-      <AdminHeader />
+      <AdminHeader name="Unavar Client Portal" />
 
-      <AddClient newClientTitle={"Client Onboarding Form"} />
+      <AddClient newClientTitle={"Client Details Form"} />
     </div>
   );
 }

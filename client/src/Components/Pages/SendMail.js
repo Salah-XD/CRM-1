@@ -4,8 +4,7 @@ import { CopyOutlined, CheckOutlined } from "@ant-design/icons";
 import toast from "react-hot-toast";
 import axios from "axios";
 
-
-const SendMailModal = ({ visible, onCancel, onCloseMainModal }) => {
+const SendMailModal = ({ visible, onCancel }) => {
   const [form] = Form.useForm();
   const [defaultFormLink, setDefaultFormLink] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,7 +16,7 @@ const SendMailModal = ({ visible, onCancel, onCloseMainModal }) => {
     const baseURL = currentURL.split("/").slice(0, 3).join("/");
     const newFormLink = `${baseURL}/client-onboarding`;
     setDefaultFormLink(newFormLink);
-    form.setFieldsValue({ formLink: newFormLink }); 
+    form.setFieldsValue({ formLink: newFormLink });
   };
 
   useEffect(() => {
@@ -26,38 +25,41 @@ const SendMailModal = ({ visible, onCancel, onCloseMainModal }) => {
     }
   }, [visible]);
 
-  const copyFormLink = () => {
-    navigator.clipboard.writeText(defaultFormLink);
-    toast.success("Link copied to clipboard");
+  const copyFormLink = async () => {
+    try {
+      await navigator.clipboard.writeText(defaultFormLink);
+      toast.success("Link copied to clipboard");
+    } catch (error) {
+      toast.error("Failed to copy link");
+    }
   };
 
   const handleSuccessModalClose = () => {
     setSuccessModalVisible(false);
-    onCancel();
   };
 
   const handleSend = async () => {
     try {
       setLoading(true);
-
       const formData = await form.validateFields();
       const { mailId, message } = formData;
       const formLink = formData.formLink || defaultFormLink;
 
-      const response = await axios.post("/sendFormlink", {
+      await axios.post("/api/sendFormlink", {
         to: mailId,
-        message: message,
-        formLink: formLink,
+        message,
+        formLink,
       });
 
       setSentTo(mailId);
-      generateFormLink();
-      console.log("Response:", response);
       setSuccessModalVisible(true);
+      form.resetFields(); // Reset the form fields
       toast.success("Form link sent successfully");
     } catch (error) {
       console.error("Error sending form link:", error);
-      toast.error("Failed to send form link");
+      const errorMessage =
+        error.response?.data?.message || "Failed to send form link";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -146,7 +148,7 @@ const SendMailModal = ({ visible, onCancel, onCloseMainModal }) => {
         </div>
         <div className="text-center mb-4">
           <Typography.Text strong>
-            Copy formlink:{" "}
+            Copy form link:{" "}
             <Typography.Link
               href={defaultFormLink}
               target="_blank"

@@ -51,7 +51,7 @@ const UpdateOutlet = ({ businessId }) => {
 
   const fetchData = () => {
     setLoading(true);
-    const url = `/getOutletDetails/${businessId}`;
+    const url = `/api/getOutletDetails/${businessId}`;
 
     axios
       .get(url, {
@@ -139,11 +139,7 @@ const UpdateOutlet = ({ businessId }) => {
      dataIndex: "no_of_food_handlers",
      key: "no_of_food_handlers",
    },
-   {
-     title: "Vertical of industry",
-     dataIndex: "Vertical_of_industry",
-     key: "Vertical_of_industry",
-   },
+
    {
      title: "Contact Number",
      dataIndex: "contact_number",

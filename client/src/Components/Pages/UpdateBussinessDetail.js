@@ -21,7 +21,7 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
       try {
         console.log(`Fetching data for business ID: ${id}`);
 
-        const response = await axios.get(`/getBusinessDataById/${id}`);
+        const response = await axios.get(`/api/getBusinessDataById/${id}`);
         console.log(response.data?.success);
         if (response.data?.success && isMounted) {
           const businessData = response.data.data;

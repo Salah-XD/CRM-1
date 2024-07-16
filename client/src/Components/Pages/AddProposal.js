@@ -23,7 +23,7 @@ const AddProposal = ({ visible, onCancel }) => {
     // Fetch client names
     setLoadingClients(true);
     axios
-      .get("/getAllBussinessName")
+      .get("/api/getAllBussinessName")
       .then((response) => {
         setClients(response.data.businesses);
         setLoadingClients(false);
@@ -55,7 +55,7 @@ const AddProposal = ({ visible, onCancel }) => {
       setLoadingOutlets(true);
       // Fetch outlets for the selected client
       axios
-        .get(`/getBranchNamesByBussinessId/${value}`)
+        .get(`/api/getBranchNamesByBussinessId/${value}`)
         .then((response) => {
           setOutlets(response.data);
           setLoadingOutlets(false);
