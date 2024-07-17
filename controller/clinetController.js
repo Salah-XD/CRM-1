@@ -8,7 +8,7 @@ import Enquiry from "../models/enquiryModel.js"
 
 // Controller function to handle saving client data
 export const saveBusiness = async (req, res) => {
-  console.log(req.body);
+  //console.log(req.body);
   try {
     const {
       name,
@@ -415,13 +415,13 @@ export const getOutletDetailsById = async (req, res) => {
     // Check if businessId exists
     const businessExists = await Business.exists({ _id: businessId });
     if (!businessExists) {
-      console.log("Business not found");
+     // console.log("Business not found");
       return res.status(404).json({ message: "Business not found" });
     }
 
     // Find the total count of outlets with the specified business ID
     const totalOutlets = await Outlet.countDocuments({ business: businessId });
-    console.log(`Total outlets found: ${totalOutlets}`);
+  //  console.log(`Total outlets found: ${totalOutlets}`);
 
     // Initialize query with pagination
     let query = Outlet.find({ business: businessId })
@@ -437,7 +437,7 @@ export const getOutletDetailsById = async (req, res) => {
     // Execute the query to get outlets
     const outlets = await query;
 
-    console.log(`Found ${outlets.length} outlets`);
+   // console.log(`Found ${outlets.length} outlets`);
 
     if (!outlets.length) {
       return res.status(200).json({
@@ -459,7 +459,7 @@ export const getOutletDetailsById = async (req, res) => {
       gst_number: outlet.gst_number,
     }));
 
-    console.log(`Populated data: ${JSON.stringify(populatedData)}`);
+   // console.log(`Populated data: ${JSON.stringify(populatedData)}`);
 
     return res.status(200).json({
       message: "Data populated successfully",

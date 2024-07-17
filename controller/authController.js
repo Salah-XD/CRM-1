@@ -23,7 +23,7 @@ const generateOTP = () => {
 };
 
 export const registerUser = async (req, res) => {
-  console.log(req.body);
+ // console.log(req.body);
   try {
     const {userName, userId, password, role } = req.body;
 
@@ -60,7 +60,7 @@ export const registerUser = async (req, res) => {
 
 //Controller for login
 export const loginUser = async (req, res) => {
-  console.log(req.body);
+  //console.log(req.body);
   try {
     const { userId, password, role } = req.body;
 

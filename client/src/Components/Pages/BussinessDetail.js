@@ -27,7 +27,7 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
 
 
  
-const baseDivClass = location.pathname === "/api/client-onboarding" ? "ml-16" : "margin";
+const baseDivClass = location.pathname === "/client-onboarding" ? "ml-16" : "margin";
 
   return (
     <div className="w-full">
@@ -166,7 +166,11 @@ const baseDivClass = location.pathname === "/api/client-onboarding" ? "ml-16" : 
             </Select>
           </Form.Item>
           <Form.Item
-            label={<span className="text-gray-600 font-semibold">Registerd Address</span>}
+            label={
+              <span className="text-gray-600 font-semibold">
+                Registerd Address
+              </span>
+            }
             name={["address", "line1"]}
             className="w-1/2"
             rules={[
@@ -226,21 +230,21 @@ const baseDivClass = location.pathname === "/api/client-onboarding" ? "ml-16" : 
 
         <div className="sticky bottom-0  z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">
           <div className={baseDivClass}>
-          <Form.Item>
-            <NavLink to="/client-profile">
-              <Button className="border-primary text-border-2 font-semibold">
-                Cancel
+            <Form.Item>
+              <NavLink to="/client-profile">
+                <Button className="border-primary text-border-2 font-semibold">
+                  Cancel
+                </Button>
+              </NavLink>
+              <Button
+                type="primary"
+                className="ml-6"
+                htmlType="submit"
+                loading={loading}
+              >
+                Save
               </Button>
-            </NavLink>
-            <Button
-              type="primary"
-              className="ml-6"
-              htmlType="submit"
-              loading={loading}
-            >
-              Save
-            </Button>
-          </Form.Item>
+            </Form.Item>
           </div>
         </div>
       </Form>

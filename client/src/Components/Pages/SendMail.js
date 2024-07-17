@@ -4,7 +4,7 @@ import { CopyOutlined, CheckOutlined } from "@ant-design/icons";
 import toast from "react-hot-toast";
 import axios from "axios";
 
-const SendMailModal = ({ visible, onCancel }) => {
+const SendMailModal = ({ visible, onCancel, onCloseMainModal }) => {
   const [form] = Form.useForm();
   const [defaultFormLink, setDefaultFormLink] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,41 +25,38 @@ const SendMailModal = ({ visible, onCancel }) => {
     }
   }, [visible]);
 
-  const copyFormLink = async () => {
-    try {
-      await navigator.clipboard.writeText(defaultFormLink);
-      toast.success("Link copied to clipboard");
-    } catch (error) {
-      toast.error("Failed to copy link");
-    }
+  const copyFormLink = () => {
+    navigator.clipboard.writeText(defaultFormLink);
+    toast.success("Link copied to clipboard");
   };
 
   const handleSuccessModalClose = () => {
     setSuccessModalVisible(false);
+    onCancel();
   };
 
   const handleSend = async () => {
     try {
       setLoading(true);
+
       const formData = await form.validateFields();
       const { mailId, message } = formData;
       const formLink = formData.formLink || defaultFormLink;
 
-      await axios.post("/api/sendFormlink", {
+      const response = await axios.post("/api/sendFormlink", {
         to: mailId,
-        message,
-        formLink,
+        message: message,
+        formLink: formLink,
       });
 
       setSentTo(mailId);
+      generateFormLink();
+      console.log("Response:", response);
       setSuccessModalVisible(true);
-      form.resetFields(); // Reset the form fields
       toast.success("Form link sent successfully");
     } catch (error) {
       console.error("Error sending form link:", error);
-      const errorMessage =
-        error.response?.data?.message || "Failed to send form link";
-      toast.error(errorMessage);
+      toast.error("Failed to send form link");
     } finally {
       setLoading(false);
     }
@@ -148,7 +145,7 @@ const SendMailModal = ({ visible, onCancel }) => {
         </div>
         <div className="text-center mb-4">
           <Typography.Text strong>
-            Copy form link:{" "}
+            Copy formlink:{" "}
             <Typography.Link
               href={defaultFormLink}
               target="_blank"

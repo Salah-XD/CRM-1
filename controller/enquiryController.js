@@ -8,7 +8,7 @@ import Enquiry from "../models/enquiryModel.js";
 
 
 export const saveEnquiryForm = async (req, res) => {
-  console.log(req.body);
+ // console.log(req.body);
   try {
     const { business, service, status } = req.body;
 

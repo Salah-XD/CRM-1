@@ -71,7 +71,7 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
 
       let response;
       if (requestData._id || requestData.form_id) {
-        response = await axios.put("/updateClientData", requestData);
+        response = await axios.put("/api/updateClientData", requestData);
       }
 
       if (response.data?.success) {
@@ -154,38 +154,7 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
               disabled={!isEditable}
             />
           </Form.Item>
-          <Form.Item
-            label={
-              <span className="text-gray-600 font-semibold">
-                FSSAI License Number
-              </span>
-            }
-            className="w-1/4"
-            name="fssai_license_number"
-            rules={[
-              { required: true, message: "Please enter FSSAI License Number" },
-            ]}
-          >
-            <Input
-              placeholder="Enter your License Number"
-              className="placeholder-gray-400 p-3 rounded-lg"
-              disabled={!isEditable}
-            />
-          </Form.Item>
-          <Form.Item
-            name="phone"
-            className="w-1/4"
-            label={
-              <span className="text-gray-600 font-semibold">Phone Number</span>
-            }
-            rules={[{ required: true, message: "Please enter phone number" }]}
-          >
-            <Input
-              placeholder="Enter your phone number"
-              className="placeholder-gray-400 p-3 rounded-lg"
-              disabled={!isEditable}
-            />
-          </Form.Item>
+
           <Form.Item
             className="w-1/2"
             label={
@@ -203,13 +172,44 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
               disabled={!isEditable}
             />
           </Form.Item>
+
+          <Form.Item
+            name="phone"
+            className="w-1/4"
+            label={
+              <span className="text-gray-600 font-semibold">Phone Number</span>
+            }
+            rules={[{ required: true, message: "Please enter phone number" }]}
+          >
+            <Input
+              placeholder="Enter your phone number"
+              className="placeholder-gray-400 p-3 rounded-lg"
+              disabled={!isEditable}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label={
+              <span className="text-gray-600 font-semibold">
+                FSSAI License Number
+              </span>
+            }
+            className="w-1/4"
+            name="fssai_license_number"
+           
+          >
+            <Input
+              placeholder="Enter your License Number"
+              className="placeholder-gray-400 p-3 rounded-lg"
+              disabled={!isEditable}
+            />
+          </Form.Item>
           <Form.Item
             className="w-1/4"
             label={
               <span className="text-gray-600 font-semibold">GST Number</span>
             }
             name="gst_number"
-            
           >
             <Input
               placeholder="Enter your GST number"
@@ -225,7 +225,6 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
                 Vertical of Industry
               </span>
             }
-           
           >
             <Select
               placeholder="Select Industry Vertical"
@@ -266,7 +265,6 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
             label={<span className="text-gray-600 font-semibold">Address</span>}
             name="address.line1"
             className="w-1/2"
-           
           >
             <Input
               placeholder="Line 1"
@@ -282,33 +280,21 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
             />
           </Form.Item>
           <div className="flex justify-between w-1/2">
-            <Form.Item
-              name="address.city"
-             
-              className="w-full mr-2"
-            >
+            <Form.Item name="address.city" className="w-full mr-2">
               <Input
                 placeholder="City"
                 className="placeholder-gray-400 p-3 rounded-lg w-full"
                 disabled={!isEditable}
               />
             </Form.Item>
-            <Form.Item
-              name="address.state"
-             
-              className="w-full mr-2"
-            >
+            <Form.Item name="address.state" className="w-full mr-2">
               <Input
                 placeholder="State"
                 className="placeholder-gray-400 p-3 rounded-lg w-full"
                 disabled={!isEditable}
               />
             </Form.Item>
-            <Form.Item
-              name="address.pincode"
-             
-              className="w-full"
-            >
+            <Form.Item name="address.pincode" className="w-full">
               <Input
                 placeholder="Pincode"
                 className="placeholder-gray-400 p-3 rounded-lg w-full"

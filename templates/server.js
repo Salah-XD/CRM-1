@@ -7,53 +7,27 @@ import bussinessRoutes from "./routes/bussinessRoutes.js";
 import authenticatinRoutes from "./routes/authenticationRoutes.js";
 import enquiryRoutes from "./routes/enquiryRoutes.js";
 import proposalRoutes from "./routes/proposalRoutes.js";
-import path from "path";
-import { fileURLToPath } from "url";
 
 // Configure environment variables
 dotenv.config();
-
-// Create Express app
-const app = express();
-
-// Serve static files from the build folder
-app.use(express.static(path.join(process.cwd(), 'client', 'build')));
-
-// Handle requests to the root URL
-app.get('/', (req, res) => {
-  res.sendFile(path.join(process.cwd(), 'client', 'build', 'index.html'));
-});
-
-//rest api
-app.get("/", (req, res) => {
-  res.send("<h1>Welcome to CRM app</h1>");
-});
-
 
 // Connect to database and start server
 connectDB();
 
 
-
+// Create Express app
+const app = express();
 
 // Middleware setup
 app.use(express.json());
 app.use(cors());
 app.use(morgan("dev"));
 
-
-
-
 // API routes
 app.use("/api/", bussinessRoutes);
 app.use("/api/enquiry", enquiryRoutes);
 app.use("/api/proposal", proposalRoutes);
 app.use("/api/auth", authenticatinRoutes);
-
-// All other routes (non-API routes) go to React app
-app.use("*", function (req, res) {
-  res.sendFile(path.join(__dirname, "./client/build/index.html"));
-})
 
 
 app.use((err, req, res, next) => {

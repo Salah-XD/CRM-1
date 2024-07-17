@@ -195,7 +195,7 @@ const AdminDashboard = ({ children }) => {
      label: "Settings",
      key: "/settings",
      icon: <SettingOutlined />,
-     link: "/settings",
+     link: "/add-user",
      roles: ["SUPER_ADMIN"],
    },
    {

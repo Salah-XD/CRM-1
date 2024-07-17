@@ -35,11 +35,11 @@ function App() {
 
         <Route path="/dashboard" element={<Dashboard />} />
 
-        <Route path="/add-user" element={<AddUserPage />} />
+        
 
-        {/* <Route element={<SuperAdminRoute />}>
+        <Route element={<SuperAdminRoute />}>
           <Route path="/add-user" element={<AddUserPage />} />
-        </Route> */}
+        </Route> 
 
         <Route element={<AccountAdminRoute />}>
           <Route path="/enquiry" element={<EnquiryTable />} />
