@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Modal, Form, Input, Button, message, Spin } from "antd";
 import axios from "axios";
 import "../css/outletForm.css"; // Import the custom CSS
@@ -14,7 +14,7 @@ const UpdateOutletForm = ({
   const [loading, setLoading] = useState(true); // State to handle loading
   const [isEditMode, setIsEditMode] = useState(false); // State to manage edit mode
 
-  const fetchOutletDetails = async () => {
+  const fetchOutletDetails = useCallback(async () => {
     try {
       const response = await axios.get(
         `/api/getParticularOutletDetails/${outletId}`
@@ -39,7 +39,7 @@ const UpdateOutletForm = ({
       message.error("Failed to fetch outlet details. Please try again later.");
       setLoading(false); // Set loading to false even if there's an error
     }
-  };
+  }, [outletId, form]);
 
   useEffect(() => {
     if (isModalVisible) {
@@ -51,7 +51,7 @@ const UpdateOutletForm = ({
         setLoading(false); // Set loading to false immediately
       }
     }
-  }, [isModalVisible, outletId, form]);
+  }, [isModalVisible, outletId, form, fetchOutletDetails]);
 
   const handleSubmit = async () => {
     try {
