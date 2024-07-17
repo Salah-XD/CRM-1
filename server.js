@@ -16,18 +16,18 @@ dotenv.config();
 // Create Express app
 const app = express();
 
-// Serve static files from the build folder
-app.use(express.static(path.join(process.cwd(), 'client', 'build')));
-
-// Handle requests to the root URL
-app.get('/', (req, res) => {
-  res.sendFile(path.join(process.cwd(), 'client', 'build', 'index.html'));
-});
+// Get current filename and directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 //rest api
 app.get("/", (req, res) => {
   res.send("<h1>Welcome to CRM app</h1>");
 });
+
+
+// Serve React app
+app.use(express.static(path.join(__dirname, "./client/build")));
 
 
 // Connect to database and start server
@@ -40,6 +40,8 @@ connectDB();
 app.use(express.json());
 app.use(cors());
 app.use(morgan("dev"));
+
+
 
 
 
