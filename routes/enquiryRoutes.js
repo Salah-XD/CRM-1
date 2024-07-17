@@ -5,7 +5,8 @@ import {
   saveEnquiryForm,
   getAllEnquiryDetails,
   deleteFields,
-  updateEnquiry,
+  updateEnquiryById,
+  getEnquiryById,
 } from "../controller/enquiryController.js";
 
 const router = express.Router();
@@ -14,9 +15,13 @@ router.post("/saveEnquiryForm", saveEnquiryForm);
 
 router.get("/getAllEnquiryDetails", getAllEnquiryDetails);
 
+router.get("/getEnquiryById/:id", getEnquiryById);
+
 router.delete("/deleteFields", deleteFields);
 
-router.delete("/updateEnquiry", updateEnquiry);
+router.put("/updateEnquiryById/:id", updateEnquiryById);
+
+
 
 
 

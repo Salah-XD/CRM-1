@@ -71,6 +71,7 @@ const EnquiryTable = () => {
   const [shouldFetch, setShouldFetch] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+   const [selectedEnquiryId, setSelectedEnquiryId] = useState(null);
   const navigate = useNavigate();
 
   // Toggling
@@ -101,6 +102,7 @@ const EnquiryTable = () => {
   const closeEnquiryModal = () => {
     setIsModalOpen(false);
     setIsEnquiryModalVisible(false);
+        setSelectedEnquiryId(null);
   };
 
  const handleOkEnquiryModel = () => {
@@ -108,6 +110,13 @@ const EnquiryTable = () => {
    setIsModalOpen(false);
    setIsEnquiryModalVisible(false);
  };
+
+
+  const showEditModal = (enquiryId = null) => {
+    setSelectedEnquiryId(enquiryId);
+    setIsEnquiryModalVisible(true);
+  };
+
 
 
   // Fetch data function
@@ -159,12 +168,12 @@ const EnquiryTable = () => {
   ]);
 
   // Fetch data with debounce
-  const fetchDataWithDebounce = useCallback(
-    debounce(() => {
-      fetchData();
-    }, 500),
-    [fetchData]
-  );
+  const fetchDataWithDebounce = debounce(() => {
+    if (searchKeyword.trim()) {
+      // Your backend call logic here
+      console.log("Fetching data for keyword:", searchKeyword);
+    }
+  }, debounceDelay);
 
   // Fetch initial data on component mount
   useEffect(() => {
@@ -209,7 +218,7 @@ const EnquiryTable = () => {
       cancelText: "No",
       onOk() {
         axios
-          .delete("/enquiry/deleteFields", { data: selectedRows })
+          .delete("/api/enquiry/deleteFields", { data: selectedRows })
           .then((response) => {
             const currentPage = tableParams.pagination.current;
             const pageSize = tableParams.pagination.pageSize;
@@ -293,9 +302,13 @@ const showSingleDeleteConfirm = (id) => {
         break;
       case "delete":
         showSingleDeleteConfirm(record._id);
-     
+      break;
+      case "edit":
+        showEditModal(record._id);
+
+      break;
       default:
-        break;
+       
     }
   };
 
@@ -566,6 +579,7 @@ useEffect(() => {
         visible={isEnquiryModalVisible}
         onClose={closeEnquiryModal}
         handleOkEnquiryModel={handleOkEnquiryModel}
+        enquiryId={selectedEnquiryId}
       />
     </AdminDashboard>
   );

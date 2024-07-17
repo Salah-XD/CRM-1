@@ -4,7 +4,12 @@ import axios from "axios";
 
 const { Option } = Select;
 
-const AddEnquiryModal = ({ visible, onClose, handleOkEnquiryModel }) => {
+const EnquiryForm = ({
+  visible,
+  onClose,
+  handleOkEnquiryModel,
+  enquiryId,
+}) => {
   const [form] = Form.useForm();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -22,15 +27,38 @@ const AddEnquiryModal = ({ visible, onClose, handleOkEnquiryModel }) => {
       }
     };
 
+    const fetchEnquiry = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(`/api/enquiry/getEnquiryById/${enquiryId}`);
+        form.setFieldsValue(response.data);
+      } catch (error) {
+        console.error("Error fetching enquiry:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (visible) {
       fetchClients();
+      if (enquiryId) {
+        fetchEnquiry();
+      }
     }
-  }, [visible]);
+  }, [visible, enquiryId]);
 
   const handleSubmit = async (values) => {
     try {
-      const response = await axios.post("/api/enquiry/saveEnquiryForm", values);
-      console.log("Response:", response.data);
+      let response;
+      if (enquiryId) {
+        response = await axios.put(
+          `/api/enquiry/updateEnquiryById/${enquiryId}`,
+          values
+        );
+      } else {
+        response = await axios.post("/api/enquiry/saveEnquiryForm", values);
+      }
+      //console.log("Response:", response.data);
       handleOkEnquiryModel();
       onClose();
     } catch (error) {
@@ -41,7 +69,7 @@ const AddEnquiryModal = ({ visible, onClose, handleOkEnquiryModel }) => {
   return (
     <Modal
       visible={visible}
-      title="Add Enquiry"
+      title={enquiryId ? "Update Enquiry" : "Add Enquiry"}
       onCancel={onClose}
       footer={[
         <div className="flex justify-center">
@@ -49,9 +77,8 @@ const AddEnquiryModal = ({ visible, onClose, handleOkEnquiryModel }) => {
             <Button key="cancel" onClick={onClose}>
               Cancel
             </Button>
-            
             <Button key="submit" type="primary" onClick={() => form.submit()}>
-              ADD
+              {enquiryId ? "Update" : "Add"}
             </Button>
           </div>
         </div>,
@@ -64,7 +91,7 @@ const AddEnquiryModal = ({ visible, onClose, handleOkEnquiryModel }) => {
       ) : (
         <Form form={form} onFinish={handleSubmit} layout="vertical">
           <Form.Item
-            name="businessId"
+            name="business"
             label="Select FBO (FBO Business Name)"
             rules={[{ required: true, message: "Please select a client" }]}
           >
@@ -74,7 +101,6 @@ const AddEnquiryModal = ({ visible, onClose, handleOkEnquiryModel }) => {
                   {client.name}
                 </Option>
               ))}
-            
             </Select>
           </Form.Item>
           <Form.Item
@@ -100,4 +126,4 @@ const AddEnquiryModal = ({ visible, onClose, handleOkEnquiryModel }) => {
   );
 };
 
-export default AddEnquiryModal;
+export default EnquiryForm;

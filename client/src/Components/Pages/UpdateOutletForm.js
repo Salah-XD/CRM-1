@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Form, Input, Button, message, Spin, Select } from "antd";
+import { Modal, Form, Input, Button, message, Spin } from "antd";
 import axios from "axios";
 import "../css/outletForm.css"; // Import the custom CSS
-
-const { Option } = Select;
 
 const UpdateOutletForm = ({
   isModalVisible,
@@ -16,43 +14,44 @@ const UpdateOutletForm = ({
   const [loading, setLoading] = useState(true); // State to handle loading
   const [isEditMode, setIsEditMode] = useState(false); // State to manage edit mode
 
-  useEffect(() => {
-    const fetchOutletDetails = async () => {
-      try {
-        const response = await axios.get(
-          `/api/getParticularOutletDetails/${outletId}`
-        );
-        const outlet = response.data;
+  const fetchOutletDetails = async () => {
+    try {
+      const response = await axios.get(
+        `/api/getParticularOutletDetails/${outletId}`
+      );
+      const outlet = response.data;
 
-        // Set initial values for the form
-        form.setFieldsValue({
-          branch_name: outlet.branch_name,
-          contact_number: outlet.contact_number,
-          contact_person: outlet.contact_person,
-          no_of_food_handlers: outlet.no_of_food_handlers,
-          fssai_license_number: outlet.fssai_license_number,
-          gst_number: outlet.gst_number,
-          Vertical_of_industry: outlet.Vertical_of_industry,
-          address: outlet.private_details?.address,
-        });
+      // Set initial values for the form
+      form.setFieldsValue({
+        branch_name: outlet.branch_name,
+        contact_number: outlet.contact_number,
+        contact_person: outlet.contact_person,
+        no_of_food_handlers: outlet.no_of_food_handlers,
+        fssai_license_number: outlet.fssai_license_number,
+        gst_number: outlet.gst_number,
+        Vertical_of_industry: outlet.Vertical_of_industry,
+        address: outlet.private_details?.address,
+      });
 
-        setLoading(false); // Set loading to false after data is fetched
-      } catch (error) {
-        console.error("Error fetching outlet details:", error);
-        message.error(
-          "Failed to fetch outlet details. Please try again later."
-        );
-        setLoading(false); // Set loading to false even if there's an error
-      }
-    };
-
-    if (outletId) {
-      fetchOutletDetails();
-    } else {
-      setLoading(false); // If no outletId, set loading to false immediately
+      setLoading(false); // Set loading to false after data is fetched
+    } catch (error) {
+      console.error("Error fetching outlet details:", error);
+      message.error("Failed to fetch outlet details. Please try again later.");
+      setLoading(false); // Set loading to false even if there's an error
     }
-  }, [outletId, form]);
+  };
 
+  useEffect(() => {
+    if (isModalVisible) {
+      setLoading(true); // Set loading to true when modal is visible
+      if (outletId) {
+        fetchOutletDetails();
+      } else {
+        form.resetFields(); // Reset form fields if there's no outletId
+        setLoading(false); // Set loading to false immediately
+      }
+    }
+  }, [isModalVisible, outletId, form]);
 
   const handleSubmit = async () => {
     try {
@@ -121,9 +120,7 @@ const UpdateOutletForm = ({
         <Form form={form} layout="vertical">
           <Form.Item
             label={
-              <span className="text-gray-600 font-semibold">
-                Outlet Name
-              </span>
+              <span className="text-gray-600 font-semibold">Outlet Name</span>
             }
             name="branch_name"
             rules={[{ required: true, message: "Please enter branch name" }]}
@@ -142,7 +139,6 @@ const UpdateOutletForm = ({
               </span>
             }
             name="contact_number"
-      
           >
             <Input
               placeholder="Enter contact number"
@@ -158,7 +154,6 @@ const UpdateOutletForm = ({
               </span>
             }
             name="contact_person"
-       
           >
             <Input
               placeholder="Enter contact person name"
@@ -167,7 +162,6 @@ const UpdateOutletForm = ({
             />
           </Form.Item>
 
-         
           <Form.Item
             label={
               <span className="text-gray-600 font-semibold">
@@ -175,7 +169,6 @@ const UpdateOutletForm = ({
               </span>
             }
             name="no_of_food_handlers"
- 
           >
             <Input
               placeholder="Enter number of food handlers"
@@ -215,7 +208,9 @@ const UpdateOutletForm = ({
           {isEditMode && (
             <div className="flex justify-center">
               <div className="flex justify-between space-x-2">
-                <Button onClick={() => setIsEditMode(false)} className="mr-5">Cancel</Button>
+                <Button onClick={() => setIsEditMode(false)} className="mr-5">
+                  Cancel
+                </Button>
                 <Button type="primary" className="ml-5" onClick={handleSubmit}>
                   Update
                 </Button>

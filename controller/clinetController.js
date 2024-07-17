@@ -182,6 +182,7 @@ export const updateOutlet = async (req, res) => {
       business,
       gst_number,
       contact_number,
+      contact_person,
       fssai_license_number,
       no_of_food_handlers,
       Vertical_of_industry,
@@ -203,6 +204,7 @@ export const updateOutlet = async (req, res) => {
     if (business) outlet.business = business;
     if (gst_number) outlet.gst_number = gst_number;
     if (contact_number) outlet.contact_number = contact_number;
+    if (contact_person) outlet.contact_person = contact_person;
     if (fssai_license_number)
       outlet.fssai_license_number = fssai_license_number;
     if (no_of_food_handlers) outlet.no_of_food_handlers = no_of_food_handlers;

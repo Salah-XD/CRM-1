@@ -10,10 +10,10 @@ import Enquiry from "../models/enquiryModel.js";
 export const saveEnquiryForm = async (req, res) => {
   console.log(req.body);
   try {
-    const { businessId, service, status } = req.body;
+    const { business, service, status } = req.body;
 
     // Validate required fields
-    if (!businessId || !service) {
+    if (!business || !service) {
       return res.status(400).json({
         message: "Business ID and Service are required.",
       });
@@ -21,7 +21,7 @@ export const saveEnquiryForm = async (req, res) => {
 
     // Create a new enquiry
     const newEnquiry = new Enquiry({
-      business: businessId,
+      business: business,
       service: service,
       status: status || "New Enquiry", // Default status if not provided
     });
@@ -66,15 +66,9 @@ export const getAllEnquiryDetails = async (req, res) => {
     const businessIds = matchingBusinesses.map((business) => business._id);
 
     // Initialize the enquiry query
-    let enquiryQuery = { business: { $in: businessIds } };
-
-    if (keyword) {
-      const keywordRegex = new RegExp(keyword, "i");
-      enquiryQuery.$or = [
-        { service: keywordRegex },
-        { added_by: keywordRegex },
-        { status: keywordRegex },
-      ];
+    let enquiryQuery = {};
+    if (businessIds.length > 0) {
+      enquiryQuery.business = { $in: businessIds };
     }
 
     // Add sorting based on the sort parameter
@@ -121,6 +115,7 @@ export const getAllEnquiryDetails = async (req, res) => {
     });
   }
 };
+
 
 
 
@@ -181,5 +176,45 @@ export const updateEnquiry = async (req, res) => {
       message: "An error occurred while updating the data",
       error,
     });
+  }
+};
+
+
+export const getEnquiryById = async (req, res) => {
+  try {
+    const enquiryId = req.params.id;
+    const enquiry = await Enquiry.findById(enquiryId).select(
+      "business service"
+    );
+
+    if (!enquiry) {
+      return res.status(404).json({ message: "Enquiry not found" });
+    }
+
+    res.status(200).json(enquiry);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+export const updateEnquiryById = async (req, res) => {
+  try {
+    const enquiryId = req.params.id;
+    const updateData = req.body;
+
+    const updatedEnquiry = await Enquiry.findByIdAndUpdate(
+      enquiryId,
+      updateData,
+      { new: true }
+    ).select("business service");
+
+    if (!updatedEnquiry) {
+      return res.status(404).json({ message: "Enquiry not found" });
+    }
+
+    res.status(200).json(updatedEnquiry);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

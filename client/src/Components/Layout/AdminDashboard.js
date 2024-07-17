@@ -128,7 +128,7 @@ const AdminDashboard = ({ children }) => {
      roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
      children: [
        {
-         label: "Enquiry from customers",
+         label: "Enquiry",
          key: "/enquiry",
          link: "/enquiry",
          roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],

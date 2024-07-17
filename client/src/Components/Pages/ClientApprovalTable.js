@@ -209,20 +209,21 @@ const ClientApprovalTable = () => {
 
   //Confimr Approval of client list
 const confirmApproval = (id) => {
-  confirm({
+  Modal.confirm({
     title: "Approve or Reject?",
     icon: <ExclamationCircleFilled />,
     okText: "Approve",
     okType: "primary",
     cancelText: "Reject",
     cancelType: "danger",
+    closable: true, // This line adds the close button
     onOk() {
       // Handle approval
       axios
         .put(`/api/updateBusinessStatus/${id}`)
         .then((response) => {
-         fetchData();
-        message.success("Client is Approved");
+          fetchData();
+          message.success("Client is Approved");
         })
         .catch((error) => {
           console.error("Approval error:", error);
@@ -244,7 +245,6 @@ const confirmApproval = (id) => {
           setTableParams((prevState) => ({
             ...prevState,
             pagination: {
-              ...prevState.pagination,
               total: newTotal,
               current: newCurrentPage,
             },
