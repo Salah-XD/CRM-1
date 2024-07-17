@@ -20,10 +20,7 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-//rest api
-app.get("/", (req, res) => {
-  res.send("<h1>Welcome to CRM app</h1>");
-});
+
 
 
 // Serve React app
