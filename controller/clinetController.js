@@ -1,10 +1,9 @@
 import moment from "moment";
 import Business from "../models/bussinessModel.js";
 import Outlet from "../models/outletModel.js";
-import PrivateCompany from "../models/privateModel.js";
 import nodemailer from "nodemailer";
 import mongoose from "mongoose";
-import Enquiry from "../models/enquiryModel.js"
+
 
 // Controller function to handle saving client data
 export const saveBusiness = async (req, res) => {
@@ -41,10 +40,10 @@ export const saveBusiness = async (req, res) => {
       phone,
       email,
       gst_number,
-      address, // Directly use the address object from req.body
+      address, 
       added_by,
-      status, // Set status to "approved" for a new form
-      created_at: new Date(), // Record creation timestamp
+      status, 
+      created_at: new Date(), 
     });
 
     // Save the new form to the database
@@ -375,6 +374,17 @@ export const sendEmail = async (req, res) => {
     if (!to || !message || !formLink) {
       throw new Error("Missing parameters");
     }
+
+    // Debugging environment variables
+    console.log("Checking environment variables...");
+    console.log(
+      "EMAIL_USERNAME:",
+      process.env.EMAIL_USERNAME ? "Loaded" : "Not Loaded"
+    );
+    console.log(
+      "EMAIL_PASSWORD:",
+      process.env.EMAIL_PASSWORD ? "Loaded" : "Not Loaded"
+    );
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
