@@ -227,13 +227,16 @@ export const updateOutlet = async (req, res) => {
 //Fetch Bussiness name to show in outlets
 export const getBusinesses = async (req, res) => {
   try {
-    const businesses = await Business.find({}, "_id name");
+    // Fetch all businesses where status is "approved"
+    const businesses = await Business.find({ status: "approved" }, "_id name");
+
     return res.status(200).json({ businesses });
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 export const getAllBusinessDetails = async (req, res) => {
   try {
@@ -377,14 +380,9 @@ export const sendEmail = async (req, res) => {
 
     // Debugging environment variables
     console.log("Checking environment variables...");
-    console.log(
-      "EMAIL_USERNAME:",
-      process.env.EMAIL_USERNAME ? "Loaded" : "Not Loaded"
-    );
-    console.log(
-      "EMAIL_PASSWORD:",
-      process.env.EMAIL_PASSWORD ? "Loaded" : "Not Loaded"
-    );
+   
+   console.log("EMAIL_PASSWORD:", process.env.EMAIL_PASSWORD);
+   console.log("EMAIL_USERNAME:", process.env.EMAIL_USERNAME);
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -545,25 +543,25 @@ export const getParticularOutletDetails = async (req, res) => {
 
 
 //Controller to get all the client name
-export const getAllClientName = async (req, res) => {
-  try {
-    // Fetch all client names and their IDs from the Business model
-    const clientNameList = await Business.find({}, "name _id").exec();
+// export const getAllClientName = async (req, res) => {
+//   try {
+//     // Fetch all client names and their IDs from the Business model
+//     const clientNameList = await Business.find({}, "name _id").exec();
 
-    // Extract client names and IDs from the query result
-    const clients = clientNameList.map((business) => ({
-      id: business._id,
-      name: business.name,
-    }));
+//     // Extract client names and IDs from the query result
+//     const clients = clientNameList.map((business) => ({
+//       id: business._id,
+//       name: business.name,
+//     }));
 
-    res.status(200).json(clients);
-  } catch (error) {
-    res.status(500).json({
-      message: "An error occurred while fetching client names",
-      error,
-    });
-  }
-};
+//     res.status(200).json(clients);
+//   } catch (error) {
+//     res.status(500).json({
+//       message: "An error occurred while fetching client names",
+//       error,
+//     });
+//   }
+// };
 
 //Outlet to get the branch name from Outlet Model by specific bussiness id
 

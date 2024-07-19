@@ -18,7 +18,10 @@ export const getOutletDetailsById = async (req, res) => {
     const { business } = enquiry; // Extract the business ID from the enquiry
 
     // Find outlets that match the business ID and select only branch name and outlet ID
-    const outlets = await Outlet.find({ business }, "branch_name _id");
+    const outlets = await Outlet.find(
+      { business },
+      "branch_name _id  no_of_food_handlers"
+    );
 
     // Respond with the outlet details for the specified business
     res.json(outlets);
@@ -29,41 +32,41 @@ export const getOutletDetailsById = async (req, res) => {
 };
 
 
-// export const saveProposal = async (req, res) => {
-//   const { enquiryId, proposal_date, status, proposal_number, outlets } =
-//     req.body;
+ export const saveProposal = async (req, res) => {
+   const { enquiryId, proposal_date, status, proposal_number, outlets } =
+     req.body;
 
-//   try {
-//     // Find the enquiry using the provided enquiryId
-//     const enquiry = await Enquiry.findById(enquiryId).populate("business");
+   try {
+      //Find the enquiry using the provided enquiryId
+     const enquiry = await Enquiry.findById(enquiryId).populate("business");
 
-//     if (!enquiry) {
-//       return res.status(404).json({ message: "Enquiry not found" });
-//     }
+     if (!enquiry) {
+       return res.status(404).json({ message: "Enquiry not found" });
+     }
 
-//     // Get the business ID from the enquiry
-//     const businessId = enquiry.business._id;
+      //Get the business ID from the enquiry
+     const businessId = enquiry.business._id;
 
-//     // Create the proposal
-//     const proposal = new Proposal({
-//       business: businessId,
-//       proposal_date,
-//       status,
-//       proposal_number,
-//       outlets,
-//     });
+      //Create the proposal
+     const proposal = new Proposal({
+       business: businessId,
+       proposal_date,
+       status,
+       proposal_number,
+       outlets,
+     });
 
-//     // Save the proposal to the database
-//     await proposal.save();
+      //Save the proposal to the database
+     await proposal.save();
 
-//     return res
-//       .status(201)
-//       .json({ message: "Proposal saved successfully", proposal });
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).json({ message: "Error saving proposal", error });
-//   }
-// };
+     return res
+       .status(201)
+       .json({ message: "Proposal saved successfully", proposal });
+   } catch (error) {
+     console.error(error);
+     return res.status(500).json({ message: "Error saving proposal", error });
+   }
+ };
 
 
 export const getBusinessDetailsByEnquiryId = async (req, res) => {

@@ -15,7 +15,6 @@ import {
   deleteOutlets,
   getParticularOutletDetails,
   updateOutlet,
-  getAllClientName,
   getBranchNamesByBusinessId,
   getAllClientDetails,
   updateBusinessStatus,
@@ -82,15 +81,6 @@ router.get("/getOutletDetails/:businessId", getOutletDetailsById);
 
 //Route to get particular outelet details
 router.get("/getParticularOutletDetails/:id",getParticularOutletDetails);
-
-//Route to get all the client name
-router.get("/getAllBussinessName",getAllClientName);
-
-router.get("/protected", verifyToken, (req, res) => {
-  res
-    .status(200)
-    .json({ message: "This is a protected route", user: req.user });
-});
 
 
 //Route to get all the client name

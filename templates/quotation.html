@@ -62,8 +62,8 @@
     </style>
   </head>
   <body class="bg-white text-sm">
-    <div class="container bg-white rounded-lg p-5">
-      <div class="flex p-8 header items-center border">
+    <div class="container bg-white rounded-lg p-2">
+      <div class="flex p-2 header items-center border">
         <div>
           <!-- Include this placeholder where you want the image to appear -->
           <img
@@ -85,15 +85,15 @@
           <tr>
             <td colspan="2">
               <strong>To</strong><br />
-              <span class="font-medium"> Client Name: </span
-              >{{clientName}}<br />
+              <span class="font-medium"> FBO Bussiness Name: </span
+              >{{name}}<br />
               <span class="font-medium">Contact Person Name:</span
-              >{{contactPersonName}}<br />
+              >{{contact_person}}<br />
               <span class="font-medium"> Contact Person Number:</span
               >{{contactPersonNumber}}<br />
-              <span class="font-medium"> Address: </span>{{address}}<br />
+              <span class="font-medium"> FBO Address: </span>{{address}}<br />
               <span class="font-medium"> Pin code:</span>{{pinCode}}<br />
-              <span class="font-medium">GST No:</span>{{gstNo}}<br />
+              <span class="font-medium">GST No:</span>{{gst_number}}<br />
               <span class="font-medium"> Industry Vertical:</span
               >{{industryVertical}}<br />
               <span class="font-medium"> No. of Food Handlers: </span
@@ -117,20 +117,21 @@
       <div class="mt-5 w-full flex justify-center">
         <table class="border-collapse">
           <tr>
-            <th class="border">Location</th>
-            <th class="border">Audit Criteria & Scope</th>
-            <th class="border">Frequency</th>
-            <th class="border">Quantity</th>
+            <th class="border">Outlet Name</th>
+            <th class="border">No. of Food handlers</th>
+            <th class="border">Man Days</th>
             <th class="border">Unit Cost</th>
-            <th class="border">Total</th>
+            <th class="border">Discount</th>
+            <th class="border">Amount</th>
           </tr>
           <tr>
-            <td class="border">{{location}}</td>
-            <td class="border">{{audit}}</td>
-            <td class="border">{{frequnecy}}</td>
-            <td class="border">{{quantity}}</td>
-            <td class="border">{{unitCost}}</td>
-            <td class="border"></td>
+            <td class="border">{{branch_name}}</td>
+            <td class="border">{{no_of_food_handlers}}</td>
+            <td class="border">{{man_days}}</td>
+            <td class="border">{{unit_cost}}</td>
+            <td class="border">{{discount}}</td>
+            <td class="border">{{amount}}</td>
+            
           </tr>
           <!-- Additional rows can be added dynamically -->
           <tr>
@@ -138,22 +139,30 @@
               colspan="5"
               class="selected-cell border text-right w-3/4 small-cell"
             >
-              <strong>Total</strong>
+              <strong>Sub Total</strong>
             </td>
             <td class="border w-1/4 selected-cell small-cell">{{total}}</td>
           </tr>
           <tr>
             <td colspan="5" class="border text-right w-3/4 small-cell">
-              <strong>18% GST</strong>
+              <strong>CGST9 [9%]</strong>
             </td>
-            <td class="border w-1/4 small-cell">{{gst}}</td>
+            
+            <td class="border w-1/4 small-cell">{{cgst}}</td>
+          </tr>
+          <tr>
+            <td colspan="5" class="border text-right w-3/4 small-cell">
+              <strong>SGST9 [9%]</strong>
+            </td>
+            
+            <td class="border w-1/4 small-cell">{{sgst}}</td>
           </tr>
           <tr>
             <td
               colspan="5"
               class="border selected-cell text-right w-3/4 small-cell"
             >
-              <strong>Overall Total</strong>
+              <strong>Total</strong>
             </td>
             <td class="border w-1/4 selected-cell small-cell">{{overallTotal}}</td>
           </tr>
@@ -170,8 +179,12 @@
               <td class="w-1/2 border px-4 py-1">{{toatlAmountWithoutTax}}</td>
             </tr>
             <tr>
-              <td class="w-1/2 border px-4 py-1">18% Tax</td>
-              <td class="w-1/2 border px-4 py-1">{{tax}}</td>
+              <td class="w-1/2 border px-4 py-1">CGST9 [9%]</td>
+              <td class="w-1/2 border px-4 py-1">{{cgst}}</td>
+            </tr>
+            <tr>
+              <td class="w-1/2 border px-4 py-1">SGST9 [9%]</td>
+              <td class="w-1/2 border px-4 py-1">{{sgst}}</td>
             </tr>
             <tr>
               <td class="w-1/2 border px-4 py-1">
