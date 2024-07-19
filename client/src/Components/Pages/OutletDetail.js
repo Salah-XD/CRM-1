@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Modal, Checkbox, Space, Divider } from "antd";
+import { Table, Button, Modal, Checkbox, Space, Divider, message } from "antd";
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -117,8 +117,8 @@ const OutletDetail = ({ businessId }) => {
     if (location.pathname.startsWith("/client-onboarding")) {
       navigate(`/client-success`);
     } else {
-      navigate("/");
-      toast.success("Succesfully Saved");
+      navigate("/client-profile");
+      message.success("Succesfully Saved");
     }
   };
 
@@ -138,11 +138,7 @@ const OutletDetail = ({ businessId }) => {
       dataIndex: "no_of_food_handlers",
       key: "no_of_food_handlers",
     },
-    {
-      title: "Vertical of industry",
-      dataIndex: "Vertical_of_industry",
-      key: "Vertical_of_industry",
-    },
+ 
     {
       title: "Contact Number",
       dataIndex: "contact_number",

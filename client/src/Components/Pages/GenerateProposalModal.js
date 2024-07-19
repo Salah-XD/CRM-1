@@ -49,7 +49,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
       const fetchBusinessDetails = async () => {
         try {
           const response = await axios.get(
-            `/apiproposal/getBusinessDetailsByEnquiryId/${enquiryId}`
+            `/api/proposal/getBusinessDetailsByEnquiryId/${enquiryId}`
           );
           setBusinessDetails(response.data);
         } catch (error) {
@@ -305,8 +305,8 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
             <Input
               type="text"
               className="w-full p-2 border border-gray-300 rounded"
-              value={`${businessDetails.address.line1}${
-                businessDetails.address.line2
+              value={`${businessDetails.address?.line1 || ""}${
+                businessDetails.address?.line2
                   ? " " + businessDetails.address.line2
                   : ""
               }`}
@@ -316,18 +316,24 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
             <Input
               type="text"
               className="w-full p-2 border border-gray-300 rounded"
-              value={`${businessDetails.address.city}, ${businessDetails.address.state}`}
+              value={`${businessDetails.address?.city || ""}${
+                businessDetails.address?.city && businessDetails.address?.state
+                  ? `, ${businessDetails.address.state}`
+                  : ""
+              }`}
             />
           </Form.Item>
 
           <div className="flex space-x-4">
-            <Form.Item label="Pincode" className="flex-1">
-              <Input
-                type="text"
-                className="w-full p-2 border border-gray-300 rounded"
-                value={businessDetails.address.pincode}
-              />
-            </Form.Item>
+         <Form.Item label="Pincode" className="flex-1">
+  <Input
+    type="text"
+    className="w-full p-2 border border-gray-300 rounded"
+    value={businessDetails.address?.pincode || ""}
+  />
+</Form.Item>
+
+
             <Form.Item label="GST Number" className="flex-1">
               <Input
                 type="text"
