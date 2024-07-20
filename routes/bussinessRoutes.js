@@ -21,14 +21,13 @@ import {
 } from "../controller/clinetController.js";
 const router = express.Router();
  
-import { generateQuotation } from "../controller/quotationsController.js";
+
 import { generateInvoices } from "../controller/invoicesController.js";
 
 
 
 
 
-router.post("/generate-Quotation", generateQuotation);
 
 router.post("/generate-invoices", generateInvoices);
 

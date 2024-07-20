@@ -40,14 +40,15 @@
       th,
       td {
         border: 1px solid black;
-        padding: 8px;
+        padding: 4px; /* Reduce padding for smaller cell height */
         text-align: left;
+        font-size: 10px; /* Smaller font size */
       }
       .selected-cell {
         background-color: #f2f2f2 !important;
       }
       .small-cell {
-        padding: 3px; /* Reduce padding for smaller cell height */
+        padding: 2px; /* Further reduce padding */
       }
       body {
         background-image: url("../templates/logo2.png"); /* Replace 'path_to_your_image.jpg' with the actual path to your image */
@@ -61,7 +62,7 @@
       }
     </style>
   </head>
-  <body class="bg-white text-sm">
+  <body class="bg-white text-xs"> <!-- Change font size for body -->
     <div class="container bg-white rounded-lg p-2">
       <div class="flex p-2 header items-center border">
         <div>
@@ -74,7 +75,7 @@
           />
         </div>
         <div>
-          <h1 class="text-xl font-bold text-gray-800">
+          <h1 class="text-lg font-bold text-gray-800">
             Unavar Food Inspection and Certification Private Limited
           </h1>
         </div>
@@ -114,60 +115,46 @@
         </table>
       </div>
 
-      <div class="mt-5 w-full flex justify-center">
-        <table class="border-collapse">
-          <tr>
-            <th class="border">Outlet Name</th>
-            <th class="border">No. of Food handlers</th>
-            <th class="border">Man Days</th>
-            <th class="border">Unit Cost</th>
-            <th class="border">Discount</th>
-            <th class="border">Amount</th>
-          </tr>
-          <tr>
-            <td class="border">{{branch_name}}</td>
-            <td class="border">{{no_of_food_handlers}}</td>
-            <td class="border">{{man_days}}</td>
-            <td class="border">{{unit_cost}}</td>
-            <td class="border">{{discount}}</td>
-            <td class="border">{{amount}}</td>
-            
-          </tr>
-          <!-- Additional rows can be added dynamically -->
-          <tr>
-            <td
-              colspan="5"
-              class="selected-cell border text-right w-3/4 small-cell"
-            >
-              <strong>Sub Total</strong>
-            </td>
-            <td class="border w-1/4 selected-cell small-cell">{{total}}</td>
-          </tr>
-          <tr>
-            <td colspan="5" class="border text-right w-3/4 small-cell">
-              <strong>CGST9 [9%]</strong>
-            </td>
-            
-            <td class="border w-1/4 small-cell">{{cgst}}</td>
-          </tr>
-          <tr>
-            <td colspan="5" class="border text-right w-3/4 small-cell">
-              <strong>SGST9 [9%]</strong>
-            </td>
-            
-            <td class="border w-1/4 small-cell">{{sgst}}</td>
-          </tr>
-          <tr>
-            <td
-              colspan="5"
-              class="border selected-cell text-right w-3/4 small-cell"
-            >
-              <strong>Total</strong>
-            </td>
-            <td class="border w-1/4 selected-cell small-cell">{{overallTotal}}</td>
-          </tr>
-        </table>
-      </div>
+     <div class="mt-5 w-full flex justify-center">
+ <table class="border-collapse w-4/5 outlets">
+
+    <tr>
+      <th class="border">Outlet Name</th>
+      <th class="border">No. of Food handlers</th>
+      <th class="border">Man Days</th>
+      <th class="border">Unit Cost</th>
+      <th class="border">Discount</th>
+      <th class="border">Amount</th>
+    </tr>
+    {{outletRows}}
+    <!-- Additional rows can be added dynamically -->
+    <tr>
+      <td colspan="5" class="selected-cell border text-right w-3/4 small-cell">
+        <strong>Sub Total</strong>
+      </td>
+      <td class="border w-1/4 selected-cell small-cell">{{total}}</td>
+    </tr>
+    <tr>
+      <td colspan="5" class="border text-right w-3/4 small-cell">
+        <strong>CGST9 [9%]</strong>
+      </td>
+      <td class="border w-1/4 small-cell">{{cgst}}</td>
+    </tr>
+    <tr>
+      <td colspan="5" class="border text-right w-3/4 small-cell">
+        <strong>SGST9 [9%]</strong>
+      </td>
+      <td class="border w-1/4 small-cell">{{sgst}}</td>
+    </tr>
+    <tr>
+      <td colspan="5" class="border selected-cell text-right w-3/4 small-cell">
+        <strong>Total</strong>
+      </td>
+      <td class="border w-1/4 selected-cell small-cell">{{overallTotal}}</td>
+    </tr>
+  </table>
+</div>
+
 
       <div class="mt-5">
        <strong class="block my-2" style="margin-top: 10px; margin-bottom: 10px;">Auditor Conveyance Charges:</strong>
@@ -198,7 +185,7 @@
 
       <div class="mt-1">
         <strong>Note:</strong>
-        <ol class="list-decimal list-inside">
+        <ol class="list-decimal list-inside text-xs"> <!-- Change font size for list -->
           <li>This proposal is valid for 30 days from the date of receipt.</li>
           <li>100% advance payment to be done for the project.</li>
           <li>18% Taxes as applicable in state.</li>
@@ -209,65 +196,68 @@
         </ol>
       </div>
 
-      <div class="mt-10">
-        <div class="text-center mb-4">
-          <h2 class="font-bold">Address & Payment Details</h2>
-        </div>
-        <table class="w-full border">
-          <tr>
-            <td class="w-1/2 border p-4 align-top">
-              <h2 class="font-bold">ADDRESS</h2>
-            </td>
-            <td class="w-1/2 border p-4 align-top">
-              <h2 class="font-bold">BANK DETAILS</h2>
-            </td>
-          </tr>
-          <tr>
-            <td class="w-1/2 border p-4 align-top">
-              <p>
-                Flat no: F1, First Floor, Door No: 519, MM Illam, MKN Road,
-                Adambakkam Village, Alandur, Chennai.
-              </p>
-              <p>Chennai-600 016</p>
-              <p>GST No: 33AADCU1306M1ZI</p>
-            </td>
-            <td class="w-1/2 border p-4 align-top">
-              <p>Bank Name: HDFC BANK</p>
-              <p>Branch: West Mambalam</p>
-              <p>Account Number: 50200078830737</p>
-              <p>IFSC code: HDFC0000575</p>
-            </td>
-          </tr>
-        </table>
-      </div>
+    <div class="mt-10">
+  <div class="text-center mb-4">
+    <h2 class="font-bold text-sm">Address & Payment Details</h2> <!-- Change font size for title -->
+  </div>
+  <div class="text-center"> <!-- Center the table within its container -->
+    <table class="border w-4/5 mx-auto"> <!-- Apply mx-auto to center the table -->
+      <tr>
+        <td class="w-1/2 border p-2 align-top"> <!-- Adjust padding -->
+          <h2 class="font-bold text-sm">ADDRESS</h2> <!-- Change font size for title -->
+        </td>
+        <td class="w-1/2 border p-2 align-top"> <!-- Adjust padding -->
+          <h2 class="font-bold text-sm">BANK DETAILS</h2> <!-- Change font size for title -->
+        </td>
+      </tr>
+      <tr>
+        <td class="w-1/2 border p-2 align-top"> <!-- Adjust padding -->
+          <p class="text-xs"> <!-- Change font size for text -->
+            Flat no: F1, First Floor, Door No: 519, MM Illam, MKN Road,
+            Adambakkam Village, Alandur, Chennai.
+          </p>
+          <p class="text-xs">Chennai-600 016</p> <!-- Change font size for text -->
+          <p class="text-xs">GST No: 33AADCU1306M1ZI</p> <!-- Change font size for text -->
+        </td>
+        <td class="w-1/2 border p-2 align-top"> <!-- Adjust padding -->
+          <p class="text-xs">Bank Name: HDFC BANK</p> <!-- Change font size for text -->
+          <p class="text-xs">Branch: West Mambalam</p> <!-- Change font size for text -->
+          <p class="text-xs">Account Number: 50200078830737</p> <!-- Change font size for text -->
+          <p class="text-xs">IFSC code: HDFC0000575</p> <!-- Change font size for text -->
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+
 
       <!-- Existing code above -->
 
       <!-- Client Acceptance section -->
       <div class="container my-5 bg-white rounded-lg p-5 page-break-before">
         <div class="text-center">
-          <h2 class="font-bold text-xl mb-3">For Client</h2>
+          <h2 class="font-bold text-sm mb-3">For Client</h2> <!-- Change font size for title -->
         </div>
-        <p>
+        <p class="text-xs"> <!-- Change font size for text -->
           I hereby accept this offer letter and I commit myself to follow the
           requirements established including payment of the licensee fee and the
           terms and conditions of this proposal.
         </p>
         <div class="mt-5 flex flex-col justify-center">
           <div class="flex my-2 items-center">
-            <span class="font-bold mr-2">CLIENT-REPRESENTATIVE:</span>
+            <span class="font-bold text-xs mr-2">CLIENT-REPRESENTATIVE:</span> <!-- Change font size for label -->
             <div class="border-b-2 border-gray-400 w-52"></div>
           </div>
           <div class="my-2 flex items-center">
-            <span class="font-bold mr-2">DESIGNATION:</span>
+            <span class="font-bold text-xs mr-2">DESIGNATION:</span> <!-- Change font size for label -->
             <div class="border-b-2 border-gray-400 w-52"></div>
           </div>
           <div class="my-2 flex items-center">
-            <span class="font-bold mr-2">SIGNATURE:</span>
+            <span class="font-bold text-xs mr-2">SIGNATURE:</span> <!-- Change font size for label -->
             <div class="border-b-2 border-gray-400 w-52"></div>
           </div>
           <div class="my-2 flex items-center">
-            <span class="font-bold mr-2">DATE:</span>
+            <span class="font-bold text-xs mr-2">DATE:</span> <!-- Change font size for label -->
             <div class="border-b-2 border-gray-400 w-52"></div>
           </div>
         </div>

@@ -10,23 +10,39 @@ const outletSchema = new Schema(
     },
     man_days: {
       type: Number,
-      required: true,
+      default: 0,
     },
     no_of_food_handlers: {
       type: Number,
-      required: true,
+      default: 0,
     },
     amount: {
       type: Number,
-      required: true,
+      default: 0,
     },
     discount: {
       type: Number,
-      required: false,
+      default: 0,
     },
     unit_cost: {
       type: Number,
-      required: false,
+      default: 0,
+    },
+    sub_total: {
+      type: Number,
+      default: 0,
+    },
+    igst: {
+      type: "Number",
+      default: 0,
+    },
+    cgst: {
+      type: "Number",
+      default: 0,
+    },
+    total: {
+      type: "Number",
+      default: 0,
     },
     is_invoiced: {
       type: Boolean,

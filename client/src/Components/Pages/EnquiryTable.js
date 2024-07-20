@@ -82,6 +82,7 @@ const EnquiryTable = () => {
   };
 
   const handleOk = () => {
+      fetchData(); 
     setSelectedId(null);
     setIsModalOpen(false);
     setIsModalVisible(false);

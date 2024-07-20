@@ -3,6 +3,7 @@ import Outlet from "../models/outletModel.js";
 import Enquiry from "../models/enquiryModel.js";
 import Proposal from "../models/proposalModel.js";
 import ProposalCounter from "../models/proposalCounter.js";
+import mongoose from "mongoose";
 
 
 
@@ -106,9 +107,13 @@ export const getBusinessDetailsByEnquiryId = async (req, res) => {
 // Controller function to save data
 export const createProposalAndOutlet = async (req, res) => {
   console.log(req.body);
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     // Extract data from req.body
     const {
+      fbo_name,
       proposal_date,
       status,
       proposal_number,
@@ -116,11 +121,13 @@ export const createProposalAndOutlet = async (req, res) => {
       gst_number,
       contact_person,
       phone,
-      outlets, // Assuming outlets is an array of outlet objects
+      outlets,
+      enquiryId, // New field for enquiry ID
     } = req.body;
 
     // Create a new Proposal instance with outlets
     const proposal = new Proposal({
+      fbo_name,
       proposal_date,
       status,
       proposal_number,
@@ -132,13 +139,35 @@ export const createProposalAndOutlet = async (req, res) => {
     });
 
     // Save the Proposal to the database
-    const savedProposal = await proposal.save();
+    const savedProposal = await proposal.save({ session });
+
+    // Update the ProposalCounter to increment the counter
+    await ProposalCounter.findOneAndUpdate(
+      { name: "proposalNumber" },
+      { $inc: { value: 1 } },
+      { new: true, upsert: true, session }
+    );
+
+    // Update the Enquiry model's status to "Proposal Done"
+    await Enquiry.findByIdAndUpdate(
+      enquiryId,
+      { status: "Proposal Done" },
+      { new: true, session }
+    );
+
+    // Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
 
     // Respond with saved data or success message
     res.status(201).json({
       proposal: savedProposal,
     });
   } catch (err) {
+    // Rollback the transaction in case of error
+    await session.abortTransaction();
+    session.endSession();
+
     // Handle error
     console.error(err);
     res.status(500).json({ error: "Failed to save data" });
@@ -150,19 +179,27 @@ export const createProposalAndOutlet = async (req, res) => {
 // Generate unique proposal number
 export const generateProposalNumber = async (req, res) => {
   try {
-    // Find and increment the counter
-    const counter = await ProposalCounter.findOneAndUpdate(
-      { name: 'proposalNumber' },
-      { $inc: { value: 1 } },
-      { new: true, upsert: true }
-    );
+    // Find the current counter without incrementing it
+    const counter = await ProposalCounter.findOne({ name: "proposalNumber" });
 
-    // Generate the proposal number
-    const newProposalNumber = `PROP-${String(counter.value).padStart(5, '0')}`;
-    
+    // Check if the counter exists
+    if (!counter) {
+      // If no counter found, initialize one with value 0
+      const newCounter = new ProposalCounter({
+        name: "proposalNumber",
+        value: 0,
+      });
+      await newCounter.save();
+      res.json({ proposal_number: "PROP-00000" }); // Generate default proposal number
+      return;
+    }
+
+    // Generate the proposal number based on the current counter value
+    const newProposalNumber = `PROP-${String(counter.value).padStart(5, "0")}`;
+
     res.json({ proposal_number: newProposalNumber });
   } catch (error) {
-    console.error('Error generating proposal number', error);
-    res.status(500).json({ error: 'Error generating proposal number' });
+    console.error("Error generating proposal number", error);
+    res.status(500).json({ error: "Error generating proposal number" });
   }
 };

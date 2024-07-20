@@ -13,26 +13,36 @@ import {
 } from "antd";
 import moment from "moment";
 import axios from "axios";
+
 import "../css/GenerateProposalModal.css";
 
 const { Option } = Select;
 
-const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
+const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,prosposalId}) => {
   const [form] = Form.useForm();
   const [outletItem, setItems] = useState([
     {
       outletId: "",
+      outlet_name: "",
       no_of_food_handlers: 0,
       man_days: 0,
       unit_cost: 0,
       discount: 0,
       amount: 0,
+      igst: 0,
+      cgst: 0,
+      subTotal: 0,
+      total: 0,
     },
   ]);
   const [proposal_date, setProposalDate] = useState(moment());
   const [proposal_number, setProposalNumber] = useState("");
   const [outlets, setOutlets] = useState([]);
   const [initialValuesLoaded, setInitialValuesLoaded] = useState(false);
+  const [subTotal, setSubTotal] = useState(0);
+  const [igst, setIgst] = useState(0);
+  const [cgst, setCgst] = useState(0);
+  const [total, setTotal] = useState(0);
 
   const handleCancel = () => {
     setItems([]);
@@ -46,10 +56,15 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
         discount: 0,
         amount: 0,
       },
-    ]); // Reset items to the initial value with one default item
+    ]);
+    setSubTotal(0);
+    setIgst(0);
+    setCgst(0);
+    setTotal(0);
     onCancel();
   };
 
+ 
   useEffect(() => {
     if (visible) {
       setProposalDate(moment());
@@ -60,7 +75,9 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
             "/api/proposal/genrateProposalNumber"
           );
           setProposalNumber(response.data);
-          form.setFieldsValue({ proposal_number: response.data.proposal_number }); // Ensure proposal_number is set in the form
+          form.setFieldsValue({
+            proposal_number: response.data.proposal_number,
+          }); // Ensure proposal_number is set in the form
         } catch (error) {
           console.error("Error in fetching proposal Number", error);
         }
@@ -148,6 +165,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
       // Prepare data to send
       const proposalData = {
         ...formData,
+        enquiryId:enquiryId,
         proposal_date: proposal_date.format("YYYY-MM-DD"),
         outlets: outletItem,
       };
@@ -157,9 +175,9 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
         "/api/proposal/createProposalAndOutlet",
         proposalData
       );
+      onOk();
 
       message.success("Proposal generated successfully!");
-      onOk(); // Close the modal or perform any other action on success
     } catch (error) {
       message.error("Failed to generate proposal.");
     }
@@ -204,44 +222,63 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
       newItems[index] = {
         ...newItems[index],
         outletId: value,
-        outlet_name: selectedOutlet ? selectedOutlet.branch_name : "", // Ensure outlet_name is set
-        foodHandlers: selectedOutlet ? selectedOutlet.no_of_food_handlers : 0,
+        outlet_name: selectedOutlet ? selectedOutlet.branch_name : "",
+        no_of_food_handlers: selectedOutlet
+          ? selectedOutlet.no_of_food_handlers
+          : 0,
         man_days,
-        unitCost: selectedOutlet ? selectedOutlet.unitCost : 0,
+        unit_cost: selectedOutlet ? selectedOutlet.unit_cost : 0,
       };
     } else {
       newItems[index][field] = value;
-      if (field === "foodHandlers") {
+      if (field === "no_of_food_handlers") {
         newItems[index].man_days = calculateManDays(value);
       }
     }
     newItems[index].amount =
-      newItems[index].foodHandlers *
+      newItems[index].no_of_food_handlers *
         newItems[index].man_days *
-        newItems[index].unitCost -
+        newItems[index].unit_cost -
       newItems[index].discount;
-    setItems(newItems);
+
+    calculateTotals(); // Update totals when items change
   };
 
   const calculateTotals = () => {
     if (!Array.isArray(outletItem) || outletItem.length === 0) {
-      return { subTotal: 0, igst: 0, cgst: 0, total: 0 };
+      setSubTotal(0);
+      setIgst(0);
+      setCgst(0);
+      setTotal(0);
+      return;
     }
 
-    const subTotal = outletItem.reduce((sum, outletItem) => {
-      const amount =
-        typeof outletItem.amount === "number" ? outletItem.amount : 0;
+    const calculatedSubTotal = outletItem.reduce((sum, item) => {
+      const amount = typeof item.amount === "number" ? item.amount : 0;
       return sum + amount;
     }, 0);
 
-    const igst = subTotal * 0.09;
-    const cgst = subTotal * 0.09;
-    const total = subTotal + igst + cgst;
+    const calculatedIgst = calculatedSubTotal * 0.09;
+    const calculatedCgst = calculatedSubTotal * 0.09;
+    const calculatedTotal =
+      calculatedSubTotal + calculatedIgst + calculatedCgst;
 
-    return { subTotal, igst, cgst, total };
+    setSubTotal(calculatedSubTotal);
+    setIgst(calculatedIgst);
+    setCgst(calculatedCgst);
+    setTotal(calculatedTotal);
+
+    // Update each outletItem with the totals
+    const updatedItems = outletItem.map((item) => ({
+      ...item,
+      igst: calculatedIgst,
+      cgst: calculatedCgst,
+      subTotal: calculatedSubTotal,
+      total: calculatedTotal,
+    }));
+    setItems(updatedItems);
   };
 
-  const { subTotal, igst, cgst, total } = calculateTotals();
   const columns = [
     {
       title: "Outlet name",
@@ -334,7 +371,6 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
   return (
     <Modal
       visible={visible}
-      onOk={onOk}
       onCancel={handleCancel}
       footer={null}
       width={900}
@@ -377,7 +413,6 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
               className="flex-1"
             >
               <Input
-                disabled
                 placeholder="Auto Generated"
                 className="w-full p-2 border border-gray-300 rounded"
                 readOnly
@@ -447,6 +482,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
               pagination={false}
             />
             <button
+            type="button"
               onClick={addItem}
               className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
             >
@@ -491,10 +527,11 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
               </div>
             </div>
           </div>
+
           <div className="text-center mt-4">
             <button
               className="bg-buttonModalColor px-4 py-2 text-white rounded"
-              onClick={handleSubmit}
+              htmlType="submit"
             >
               Generate
             </button>

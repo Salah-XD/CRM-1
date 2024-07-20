@@ -8,6 +8,8 @@ createProposalAndOutlet,
   generateProposalNumber
 } from "../controller/proposalController.js";
 
+import { generateProposal } from "../controller/proposalGenerationController.js";
+
 
 const router = express.Router();
 
@@ -21,6 +23,9 @@ router.get(
 );
 
 router.get("/genrateProposalNumber",generateProposalNumber);
+
+router.post("/genrateProposal/:proposalId", generateProposal);
+
 
 
 export default router;
