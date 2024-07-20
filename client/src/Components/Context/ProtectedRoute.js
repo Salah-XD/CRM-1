@@ -14,8 +14,8 @@ const userRoles = {
 const ProtectedRoute = ({ roles }) => {
   const { user, loading } = useAuth();
 
-  console.log("User:", user);
-  console.log("Roles required:", roles);
+  // console.log("User:", user);
+  // console.log("Roles required:", roles);
 
   if (loading) {
     return (

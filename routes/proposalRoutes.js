@@ -5,6 +5,7 @@ import {
   getOutletDetailsById,
 createProposalAndOutlet,
   getBusinessDetailsByEnquiryId,
+  generateProposalNumber
 } from "../controller/proposalController.js";
 
 
@@ -19,6 +20,7 @@ router.get(
   getBusinessDetailsByEnquiryId
 );
 
+router.get("/genrateProposalNumber",generateProposalNumber);
 
 
 export default router;

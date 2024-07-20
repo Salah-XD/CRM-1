@@ -2,8 +2,45 @@ import mongoose from "mongoose";
 
 const { Schema, model } = mongoose;
 
+const outletSchema = new Schema(
+  {
+    outlet_name: {
+      type: String,
+      required: true,
+    },
+    man_days: {
+      type: Number,
+      required: true,
+    },
+    no_of_food_handlers: {
+      type: Number,
+      required: true,
+    },
+    amount: {
+      type: Number,
+      required: true,
+    },
+    discount: {
+      type: Number,
+      required: false,
+    },
+    unit_cost: {
+      type: Number,
+      required: false,
+    },
+    is_invoiced: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { _id: false } // Disable _id for subdocuments
+);
+
 const proposalSchema = new Schema(
   {
+    fbo_name:{
+      type:String,
+    },
     proposal_date: {
       type: Date,
       required: true,
@@ -17,7 +54,7 @@ const proposalSchema = new Schema(
         "Sale closed",
         "Dropped",
       ],
-      default: "Mail not sent", 
+      default: "Mail not sent",
       required: true,
     },
     proposal_number: {
@@ -45,6 +82,10 @@ const proposalSchema = new Schema(
     },
     phone: {
       type: String,
+      required: true,
+    },
+    outlets: {
+      type: [outletSchema],
       required: true,
     },
   },

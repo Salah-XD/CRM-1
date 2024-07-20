@@ -2,7 +2,8 @@ import Business from "../models/bussinessModel.js";
 import Outlet from "../models/outletModel.js";
 import Enquiry from "../models/enquiryModel.js";
 import Proposal from "../models/proposalModel.js";
-import ProposedOutlet from "../models/ProposedOutlet.js";
+import ProposalCounter from "../models/proposalCounter.js";
+
 
 
 export const getOutletDetailsById = async (req, res) => {
@@ -104,6 +105,7 @@ export const getBusinessDetailsByEnquiryId = async (req, res) => {
 
 // Controller function to save data
 export const createProposalAndOutlet = async (req, res) => {
+  console.log(req.body);
   try {
     // Extract data from req.body
     const {
@@ -114,16 +116,10 @@ export const createProposalAndOutlet = async (req, res) => {
       gst_number,
       contact_person,
       phone,
-      outlet_name,
-      man_days,
-      no_of_food_handlers,
-      amount,
-      discount,
-      unit_cost,
-      is_invoiced,
+      outlets, // Assuming outlets is an array of outlet objects
     } = req.body;
 
-    // Create a new Proposal instance
+    // Create a new Proposal instance with outlets
     const proposal = new Proposal({
       proposal_date,
       status,
@@ -132,36 +128,41 @@ export const createProposalAndOutlet = async (req, res) => {
       gst_number,
       contact_person,
       phone,
+      outlets,
     });
 
-    // Save the Proposal to database
+    // Save the Proposal to the database
     const savedProposal = await proposal.save();
-
-    // Create a new ProposedOutlet instance
-    const proposedOutlet = new ProposedOutlet({
-      outletDetails: {
-        outlet_name,
-        man_days,
-        no_of_food_handlers,
-        amount,
-        discount,
-        unit_cost,
-      },
-      proposalModel: savedProposal._id, // Assign the ID of the saved Proposal
-      is_invoiced,
-    });
-
-    // Save the ProposedOutlet to database
-    const savedProposedOutlet = await proposedOutlet.save();
 
     // Respond with saved data or success message
     res.status(201).json({
       proposal: savedProposal,
-      proposedOutlet: savedProposedOutlet,
     });
   } catch (err) {
     // Handle error
     console.error(err);
     res.status(500).json({ error: "Failed to save data" });
+  }
+};
+
+
+
+// Generate unique proposal number
+export const generateProposalNumber = async (req, res) => {
+  try {
+    // Find and increment the counter
+    const counter = await ProposalCounter.findOneAndUpdate(
+      { name: 'proposalNumber' },
+      { $inc: { value: 1 } },
+      { new: true, upsert: true }
+    );
+
+    // Generate the proposal number
+    const newProposalNumber = `PROP-${String(counter.value).padStart(5, '0')}`;
+    
+    res.json({ proposal_number: newProposalNumber });
+  } catch (error) {
+    console.error('Error generating proposal number', error);
+    res.status(500).json({ error: 'Error generating proposal number' });
   }
 };
