@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Modal, Button, Input, message } from "antd";
 import { CheckCircleOutlined, CloseOutlined } from "@ant-design/icons";
@@ -8,6 +7,7 @@ const GenerateSendMail = ({
   title,
   inputPlaceholder,
   successMessage,
+  visible
 }) => {
   const [mailSent, setMailSent] = useState(false);
   const [email, setEmail] = useState("");
@@ -25,7 +25,7 @@ const GenerateSendMail = ({
 
   return (
     <Modal
-      visible={true}
+      visible={visible}
       onCancel={handleClose}
       footer={null}
       centered

@@ -3,6 +3,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import nodemailer from "nodemailer";
 import Proposal from "../models/proposalModel.js";
+import Invoice from "../models/invoiceModel.js";
 
 const __dirname = path.resolve();
 
@@ -20,18 +21,29 @@ export const generateProposal = async (req, res) => {
 
     const {
       fbo_name,
-      contact_person,
       phone,
       address: { line1, line2 },
       gst_number,
       outlets,
-      proposal_number,
       proposal_date,
-      total,
-      cgst,
-      sgst,
-      overallTotal,
+      pincode,
+      invoice_number,
+      invoice_date,
+      field_executive_name,
+      team_leader_name,
+      proposal_number
+
     } = proposalDetails;
+
+    // Calculate total, cgst, sgst, and total
+    let sub_total = 0;
+    outlets.forEach((outlet) => {
+       sub_total += parseFloat(outlet.amount.$numberInt || outlet.amount);
+    });
+
+    const cgst =  sub_total * 0.09; // 9% CGST
+    const sgst =  sub_total * 0.09; // 9% SGST
+    const total =  sub_total + cgst + sgst;
 
     // Convert MongoDB date format
     const proposalDate = proposal_date?.$date?.$numberLong
@@ -50,35 +62,45 @@ export const generateProposal = async (req, res) => {
 
     // Generate the outlet content dynamically
     const outletRows = outlets
-      .map(
-        (outlet) => `
+      .map((outlet) => {
+        const noOfFoodHandlers =
+          outlet.no_of_food_handlers?.$numberInt ||
+          outlet.no_of_food_handlers ||
+          0;
+        const manDays = outlet.man_days?.$numberDouble || outlet.man_days || 0;
+        const unitCost = outlet.unit_cost?.$numberInt || outlet.unit_cost || 0;
+        const discount = outlet.discount?.$numberInt || outlet.discount || 0;
+        const amount = outlet.amount?.$numberInt || outlet.amount || 0;
+
+        return `
       <tr>
-        <td class="border">${outlet.outlet_name}</td>
-        <td class="border">${outlet.no_of_food_handlers.$numberInt}</td>
-        <td class="border">${outlet.man_days.$numberDouble}</td>
-        <td class="border">${outlet.unit_cost.$numberInt}</td>
-        <td class="border">${outlet.discount.$numberInt}</td>
-        <td class="border">${outlet.amount.$numberInt}</td>
+        <td class="">${outlet.outlet_name || ""}</td>
+        <td class="border text-center">${noOfFoodHandlers}</td>
+        <td class="border text-center">${manDays}</td>
+        <td class="border text-center">${unitCost}</td>
+        <td class="border text-center">${discount}</td>
+        <td class="border">${amount}</td>
       </tr>
-    `
-      )
+    `;
+      })
       .join("");
 
     // Inject dynamic data into HTML template
     const dynamicContent = htmlTemplate
-      .replace("{{fbo_name}}", fbo_name)
-      .replace("{{contact_person}}", contact_person)
-      .replace("{{contactPersonNumber}}", phone)
-      .replace("{{address}}", `${line1}, ${line2}`)
-      .replace("{{gst_number}}", gst_number)
-      .replace("{{proposalNumber}}", proposal_number)
-      .replace("{{proposalDate}}", proposalDate.toLocaleDateString())
-      .replace("{{outletRows}}", outletRows)
-      .replace("{{imageData}}", imageData)
-      .replace("{{total}}", total)
-      .replace("{{cgst}}", cgst)
-      .replace("{{sgst}}", sgst)
-      .replace("{{overallTotal}}", overallTotal);
+    .replace(/{{imageData}}/g, imageData)
+      .replace(/{{fbo_name}}/g, fbo_name)
+      .replace(/{{invoice_numer}}/g, invoice_number)
+      .replace(/{{invoice_date}}/g, invoice_date.toLocaleDateString())
+      .replace(/{{proposal_number}}/g, proposal_number)
+      .replace(/{{address}}/g, `${line1}, ${line2 || ""}`)
+      .replace(/{{field_executive_name}}/g, field_executive_name)
+      .replace(/{{team_leader_name}}/g, team_leader_name)
+      .replace(/{{gst_number}}/g,gst_number)
+      .replace(/{{pincode}}/g, pincode)
+      .replace(/{{sub_total}}/g, totalAmount.toFixed(2)) // Ensure toFixed to 2 decimal places
+      .replace(/{{cgst}}/g, cgst.toFixed(2)) // Ensure toFixed to 2 decimal places
+      .replace(/{{sgst}}/g, sgst.toFixed(2)) // Ensure toFixed to 2 decimal places
+      .replace(/{{total}}/g, total.toFixed(2)); // Ensure toFixed to 2 decimal places
 
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
@@ -122,6 +144,9 @@ export const generateProposal = async (req, res) => {
     // Send email
     const info = await transporter.sendMail(mailOptions);
     console.log("Email sent:", info.response);
+
+    // Update proposal status to "Mail Sent"
+    await Invoice.findByIdAndUpdate(invoiceId, { status: "Mail Sent" });
 
     // Respond to client
     res.status(200).json({ message: "Email sent successfully" });

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   DatePicker,
@@ -7,59 +7,92 @@ import {
   Input,
   Button,
   Table,
-  Select
+  message
 } from "antd";
+import axios from "axios";
 import "../css/GenerateProposalModal.css";
 import GenerateSendMail from "./GenerateSendMail";
+import moment from "moment";
 
-const { Option } = Select;
-
-const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
+const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
   const [form] = Form.useForm();
   const [showForm, setShowForm] = useState(false);
   const [showSendMailModal, setShowSendMailModal] = useState(false);
   const [selectedOutlets, setSelectedOutlets] = useState([]);
   const [items, setItems] = useState([]);
+  const [outlets, setOutlets] = useState([]);
+  const [invoiceId,setInvoiceId]=useState([]);
+  const [initialValuesLoaded, setInitialValuesLoaded] = useState(false);
+  const [invoiceDate, setInvoiceDate] = useState(moment());
 
-  const outlets = [
-    {
-      key: "1",
-      name: "Outlet 1",
-      foodHandlers: 50,
-      manDays: 0.5,
-      unitCost: 8000,
-      amount: 4000,
-    },
-    {
-      key: "2",
-      name: "Outlet 2",
-      foodHandlers: 100,
-      manDays: 1,
-      unitCost: 8000,
-      amount: 8000,
-    },
-    {
-      key: "3",
-      name: "Outlet 3",
-      foodHandlers: 75,
-      manDays: 1,
-      unitCost: 8000,
-      amount: 8000,
-    },
-    {
-      key: "4",
-      name: "Outlet 4",
-      foodHandlers: 45,
-      manDays: 0.5,
-      unitCost: 8000,
-      amount: 4000,
-    },
-  ];
+useEffect(() => {
+  if (visible) {
+    // Fetch outlets when the modal is visible
+    axios
+      .get(`/api/proposal/getOutletsByProposalId/${proposalId}`)
+      .then((response) => {
+        setOutlets(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching outlets:", error);
+      });
+
+    // Fetch proposal data to initialize the form
+    axios
+      .get(`/api/invoice/getProposalById/${proposalId}`)
+      .then((response) => {
+        const {
+          address,
+          fbo_name,
+          proposal_date,
+          proposal_number,
+         
+          pincode,
+        } = response.data;
+
+        form.setFieldsValue({
+          address,
+          fbo_name,
+          proposal_date: proposal_date ? moment(proposal_date) : null,
+          proposal_number,
+         
+          pincode,
+        });
+        setInitialValuesLoaded(true);
+      })
+      .catch((error) => {
+        console.error("Error fetching proposal data:", error);
+      });
+
+    // Fetch invoice number
+    const fetchInvoiceId = async () => {
+      try {
+        const response = await axios.get("/api/invoice/generateInvoiceNumber");
+        setInvoiceId(response.data.invoice_number);
+      } catch (error) {
+        console.error("Error fetching InvoiceId", error);
+      }
+    };
+
+    fetchInvoiceId();
+  }
+}, [visible, proposalId, form]);
+
+
+
+
+
+  const handleCancel = () => {
+    onCancel();
+    form.resetFields();
+    setShowForm(false);
+  };
+
 
   const handleSelect = (record, selected) => {
     const updatedSelectedOutlets = selected
       ? [...selectedOutlets, record]
-      : selectedOutlets.filter((outlet) => outlet.key !== record.key);
+      : selectedOutlets.filter((outlet) => outlet._id !== record._id);
     setSelectedOutlets(updatedSelectedOutlets);
   };
 
@@ -69,10 +102,10 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
 
   const handleNext = () => {
     const selectedItems = selectedOutlets.map((outlet) => ({
-      outletName: outlet.name,
-      foodHandlers: outlet.foodHandlers,
-      manDays: outlet.manDays,
-      unitCost: outlet.unitCost,
+      outlet_name: outlet.outlet_name,
+      foodHandlers: outlet.no_of_food_handlers,
+      manDays: outlet.man_days,
+      unitCost: outlet.unit_cost,
       discount: 0,
       amount: outlet.amount,
     }));
@@ -80,21 +113,46 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
     setShowForm(true);
   };
 
-  const handleGenerate = () => {
-    onCancel(); // Close the GenerateProposalModal
-    setShowSendMailModal(true); // Show the GenerateSendMail modal
-  };
+ const handleSubmit = async () => {
+   try {
+     await form.validateFields();
+
+     // Collect form values
+     const formData = form.getFieldsValue();
+
+     const invoiceData = {
+       ...formData,
+       proposalId,
+       outlets: items,
+       invoice_number: invoiceId,
+     };
+
+     console.log("Invoice Data to Submit:", invoiceData); // Debugging log
+
+     await axios.post("/api/invoice/createInvoice", invoiceData);
+     message.success("Invoice generated successfully");
+     onCancel(); // Close the GenerateProposalModal
+     setShowSendMailModal(true); // Show the GenerateSendMail modal
+   } catch (error) {
+     console.error("Error saving invoice:", error);
+     message.error("Error generating invoice");
+   }
+ };
+
+
 
   const handleInputChange = (index, field, value) => {
     const newItems = [...items];
-    if (field === "outletName") {
-      const selectedOutlet = outlets.find((outlet) => outlet.name === value);
+    if (field === "outlet_name") {
+      const selectedOutlet = outlets.find(
+        (outlet) => outlet.outlet_name === value
+      );
       newItems[index] = {
         ...newItems[index],
-        outletName: value,
-        foodHandlers: selectedOutlet ? selectedOutlet.foodHandlers : 0,
-        manDays: selectedOutlet ? selectedOutlet.manDays : 0,
-        unitCost: selectedOutlet ? selectedOutlet.unitCost : 0,
+        outlet_name: value,
+        foodHandlers: selectedOutlet ? selectedOutlet.no_of_food_handlers : 0,
+        manDays: selectedOutlet ? selectedOutlet.man_days : 0,
+        unitCost: selectedOutlet ? selectedOutlet.unit_cost : 0,
       };
     } else {
       newItems[index][field] = value;
@@ -121,18 +179,18 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
   const outletsColumns = [
     {
       title: "Outlet Name",
-      dataIndex: "name",
-      key: "name",
+      dataIndex: "outlet_name",
+      key: "outlet_name",
     },
     {
       title: "No of Food Handlers",
-      dataIndex: "foodHandlers",
-      key: "foodHandlers",
+      dataIndex: "no_of_food_handlers",
+      key: "no_of_food_handlers",
     },
     {
       title: "Man Days",
-      dataIndex: "manDays",
-      key: "manDays",
+      dataIndex: "man_days",
+      key: "man_days",
     },
     {
       title: "Amount",
@@ -146,207 +204,202 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
     },
   ];
 
-  const itemsColumns = [
-    {
-      title: "Outlet name",
-      dataIndex: "outletName",
-      key: "outletName",
-      render: (_, item, index) => (
-        <Input
-          value={item.outletName}
-          onChange={(e) =>
-            handleInputChange(index, "outletName", e.target.value)
-          }
-          className="w-full"
-        />
-      ),
-    },
-    {
-      title: "No of Food Handlers",
-      dataIndex: "foodHandlers",
-      key: "foodHandlers",
-      render: (_, item, index) => (
-        <InputNumber
-          min={0}
-          value={item.foodHandlers}
-          onChange={(value) => handleInputChange(index, "foodHandlers", value)}
-          className="w-full"
-        />
-      ),
-    },
-    {
-      title: "Man Days",
-      dataIndex: "manDays",
-      key: "manDays",
-      render: (_, item, index) => (
-        <InputNumber
-          min={0}
-          value={item.manDays}
-          onChange={(value) => handleInputChange(index, "manDays", value)}
-          className="w-full"
-        />
-      ),
-    },
-    {
-      title: "Unit Cost",
-      dataIndex: "unitCost",
-      key: "unitCost",
-      render: (_, item, index) => (
-        <InputNumber
-          min={0}
-          value={item.unitCost}
-          onChange={(value) => handleInputChange(index, "unitCost", value)}
-          className="w-full"
-        />
-      ),
-    },
-    {
-      title: "Discount",
-      dataIndex: "discount",
-      key: "discount",
-      render: (_, item, index) => (
-        <InputNumber
-          min={0}
-          value={item.discount}
-          onChange={(value) => handleInputChange(index, "discount", value)}
-          className="w-full"
-        />
-      ),
-    },
-    {
-      title: "Amount",
-      dataIndex: "amount",
-      key: "amount",
-      render: (amount) =>
-        amount.toLocaleString("en-IN", {
-          style: "currency",
-          currency: "INR",
-        }),
-    },
-  ];
+ const itemsColumns = [
+   {
+     title: "Outlet name",
+     dataIndex: "outlet_name",
+     key: "outlet_name",
+     render: (value) => <span className="text-center block">{value}</span>,
+   },
+   {
+     title: "No of Food Handlers",
+     dataIndex: "foodHandlers",
+     key: "foodHandlers",
+     render: (value) => <span className="text-center block">{value}</span>,
+   },
+   {
+     title: "Man Days",
+     dataIndex: "manDays",
+     key: "manDays",
+     render: (value) => <span className="text-center block">{value}</span>,
+   },
+   {
+     title: "Unit Cost",
+     dataIndex: "unitCost",
+     key: "unitCost",
+     render: (value) => <span className="text-center block">{value}</span>,
+   },
+   {
+     title: "Discount",
+     dataIndex: "discount",
+     key: "discount",
+     render: (value) => <span className="text-center block">{value}</span>,
+   },
+   {
+     title: "Amount",
+     dataIndex: "amount",
+     key: "amount",
+     render: (amount) => (
+       <span className="text-center block">
+         {amount.toLocaleString("en-IN", {
+           style: "currency",
+           currency: "INR",
+         })}
+       </span>
+     ),
+   },
+ ];
+
 
   return (
     <>
       <Modal
         visible={visible}
-        onCancel={onCancel}
+        onCancel={handleCancel}
         footer={null}
-        width={800}
+        width={900}
         className="acc-modal"
       >
-        <Form layout="vertical" form={form}>
+        <Form layout="vertical" onFinish={handleSubmit} form={form}>
           <div
-            className="text-center align-middle font-medium text-xl bg-blue-50 p-4"
+            className="text-center align-middle font-medium text-xl bg-blue-50 p-7"
             style={{ boxShadow: "0 4px 2px -2px lightgrey" }}
           >
-            Generate invoice
+            Generate Invoice
           </div>
           {!showForm ? (
-            <>
-              <div className="p-6" style={{ backgroundColor: "#F6FAFB" }}>
-                <div className="text-center font-medium text-xl mb-5 rounded-md">
-                  Select outlets
-                </div>
-                <Table
-                  dataSource={outlets}
-                  columns={outletsColumns}
-                  pagination={false}
-                  rowClassName="text-left"
-                  rowSelection={{
-                    selectedRowKeys: selectedOutlets.map(
-                      (outlet) => outlet.key
-                    ),
-                    onSelect: handleSelect,
-                    onSelectAll: handleSelectAll,
-                  }}
-                />
-                <div className="text-center mt-4">
-                  <button
-                    className="bg-buttonModalColor px-4 py-2 text-white rounded"
-                    onClick={handleNext}
-                  >
-                    Next
-                  </button>
-                </div>
+            <div className="p-4" style={{ backgroundColor: "#F6FAFB" }}>
+              <div className="text-center font-medium text-xl mb-5 rounded-md">
+                Select Outlets
               </div>
-            </>
+              <Table
+                dataSource={outlets}
+                columns={outletsColumns}
+                pagination={false}
+                rowKey={(record) => record._id}
+                rowSelection={{
+                  selectedRowKeys: selectedOutlets.map((outlet) => outlet._id),
+                  onSelect: handleSelect,
+                  onSelectAll: handleSelectAll,
+                }}
+                rowClassName={(record) =>
+                  record.is_invoiced ? "disabled-row" : ""
+                }
+              />
+              <div className="text-center mt-4">
+                <Button
+                  className="bg-buttonModalColor px-4 py-2 text-white rounded"
+                  onClick={handleNext}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
           ) : (
             <div className="p-6" style={{ backgroundColor: "#F6FAFB" }}>
               <div className="text-center font-medium text-xl mb-5 rounded-md">
                 Invoice Details
               </div>
-              <Form layout="vertical">
-                <Form.Item label="FBO name (Business Name)" className="flex-1">
+              <Form.Item
+                label="FBO name (Business Name)"
+                name="fbo_name"
+                className="flex-1"
+              >
+                <Input
+                  type="text"
+                  className="w-full p-2 border border-gray-300 rounded"
+                />
+              </Form.Item>
+              <div className="flex space-x-4">
+                <Form.Item
+                  label="Invoice date"
+                  className="flex-1"
+                  size="large"
+                  name="invoice_date"
+                >
+                  <DatePicker className="w-full" />
+                </Form.Item>
+                <Form.Item
+                  label="Proposal number (Order Ref No.)"
+                  className="flex-1"
+                  name="proposal_number"
+                >
+                  <Input
+                    placeholder="Auto Generated"
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </Form.Item>
+                <Form.Item label="Invoice number" className="flex-1">
+                  <Input
+                    value={invoiceId}
+                    placeholder="Auto Generated"
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </Form.Item>
+              </div>
+              <Form.Item label="Address">
+                <Input.Group>
+                  <Form.Item name={["address", "line1"]}>
+                    <Input
+                      type="text"
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </Form.Item>
+                  <Form.Item name={["address", "line2"]}>
+                    <Input
+                      type="text"
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </Form.Item>
+                </Input.Group>
+              </Form.Item>
+              <div className="flex space-x-4">
+                <Form.Item label="Pincode" name="pincode" className="flex-1">
                   <Input
                     type="text"
                     className="w-full p-2 border border-gray-300 rounded"
                   />
                 </Form.Item>
-                <div className="flex space-x-4">
-                  <Form.Item
-                    label="Proposal date"
-                    className="flex-1"
-                    size="large"
-                  >
-                    <DatePicker className="w-full" />
-                  </Form.Item>
-                  <Form.Item
-                    label="Proposal number(Order Ref No.)"
-                    className="flex-1"
-                  >
-                    <Input
-                      placeholder="Auto Generated"
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </Form.Item>
-                  <Form.Item label="Invoice number" className="flex-1">
-                    <Input
-                      placeholder="Auto Generated"
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </Form.Item>
-                </div>
-                <Form.Item label="FBO Address">
+                <Form.Item
+                  label="Place Of Supply"
+                  name="place_of_supply"
+                  className="flex-1"
+                >
                   <Input
                     type="text"
                     className="w-full p-2 border border-gray-300 rounded"
                   />
                 </Form.Item>
-                <div className="flex space-x-4">
-                  <Form.Item label="Pincode" className="flex-1">
-                    <Input
-                      type="text"
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </Form.Item>
-                  <Form.Item label="Place Of Supply" className="flex-1">
-                    <Input
-                      type="text"
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </Form.Item>
-                </div>
-                <div className="flex space-x-4">
-                  <Form.Item label="Field Executie Name " className="flex-1">
-                    <Input
-                      type="text"
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </Form.Item>
-                  <Form.Item label="Team leader Name" className="flex-1">
-                    <Input
-                      type="text"
-                      className="w-full p-2 border border-gray-300 rounded"
-                    />
-                  </Form.Item>
-                </div>
-              </Form>
+              </div>
+              <div className="flex space-x-4">
+                <Form.Item
+                  label="Field Executive Name"
+                  name="field_executive_name"
+                  className="flex-1"
+                >
+                  <Input
+                    type="text"
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </Form.Item>
+                <Form.Item
+                  label="Team Leader Name"
+                  name="team_leader_name"
+                  className="flex-1"
+                >
+                  <Input
+                    type="text"
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </Form.Item>
+              </div>
               <div className="my-4">
-                <h3 className="text-lg font-semibold mb-2">Items table</h3>
+                <h3 className="text-lg font-semibold mb-2">Items Table</h3>
                 <Table
                   dataSource={items}
                   columns={itemsColumns}
                   pagination={false}
+                  rowKey={(item) => item.outlet_name}
                   rowClassName="text-left"
                 />
               </div>
@@ -363,7 +416,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
                 <div className="flex justify-between items-center">
                   <div className="text-sm font-medium">CGST [9%]:</div>
                   <div className="text-sm font-medium">
-                    {(tax * 0.09).toLocaleString("en-IN", {
+                    {(tax / 2).toLocaleString("en-IN", {
                       style: "currency",
                       currency: "INR",
                     })}
@@ -372,7 +425,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
                 <div className="flex justify-between items-center">
                   <div className="text-sm font-medium">SGST [9%]:</div>
                   <div className="text-sm font-medium">
-                    {(tax * 0.09).toLocaleString("en-IN", {
+                    {(tax / 2).toLocaleString("en-IN", {
                       style: "currency",
                       currency: "INR",
                     })}
@@ -389,17 +442,18 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
                 </div>
               </div>
               <div className="text-center mt-4">
-                <button
+                <Button
                   className="bg-buttonModalColor px-4 py-2 text-white rounded"
-                  onClick={handleGenerate}
+                  htmlType="submit"
                 >
                   Generate
-                </button>
+                </Button>
               </div>
             </div>
           )}
         </Form>
       </Modal>
+
       {showSendMailModal && (
         <GenerateSendMail
           onClose={() => setShowSendMailModal(false)}
@@ -412,4 +466,4 @@ const GenerateProposalModal = ({ visible, onOk, onCancel }) => {
   );
 };
 
-export default GenerateProposalModal;
+export default GenerateInvoiceModal;

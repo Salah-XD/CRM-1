@@ -297,19 +297,19 @@ const showSingleDeleteConfirm = (id) => {
 
   // Handle Menu
   const handleMenuClick = (record, { key }) => {
+
     switch (key) {
       case "generate_proposal":
         showModal(record._id);
         break;
       case "delete":
         showSingleDeleteConfirm(record._id);
-      break;
+        break;
       case "edit":
         showEditModal(record._id);
 
-      break;
+        break;
       default:
-       
     }
   };
 

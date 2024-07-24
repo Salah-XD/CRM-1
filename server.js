@@ -7,6 +7,7 @@ import bussinessRoutes from "./routes/bussinessRoutes.js";
 import authenticatinRoutes from "./routes/authenticationRoutes.js";
 import enquiryRoutes from "./routes/enquiryRoutes.js";
 import proposalRoutes from "./routes/proposalRoutes.js";
+import invoiceRoutes from "./routes/invoiceRoutes.js";
 //import path from "path";
  //import { fileURLToPath } from "url";
 
@@ -47,6 +48,7 @@ app.use(morgan("dev"));
 app.use("/api/", bussinessRoutes);
 app.use("/api/enquiry", enquiryRoutes);
 app.use("/api/proposal", proposalRoutes);
+app.use("/api/invoice", invoiceRoutes);
 app.use("/api/auth", authenticatinRoutes);
 
 // All other routes (non-API routes) go to React app

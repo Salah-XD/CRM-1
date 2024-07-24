@@ -10,7 +10,7 @@
     />
     <style>
       body {
-        background-color: #f7fafc;
+        background-color: #ffffff;
         font-size: 10px; /* Reduced font size */
       }
       .container {
@@ -56,7 +56,7 @@
     </style>
   </head>
   <body class="p-4">
-    <div class="container mx-auto mt-4 shadow-lg rounded-lg">
+    <div class="container mx-auto mt-4">
       <div class="header-info flex justify-between items-center border p-2 border-gray-400 rounded">
         <div>
           <h2 class="text-lg font-bold" style="color: #13A6B8;">UNAVAR FOOD INSPECTION AND CERTIFICATION PRIVATE LIMITED</h2>
@@ -71,72 +71,74 @@
 
       <div class="grid grid-cols-2 gap-2 mb-2">
         <div>
-          <p><span class="font-semibold">Invoice No:</span> {{Invoice Number}}</p>
-          <p><span class="font-semibold">Invoice Date:</span> {{Invoice Date}}</p>
-          <p><span class="font-semibold">Order Ref No:</span> {{Order Ref No}}</p>
+          <p><span class="font-semibold">Invoice No:</span> {{invoice_number}}</p>
+          <p><span class="font-semibold">Invoice Date:</span> {{invoice_date}}</p>
+          <p><span class="font-semibold">Order Ref No:</span> {{proposal_number}}</p>
           <p><span class="font-semibold">Cust. P.O. No:</span> {{Cust. P.O. No}}</p>
         </div>
         <div>
-          <p><span class="font-semibold">Field Executive Name:</span>{{Field Executive Name}}</p>
-          <p><span class="font-semibold">Team Leader Name:</span>{{Team Leader Name}}</p>
+          <p><span class="font-semibold">Field Executive Name:</span>{{field_executive_name}}</p>
+          <p><span class="font-semibold">Team Leader Name:</span>{{team_leader_name}}</p>
         </div>
       </div>
 
       <div class="bill-info mb-2">
         <h2 class="text-md font-semibold text-gray-700">Bill to Party</h2>
-        <p><span class="font-semibold">Name:</span> {{Customer Name}}</p>
-        <p><span class="font-semibold">Address:</span> {{Customer Address}}</p>
-        <p><span class="font-semibold">GSTIN:</span> {{Customer GSTIN}}</p>
+        <p><span class="font-semibold">Name:</span> {{fbo_name}}</p>
+        <p><span class="font-semibold">Address:</span> {{address}}</p>
+        <p><span class="font-semibold">GSTIN:</span> {{gst_number}}</p>
         <p><span class="font-semibold">State (Place of Supply):</span> {{State}}</p>
-        <p><span class="font-semibold">State Code:</span> {{State Code}}</p>
+        <p><span class="font-semibold">pincode Code:</span> {{pincode}}</p>
       </div>
 
       <div class="mb-2">
         <p><span class="font-semibold">SAC:</span> 998399 (18%)</p>
       </div>
 
-      <table class="table-auto w-full my-2">
+      <table class="table-auto w-full my-6">
         <thead>
           <tr>
-            <th class="px-2 py-1">Services Rendered</th>
-            <th class="px-2 py-1">UOM</th>
-            <th class="px-2 py-1">Qty</th>
-            <th class="px-2 py-1">Rate</th>
-            <th class="px-2 py-1">Amount</th>
+            <th class="px-2 py-1">Outlet Name</th>
+            <th class="px-2 py-1">No. of food handlers</th>
+            <th class="px-2 py-1">Man Days</th>
+            <th class="px-2 py-1">Unit Cost</th>
             <th class="px-2 py-1">Discount</th>
-            <th class="px-2 py-1">Taxable Value</th>
+            <th class="px-2 py-1">Amount</th>
+            <th class="px-2 py-1">Sub Total</th>
             <th class="px-2 py-1">GST Rate</th>
             <th class="px-2 py-1">GST Amount</th>
             <th class="px-2 py-1">Total</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="px-2 py-1">{{Service}}</td>
-            <td class="px-2 py-1">{{UOM}}</td>
-            <td class="px-2 py-1">{{Qty}}</td>
-            <td class="px-2 py-1">{{Rate}}</td>
-            <td class="px-2 py-1">{{Amount}}</td>
-            <td class="px-2 py-1">{{Discount}}</td>
-            <td class="px-2 py-1">{{Taxable Value}}</td>
-            <td class="px-2 py-1">{{GST Rate}}</td>
-            <td class="px-2 py-1">{{GST Amount}}</td>
-            <td class="px-2 py-1">{{Total Amount Including Tax}}</td>
-          </tr>
+          <!-- <tr>
+       
+            <td class="px-2 py-1">{{outlet_name}}</td>
+            <td class="px-2 py-1">{{no_of_food_handlers}}</td>
+            <td class="px-2 py-1">{{man_days}}</td>
+            <td class="px-2 py-1">{{unit_cost}}</td>
+            <td class="px-2 py-1">{{discount}}</td>
+            <td class="px-2 py-1">{{amount}}</td>
+            <td class="px-2 py-1">{{sub_total}}</td>
+            <td class="px-2 py-1">{{gst_rate}}</td>
+            <td class="px-2 py-1">{{gst_amount}}</td>
+            <td class="px-2 py-1">{{total}}</td>
+          </tr>  -->
+
+          {{itemRows}}
           <!-- Repeat for each service rendered, total 6 rows -->
         </tbody>
       </table>
 
       <div class="total-info mb-2">
-        <p class="font-semibold text-gray-700">
+        <p class="font-semibold text-gray-700 mb-4">
           Total Invoice amount in words:
           <span class="font-normal">{{Total Amount In Word}}</span>
         </p>
-        <p><span class="font-semibold">Total Amount before Tax:</span>{{Amount Before Tax}}</p>
-        <p><span class="font-semibold">Add: IGST:</span>{{IGST}}</p>
+        <p><span class="font-semibold">Total Amount before Tax:</span>{{sub_total}}</p>
         <p><span class="font-semibold">Add: CGST:</span>{{CGST}}</p>
         <p><span class="font-semibold">Add: SGST:</span>{{SGST}}</p>
-        <p><span class="font-semibold">Total Amount after Tax:</span>{{Total Amount}}</p>
+        <p><span class="font-semibold">Total Amount after Tax:</span>{{total}}</p>
         <p><span class="font-semibold">Gst On Reverse Charge:</span>{{Gst Charge}}</p>
       </div>
 

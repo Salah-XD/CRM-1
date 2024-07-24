@@ -3,9 +3,12 @@ import { verifyToken } from "../middleware/auth.js";
 
 import {
   getOutletDetailsById,
-createProposalAndOutlet,
+  createProposalAndOutlet,
   getBusinessDetailsByEnquiryId,
-  generateProposalNumber
+  generateProposalNumber,
+  getAllProposalDetails,
+  getOutletsByProposalId,
+  deleteFields,
 } from "../controller/proposalController.js";
 
 import { generateProposal } from "../controller/proposalGenerationController.js";
@@ -24,7 +27,16 @@ router.get(
 
 router.get("/genrateProposalNumber",generateProposalNumber);
 
-router.post("/genrateProposal/:proposalId", generateProposal);
+router.post("/generateProposal/:proposalId", generateProposal);
+
+
+router.get("/getAllProposalDetails", getAllProposalDetails);
+
+
+router.get("/getOutletsByProposalId/:proposalId", getOutletsByProposalId);
+
+
+router.delete("/deleteFields", deleteFields);
 
 
 

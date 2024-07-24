@@ -22,14 +22,14 @@ import {
 const router = express.Router();
  
 
-import { generateInvoices } from "../controller/invoicesController.js";
+// import { generateInvoices } from "../controller/invoicesController.js";
 
 
 
 
 
 
-router.post("/generate-invoices", generateInvoices);
+// router.post("/generate-invoices", generateInvoices);
 
 // Route to save Client data
 router.post("/saveClientData", saveBusiness);

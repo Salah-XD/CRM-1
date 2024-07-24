@@ -19,10 +19,9 @@ import {
   CloudDownloadOutlined,
   MoreOutlined,
   SearchOutlined,
-  MailOutlined ,
+  MailOutlined,
   EditOutlined,
   EyeOutlined,
-
   CopyOutlined,
 } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
@@ -30,12 +29,14 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { NavLink } from "react-router-dom";
 import toast from "react-hot-toast";
+import EnquiryForm from "./EnquiryForm";
+import { ExclamationCircleFilled } from "@ant-design/icons";
+import GenerateProposalSendMail from "./GenerateProposalSendMail";
 import GenerateAgreementModal from "./GenrateAgreementModal";
 import GenrateInvoiceModal from "./GenrateInvoiceModal";
-import { ExclamationCircleFilled } from "@ant-design/icons";
-
 
 const { confirm } = Modal;
+
 const { Search } = Input;
 
 // Debounce function definition
@@ -54,7 +55,7 @@ const debounce = (func, delay) => {
 // Define your debounce delay (e.g., 300ms)
 const debounceDelay = 300;
 
-const PropsalTable = () => {
+const ProposalTable = () => {
   const [flattenedTableData, setFlattenedTableData] = useState([]);
   const [sortData, setSortData] = useState("alllist");
   const [selectionType, setSelectionType] = useState("checkbox");
@@ -67,45 +68,61 @@ const PropsalTable = () => {
       total: 0, // Initial total count
     },
   });
+  const [isEnquiryModalVisible, setIsEnquiryModalVisible] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isModalVisibleInvoice, setIsModalVisibleInvoice] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [shouldFetch, setShouldFetch] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
+  const [selectedEnquiryId, setSelectedEnquiryId] = useState(null);
+  const [proposalId,setProposalId]=useState(null);
+   const [showSendMailModal, setShowSendMailModal] = useState(false);
   const navigate = useNavigate();
 
   // Toggling
-    const showModal = () => {
-      setIsModalVisible(true);
-    };
+   const showModal = () => {
+     setIsModalVisible(true);
+   };
 
-    const handleOk = () => {
-      // Handle OK action here
-      setIsModalVisible(false);
-    };
+   const handleOk = () => {
+     // Handle OK action here
+     setIsModalVisible(false);
+   };
 
-    const handleCancel = () => {
-      setIsModalVisible(false);
-    };
+   const handleCancel = () => {
+     setIsModalVisible(false);
+   };
 
-    const showModalInvoice = () => {
-      setIsModalVisibleInvoice(true);
-    };
+   
 
-    const handleInvoiceOk = () => {
-      // Handle OK action here
-      setIsModalVisibleInvoice(false);
-    };
+   const handleInvoiceOk = () => {
+     // Handle OK action here
+     setIsModalVisibleInvoice(false);
+   };
 
-    const handleInvoiceCancel = () => {
-      setIsModalVisibleInvoice(false);
-    };
+   useEffect(() => {
+     console.log("Current proposalId:", proposalId); // Debugging
+   }, [proposalId]);
+
+   const handleInvoiceCancel = () => {
+     setIsModalVisibleInvoice(false);
+   };
+
+const showModalInvoice = (proposalId) => {
+  console.log(proposalId); // This should correctly log the proposalId
+  setProposalId(proposalId);
+  setIsModalVisibleInvoice(true);
+};
+
   // Fetch data function
   const fetchData = useCallback(() => {
     setLoading(true);
 
     // Construct the URL with the businessId included in the path
-    const url = "/getAllBussinesDetails";
+    const url = "/api/proposal/getAllProposalDetails";
 
     axios
       .get(url, {
@@ -149,12 +166,12 @@ const PropsalTable = () => {
   ]);
 
   // Fetch data with debounce
-  const fetchDataWithDebounce = useCallback(
-    debounce(() => {
-      fetchData();
-    }, 500),
-    [fetchData]
-  );
+  const fetchDataWithDebounce = debounce(() => {
+    if (searchKeyword.trim()) {
+      // Your backend call logic here
+      console.log("Fetching data for keyword:", searchKeyword);
+    }
+  }, debounceDelay);
 
   // Fetch initial data on component mount
   useEffect(() => {
@@ -199,7 +216,7 @@ const PropsalTable = () => {
       cancelText: "No",
       onOk() {
         axios
-          .delete("deleteSelectedFields", { data: selectedRows })
+          .delete("/api/proposal/deleteFields", { data: selectedRows })
           .then((response) => {
             const currentPage = tableParams.pagination.current;
             const pageSize = tableParams.pagination.pageSize;
@@ -232,21 +249,87 @@ const PropsalTable = () => {
     });
   };
 
-  // Handle Menu
-  const handleMenuClick = (record, { key }) => {
-    switch (key) {
-      case "generate_agreement":
-        showModal();
-        break;
+  const showSingleDeleteConfirm = (id) => {
+    confirm({
+      title: "Are you sure delete?",
+      icon: <ExclamationCircleFilled />,
+      okText: "Yes",
+      okType: "danger",
+      cancelText: "No",
+      onOk() {
+        axios
+          .delete("/api/proposal/deleteFields", { data: [id] }) // Send ID as an array
+          .then((response) => {
+            const currentPage = tableParams.pagination.current;
+            const pageSize = tableParams.pagination.pageSize;
+            const newTotal = tableParams.pagination.total - 1; // Only one row is deleted
+            const newCurrentPage = Math.min(
+              currentPage,
+              Math.ceil(newTotal / pageSize)
+            );
 
-      case "generate_invoice":
-        showModalInvoice();
-        break;
+            setTableParams((prevState) => ({
+              ...prevState,
+              pagination: {
+                ...prevState.pagination,
+                total: newTotal,
+                current: newCurrentPage,
+              },
+            }));
 
-      default:
-        break;
-    }
+            setShouldFetch(true); // Trigger data fetch
+            toast.success("Successfully Deleted");
+          })
+          .catch((error) => {
+            console.error("Error deleting row:", error);
+          });
+      },
+      onCancel() {
+        console.log("Cancel");
+      },
+    });
   };
+
+  //handle showSendMail
+  const showSendMail=(proposalId) =>{
+   
+    setProposalId(proposalId);
+    setShowSendMailModal(true);
+    console.log(proposalId,showSendMailModal+"top");
+  }
+
+
+    const showCloseSendMail = () => {
+      setShowSendMailModal(false);
+      setProposalId(null);
+    };
+
+  // Handle Menu
+ const handleMenuClick = (record, { key }) => {
+   console.log("Menu clicked for record:", record); // Debugging
+   console.log("Record _id:", record._id); // Debugging
+
+   switch (key) {
+     case "generate_agreement":
+       showModal();
+       break;
+
+     case "send_mail":
+       showSendMail(record._id);
+       break;
+
+     case "generate_invoice":
+       showModalInvoice(record._id);
+       break;
+
+     case "delete":
+       showSingleDeleteConfirm(record._id);
+       break;
+
+     default:
+       break;
+   }
+ };
 
   const menu = (record) => (
     <Menu
@@ -273,8 +356,8 @@ const PropsalTable = () => {
           Generate Invoice
         </span>
       </Menu.Item>
-      {/* <Menu.Item
-        key="send-mail"
+     <Menu.Item
+        key="send_mail"
         style={{ margin: "8px 0", backgroundColor: "#FFE0B2" }}
       >
         <span
@@ -282,7 +365,7 @@ const PropsalTable = () => {
         >
           <MailOutlined /> Send Mail
         </span>
-      </Menu.Item> */}
+      </Menu.Item>
       <Menu.Item
         key="delete"
         style={{ margin: "8px 0", backgroundColor: "#FFCDD2" }}
@@ -306,105 +389,87 @@ const PropsalTable = () => {
     </Menu>
   );
 
-  // Handle search on key press
-  const handleKeyDown = (event) => {
-    const { key, target } = event;
+  const handleInputChange = (event) => {
+    if (isModalOpen) return;
 
-    if (/^[a-z0-9]$/i.test(key)) {
-      setSearchKeyword((prevKeyword) => prevKeyword + key);
-      debounce(fetchDataWithDebounce, debounceDelay)();
-    } else if (key === "Backspace") {
-      // Check if all text is selected and backspace is pressed
-      if (
-        target.selectionStart === 0 &&
-        target.selectionEnd === target.value.length
-      ) {
-        setSearchKeyword("");
-      } else {
-        setSearchKeyword((prevKeyword) =>
-          prevKeyword.slice(0, prevKeyword.length - 1)
-        );
-      }
-      debounce(fetchDataWithDebounce, debounceDelay)();
-    } else if (key === " ") {
-      setSearchKeyword((prevKeyword) => prevKeyword + " ");
-      debounce(fetchDataWithDebounce, debounceDelay)();
-    }
+    const { value } = event.target;
+    setSearchKeyword(value);
   };
-  // Keyboard event listener
-  // useEffect(() => {
-  //   const keydownHandler = (event) => handleKeyDown(event);
-  //   document.addEventListener("keydown", keydownHandler);
 
-  //   return () => {
-  //     document.removeEventListener("keydown", keydownHandler);
-  //   };
-  // }, [fetchDataWithDebounce]);
+  useEffect(() => {
+    if (searchKeyword.trim()) {
+      fetchDataWithDebounce();
+    } else {
+      // Reset fields to normal state
+      // Your code to reset fields here
+      console.log("Resetting fields to normal state");
+    }
+  }, [searchKeyword, fetchDataWithDebounce]);
 
-  const columns = [
-    {
-      title: "FBO Name",
-      dataIndex: "name",
-      key: "name",
-    },
-    {
-      title: "Date created",
-      dataIndex: "created_at",
-      key: "created_at",
-    },
-    {
-      title: "Total No. of Outlets",
-      dataIndex: "outletCount",
-      key: "outletCount",
-    },
-    {
-      title: "No. of Outlets Invoiced",
-      dataIndex: "no_of_outlets_invoiced",
-      key: "no_of_outlets_invoiced",
-    },
-    {
-      title: "Created By",
-      dataIndex: "added_by",
-      key: "added_by",
-      render: (addedBy) => {
-        let color;
-        if (addedBy === "Manual") {
-          color = "volcano";
-        } else if (addedBy === "Web Enquiry") {
-          color = "green";
-        } else {
-          color = "geekblue"; // Default color
-        }
-        return <Tag color={color}>{addedBy.toUpperCase()}</Tag>;
-      },
-    },
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-    },
-    {
-      title: "Action",
-      key: "action",
-      render: (_, record) => (
-        <Dropdown
-          overlay={menu(record)}
-          trigger={["click"]}
-          placement="bottomLeft"
-          arrow
-          danger
-        >
-          <Button type="link" icon={<MoreOutlined />} />
-        </Dropdown>
-      ),
-    },
-  ];
+   const columns = [
+     {
+       title: "FBO Name",
+       dataIndex: "fbo_name",
+       key: "fbo_name",
+     },
+     {
+       title: "Date created",
+       dataIndex: "proposal_date",
+       key: "cproposal_date",
+     },
+     {
+       title: "Total No. of Outlets",
+       dataIndex: "totalOutlets",
+       key: "totalOutlets",
+     },
+     {
+       title: "No. of Outlets Invoiced",
+       dataIndex: "invoicedOutlets",
+       key: "invoicedOutlets",
+     },
+   
+     {
+       title: "Status",
+       dataIndex: "status",
+       key: "status",
+        render: (status) => {
+          let color;
+          if (status === "Mail Sent") {
+            color = "volcano";
+          } else if (status === "Partial Invoice" && status=="Sale Closed") {
+            color = "green";
+          } else if(status=="Dropped") {
+            color = "red"; 
+          }
+          else{
+            color="grey";
+          }
+          return <Tag color={color}>{status.toUpperCase()}</Tag>;
+        },
+     },
+     
+     {
+       title: "Action",
+       key: "action",
+       render: (_, record) => (
+         <Dropdown
+           overlay={menu(record)}
+           trigger={["click"]}
+           placement="bottomLeft"
+           arrow
+           danger
+         >
+           <Button type="link" icon={<MoreOutlined />} />
+         </Dropdown>
+       ),
+     },
+   ];
 
   return (
     <AdminDashboard>
       <div className="bg-blue-50 m-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Proposal</h2>
+          <h2 className="text-xl font-semibold">Proposal Table</h2>
           <div className="space-x-2">
             <Space wrap>
               <Button
@@ -416,7 +481,7 @@ const PropsalTable = () => {
                 Delete
               </Button>
             </Space>
-            <Button shape="round" icon={<FilterOutlined />} size="default">
+            {/* <Button shape="round" icon={<FilterOutlined />} size="default">
               Filters
             </Button>
             <Button
@@ -425,7 +490,7 @@ const PropsalTable = () => {
               size="default"
             >
               Export
-            </Button>
+            </Button> */}
           </div>
         </div>
 
@@ -434,7 +499,7 @@ const PropsalTable = () => {
             theme={{
               components: {
                 Radio: {
-                  buttonBorderWidth: 0, // Remove border
+                  buttonBorderWidth: 0,
                 },
               },
             }}
@@ -459,11 +524,11 @@ const PropsalTable = () => {
                 All List
               </Radio.Button>
               <Radio.Button
-                value="newlyadded"
+                value="newproposal"
                 style={{
                   backgroundColor:
-                    sortData === "newlyadded" ? "transparent" : "white",
-                  color: sortData === "newlyadded" ? "black" : "black",
+                    sortData === "newproposal" ? "transparent" : "white",
+                  color: sortData === "newproposal" ? "black" : "black",
                   padding: "0 16px",
                   height: "32px",
                   lineHeight: "30px",
@@ -482,8 +547,8 @@ const PropsalTable = () => {
               placeholder="Search by FBO Name, Phone Number, etc."
               prefix={<SearchOutlined />}
               value={searchKeyword}
+              onChange={handleInputChange}
               style={{ width: 300 }}
-              onChange={(e) => setSearchKeyword(e.target.value)}
             />
           </div>
         </div>
@@ -492,14 +557,14 @@ const PropsalTable = () => {
           <ConfigProvider
             theme={{
               token: {
-                colorTextHeading: "#4A5568", // Darker grey color for titles
-                colorText: "#4A5568", // Darker grey color for general text
-                fontWeight: "bold", // Make text bold
+                colorTextHeading: "#4A5568",
+                colorText: "#4A5568",
+                fontWeight: "bold",
               },
               components: {
                 Table: {
-                  colorText: "#4A5568", // Darker grey color for table text
-                  fontWeight: "bold", // Make table text bold
+                  colorText: "#4A5568",
+                  fontWeight: "bold",
                 },
               },
             }}
@@ -525,12 +590,20 @@ const PropsalTable = () => {
         onCancel={handleCancel}
       />
       <GenrateInvoiceModal
+        proposalId={proposalId}
         visible={isModalVisibleInvoice}
         onOk={handleInvoiceOk}
         onCancel={handleInvoiceCancel}
       />
+
+      <GenerateProposalSendMail
+        visible={showSendMailModal}
+        onClose={showCloseSendMail}
+        id={proposalId}
+      />
+     
     </AdminDashboard>
   );
 };
 
-export default PropsalTable;
+export default ProposalTable;

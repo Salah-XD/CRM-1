@@ -28,28 +28,12 @@ const outletSchema = new Schema(
       type: Number,
       default: 0,
     },
-    sub_total: {
-      type: Number,
-      default: 0,
-    },
-    igst: {
-      type: "Number",
-      default: 0,
-    },
-    cgst: {
-      type: "Number",
-      default: 0,
-    },
-    total: {
-      type: "Number",
-      default: 0,
-    },
     is_invoiced: {
       type: Boolean,
       default: false,
     },
   },
-  { _id: false } // Disable _id for subdocuments
+
 );
 
 const proposalSchema = new Schema(
@@ -104,6 +88,10 @@ const proposalSchema = new Schema(
       type: [outletSchema],
       required: true,
     },
+    message:{
+      type:String,
+      
+    }
   },
   {
     timestamps: true,
