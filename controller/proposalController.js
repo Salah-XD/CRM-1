@@ -241,10 +241,13 @@ export const getAllProposalDetails = async (req, res) => {
     }
 
     // Apply sorting based on the 'sort' parameter
-    if (sort === "newest") {
+    if (sort === "allist") {
       query = query.sort({ proposal_date: -1 });
-    } else if (sort === "oldest") {
+    } else if (sort === "newproposal") {
       query = query.sort({ proposal_date: 1 });
+    } else {
+      // Default sorting
+      query = query.sort({ proposal_date: -1 });
     }
 
     // Count total number of proposals
@@ -266,7 +269,7 @@ export const getAllProposalDetails = async (req, res) => {
 
       const formattedDate = moment(proposal.proposal_date).fromNow(); // Format proposal_date using Moment.js
       return {
-        _id:proposal._id,
+        _id: proposal._id,
         fbo_name: proposal.fbo_name,
         totalOutlets, // Total number of outlets
         invoicedOutlets, // Number of invoiced outlets
@@ -310,25 +313,25 @@ export const getOutletsByProposalId = async (req, res) => {
 
 export const deleteFields = async (req, res) => {
   try {
-    const arrayOfInvoiceId = req.body;
+    const arrayOfProposalIds = req.body;
 
-    // Validate arrayOfInvoiceId if necessary
-    if (!Array.isArray(arrayOfInvoiceId)) {
+    // Validate arrayOfProposalIds if necessary
+    if (!Array.isArray(arrayOfProposalIds)) {
       return res
         .status(400)
-        .json({ error: "Invalid input: Expected an array of Invoice IDs" });
+        .json({ error: "Invalid input: Expected an array of Proposal IDs" });
     }
 
     // Perform deletions
-    const deletionPromises = arrayOfInvoiceId.map(async (proposalId) => {
-      // Delete Invoice document
-      await Invoice.deleteOne({ _id: proposalId });
+    const deletionPromises = arrayOfProposalIds.map(async (proposalId) => {
+      // Delete Proposal document
+      await Proposal.deleteOne({ _id: proposalId });
     });
 
     // Wait for all deletion operations to complete
     await Promise.all(deletionPromises);
 
-    res.status(200).json({ message: "Invoices deleted successfully" });
+    res.status(200).json({ message: "Proposals deleted successfully" });
   } catch (err) {
     console.error("Error deleting proposals:", err);
     res.status(500).json({ error: "Internal server error" });

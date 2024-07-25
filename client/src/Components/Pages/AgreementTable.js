@@ -33,7 +33,7 @@ import EnquiryForm from "./EnquiryForm";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 import GenerateProposalSendMail from "./GenerateProposalSendMail";
 import GenerateAgreementModal from "./GenrateAgreementModal";
-import GenrateInvoiceModal from "./GenrateInvoiceModal";
+import GenrateAgreementModal from "./GenrateAgreementModal";
 
 const { confirm } = Modal;
 
@@ -70,7 +70,7 @@ const ProposalTable = () => {
   });
   const [isEnquiryModalVisible, setIsEnquiryModalVisible] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isModalVisibleInvoice, setIsModalVisibleInvoice] = useState(false);
+  const [isModalVisibleAgreement, setIsModalVisibleAgreement] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -96,21 +96,19 @@ const ProposalTable = () => {
     setIsModalVisible(false);
   };
 
-  const handleInvoiceOk = () => {
+  const handleAgreementOk = () => {
     // Handle OK action here
-    setIsModalVisibleInvoice(false);
+    setIsModalVisibleAgreement(false);
   };
 
-  
-
-  const handleInvoiceCancel = () => {
-    setIsModalVisibleInvoice(false);
+  const handleAgreementCancel = () => {
+    setIsModalVisibleAgreement(false);
   };
 
-  const showModalInvoice = (proposalId) => {
+  const showModalAgreement = (proposalId) => {
     console.log(proposalId); // This should correctly log the proposalId
     setProposalId(proposalId);
-    setIsModalVisibleInvoice(true);
+    setIsModalVisibleAgreement(true);
   };
 
   // Fetch data function
@@ -118,7 +116,7 @@ const ProposalTable = () => {
     setLoading(true);
 
     // Construct the URL with the businessId included in the path
-    const url = "/api/invoice/getAllInvoiceDeatails";
+    const url = "/api/agreement/getAllAgreementDetails";
 
     axios
       .get(url, {
@@ -212,7 +210,7 @@ const ProposalTable = () => {
       cancelText: "No",
       onOk() {
         axios
-          .delete("/api/invoice/deleteFields", { data: selectedRows })
+          .delete("/api/agreement/deleteFields", { data: selectedRows })
           .then((response) => {
             const currentPage = tableParams.pagination.current;
             const pageSize = tableParams.pagination.pageSize;
@@ -254,7 +252,7 @@ const ProposalTable = () => {
       cancelText: "No",
       onOk() {
         axios
-          .delete("/api/invoice/deleteFields", { data: [id] }) // Send ID as an array
+          .delete("/api/agreement/deleteFields", { data: [id] }) // Send ID as an array
           .then((response) => {
             const currentPage = tableParams.pagination.current;
             const pageSize = tableParams.pagination.pageSize;
@@ -304,16 +302,10 @@ const ProposalTable = () => {
     console.log("Record _id:", record._id); // Debugging
 
     switch (key) {
+    
+
       case "generate_agreement":
-        showModal();
-        break;
-
-      case "send_mail":
-        showSendMail(record._id);
-        break;
-
-      case "generate_invoice":
-        showModalInvoice(record._id);
+        showModalAgreement(record._id);
         break;
 
       case "delete":
@@ -330,7 +322,6 @@ const ProposalTable = () => {
       onClick={(e) => handleMenuClick(record, e)}
       style={{ padding: "8px" }}
     >
-  
       <Menu.Item
         key="send_mail"
         style={{ margin: "8px 0", backgroundColor: "#FFE0B2" }}
@@ -387,20 +378,17 @@ const ProposalTable = () => {
       dataIndex: "fbo_name",
       key: "fbo_name",
     },
+
     {
-      title: "Proposal Number",
-      dataIndex: "proposal_number",
-      key: "proposal_number",
+      title: "Agreement Date",
+      dataIndex: "agreement_date",
+      key: "agreement_date",
     },
+
     {
-      title: "Invoice Date",
-      dataIndex: "invoice_date",
-      key: "invoice_date",
-    },
-    {
-      title: "phone",
-      dataIndex: "phone",
-      key: "phone",
+      title: "Total No. of Outlets",
+      dataIndex: "no_of_outlets",
+      key: "no_of_outlets",
     },
 
     {
@@ -411,11 +399,11 @@ const ProposalTable = () => {
         let color;
         if (status === "Unpaid/Mail Sent") {
           color = "volcano";
-        } else if (status === "Partial Invoice" && status == "Sale Closed") {
+        } else if (status === "Partial Agreement" && status == "Sale Closed") {
           color = "green";
         } else if (status == "Hold") {
           color = "red";
-        } else  if (status == "paid") {
+        } else if (status == "paid") {
           color = "green";
         }
         return <Tag color={color}>{status.toUpperCase()}</Tag>;
@@ -443,7 +431,7 @@ const ProposalTable = () => {
     <AdminDashboard>
       <div className="bg-blue-50 m-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Invoice Table</h2>
+          <h2 className="text-xl font-semibold">Agreement Table</h2>
           <div className="space-x-2">
             <Space wrap>
               <Button
@@ -498,11 +486,11 @@ const ProposalTable = () => {
                 All List
               </Radio.Button>
               <Radio.Button
-                value="newinvoice"
+                value="newagreement"
                 style={{
                   backgroundColor:
-                    sortData === "newinvoice" ? "transparent" : "white",
-                  color: sortData === "newinvoice" ? "black" : "black",
+                    sortData === "newagreement" ? "transparent" : "white",
+                  color: sortData === "newagreement" ? "black" : "black",
                   padding: "0 16px",
                   height: "32px",
                   lineHeight: "30px",
@@ -510,7 +498,7 @@ const ProposalTable = () => {
                   fontWeight: sortData === "alllist" ? "normal" : "500",
                 }}
               >
-                New Invoice
+                New Agreement
               </Radio.Button>
             </Radio.Group>
           </ConfigProvider>
@@ -563,11 +551,11 @@ const ProposalTable = () => {
         onOk={handleOk}
         onCancel={handleCancel}
       />
-      <GenrateInvoiceModal
+      <GenrateAgreementModal
         proposalId={proposalId}
-        visible={isModalVisibleInvoice}
-        onOk={handleInvoiceOk}
-        onCancel={handleInvoiceCancel}
+        visible={isModalVisibleAgreement}
+        onOk={handleAgreementOk}
+        onCancel={handleAgreementCancel}
       />
 
       <GenerateProposalSendMail

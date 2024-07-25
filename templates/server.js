@@ -7,6 +7,8 @@ import bussinessRoutes from "./routes/bussinessRoutes.js";
 import authenticatinRoutes from "./routes/authenticationRoutes.js";
 import enquiryRoutes from "./routes/enquiryRoutes.js";
 import proposalRoutes from "./routes/proposalRoutes.js";
+import agreementRoutes from "./routes/agreementRoutes.js";
+
 
 // Configure environment variables
 dotenv.config();
@@ -27,6 +29,7 @@ app.use(morgan("dev"));
 app.use("/api/", bussinessRoutes);
 app.use("/api/enquiry", enquiryRoutes);
 app.use("/api/proposal", proposalRoutes);
+app.use("/api/agreement", agreementRoutes);
 app.use("/api/auth", authenticatinRoutes);
 
 

@@ -116,6 +116,11 @@ const showModalInvoice = (proposalId) => {
   setProposalId(proposalId);
   setIsModalVisibleInvoice(true);
 };
+const showModalAgreement = (proposalId) => {
+
+  setProposalId(proposalId);
+  setIsModalVisible(true);
+};
 
   // Fetch data function
   const fetchData = useCallback(() => {
@@ -295,7 +300,7 @@ const showModalInvoice = (proposalId) => {
    
     setProposalId(proposalId);
     setShowSendMailModal(true);
-    console.log(proposalId,showSendMailModal+"top");
+ 
   }
 
 
@@ -311,7 +316,7 @@ const showModalInvoice = (proposalId) => {
 
    switch (key) {
      case "generate_agreement":
-       showModal();
+       showModalAgreement(record._id);
        break;
 
      case "send_mail":
@@ -588,6 +593,7 @@ const showModalInvoice = (proposalId) => {
         visible={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
+        proposalId={proposalId}
       />
       <GenrateInvoiceModal
         proposalId={proposalId}
@@ -601,7 +607,6 @@ const showModalInvoice = (proposalId) => {
         onClose={showCloseSendMail}
         id={proposalId}
       />
-     
     </AdminDashboard>
   );
 };

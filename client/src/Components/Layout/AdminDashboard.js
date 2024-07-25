@@ -145,16 +145,18 @@ const AdminDashboard = ({ children }) => {
          link: "/invoice",
          roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
        },
-       {
-         label: "Audit Plan",
-         key: "/audit-plan",
-         link: "/audit-plan",
-         roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
-       },
+
        {
          label: "Agreement",
          key: "/agreement",
          link: "/agreement",
+         roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
+       },
+
+       {
+         label: "Audit Plan",
+         key: "/audit-plan",
+         link: "/audit-plan",
          roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
        },
      ],

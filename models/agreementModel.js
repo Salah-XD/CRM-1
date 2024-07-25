@@ -13,14 +13,7 @@ const agreementSchema = new Schema({
     type: Number, 
   },
   address: {
-    line1: {
-      type: String,
-      required: true,
-    },
-    line2: {
-      type: String,
-      required: false,
-    },
+    type:String
   },
   status: {
     type: String,

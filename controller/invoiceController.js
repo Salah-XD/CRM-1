@@ -175,9 +175,9 @@ export const getAllInvoiceDetail = async (req, res) => {
     }
 
     // Apply sorting based on the 'sort' parameter
-    if (sort === "newest") {
+    if (sort === "allist") {
       query = query.sort({ invoice_date: -1 });
-    } else if (sort === "oldest") {
+    } else if (sort === "newinvoice") {
       query = query.sort({ invoice_date: 1 });
     }
 
