@@ -4,7 +4,6 @@ import {
   Radio,
   Button,
   Input,
-  Checkbox,
   Tag,
   Space,
   Modal,
@@ -15,25 +14,19 @@ import {
 import {
   DeleteOutlined,
   PlusOutlined,
-  FilterOutlined,
-  CloudDownloadOutlined,
   MoreOutlined,
   SearchOutlined,
-  MailOutlined,
   EditOutlined,
-  EyeOutlined,
-  CopyOutlined,
 } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { NavLink } from "react-router-dom";
 import toast from "react-hot-toast";
 import GenerateProposalModal from "./GenerateProposalModal";
 import EnquiryForm from "./EnquiryForm";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 const { confirm } = Modal;
-const { Search } = Input;
+
 
 // Debounce function definition
 const debounce = (func, delay) => {
@@ -71,7 +64,7 @@ const EnquiryTable = () => {
   const [shouldFetch, setShouldFetch] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
-   const [selectedEnquiryId, setSelectedEnquiryId] = useState(null);
+  const [selectedEnquiryId, setSelectedEnquiryId] = useState(null);
   const navigate = useNavigate();
 
   // Toggling
@@ -82,7 +75,7 @@ const EnquiryTable = () => {
   };
 
   const handleOk = () => {
-      fetchData(); 
+    fetchData();
     setSelectedId(null);
     setIsModalOpen(false);
     setIsModalVisible(false);
@@ -103,22 +96,19 @@ const EnquiryTable = () => {
   const closeEnquiryModal = () => {
     setIsModalOpen(false);
     setIsEnquiryModalVisible(false);
-        setSelectedEnquiryId(null);
+    setSelectedEnquiryId(null);
   };
 
- const handleOkEnquiryModel = () => {
-   fetchData(); // Fetch updated data after adding an enquiry
-   setIsModalOpen(false);
-   setIsEnquiryModalVisible(false);
- };
-
+  const handleOkEnquiryModel = () => {
+    fetchData(); // Fetch updated data after adding an enquiry
+    setIsModalOpen(false);
+    setIsEnquiryModalVisible(false);
+  };
 
   const showEditModal = (enquiryId = null) => {
     setSelectedEnquiryId(enquiryId);
     setIsEnquiryModalVisible(true);
   };
-
-
 
   // Fetch data function
   const fetchData = useCallback(() => {
@@ -167,27 +157,6 @@ const EnquiryTable = () => {
     sortData,
     searchKeyword,
   ]);
-
-  // Fetch data with debounce
-  const fetchDataWithDebounce = debounce(() => {
-    if (searchKeyword.trim()) {
-      // Your backend call logic here
-      console.log("Fetching data for keyword:", searchKeyword);
-    }
-  }, debounceDelay);
-
-  // Fetch initial data on component mount
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  // Fetch data when shouldFetch changes
-  useEffect(() => {
-    if (shouldFetch) {
-      fetchData();
-      setShouldFetch(false);
-    }
-  }, [shouldFetch, fetchData]);
 
   // Pagination
   const handleTableChange = (pagination, filters, sorter) => {
@@ -252,52 +221,49 @@ const EnquiryTable = () => {
     });
   };
 
+  const showSingleDeleteConfirm = (id) => {
+    confirm({
+      title: "Are you sure delete?",
+      icon: <ExclamationCircleFilled />,
+      okText: "Yes",
+      okType: "danger",
+      cancelText: "No",
+      onOk() {
+        axios
+          .delete("/api/enquiry/deleteFields", { data: [id] }) // Send ID as an array
+          .then((response) => {
+            const currentPage = tableParams.pagination.current;
+            const pageSize = tableParams.pagination.pageSize;
+            const newTotal = tableParams.pagination.total - 1; // Only one row is deleted
+            const newCurrentPage = Math.min(
+              currentPage,
+              Math.ceil(newTotal / pageSize)
+            );
 
- 
-const showSingleDeleteConfirm = (id) => {
-  confirm({
-    title: "Are you sure delete?",
-    icon: <ExclamationCircleFilled />,
-    okText: "Yes",
-    okType: "danger",
-    cancelText: "No",
-    onOk() {
-      axios
-        .delete("/api/enquiry/deleteFields", { data: [id] }) // Send ID as an array
-        .then((response) => {
-          const currentPage = tableParams.pagination.current;
-          const pageSize = tableParams.pagination.pageSize;
-          const newTotal = tableParams.pagination.total - 1; // Only one row is deleted
-          const newCurrentPage = Math.min(
-            currentPage,
-            Math.ceil(newTotal / pageSize)
-          );
+            setTableParams((prevState) => ({
+              ...prevState,
+              pagination: {
+                ...prevState.pagination,
+                total: newTotal,
+                current: newCurrentPage,
+              },
+            }));
 
-          setTableParams((prevState) => ({
-            ...prevState,
-            pagination: {
-              ...prevState.pagination,
-              total: newTotal,
-              current: newCurrentPage,
-            },
-          }));
-
-          setShouldFetch(true); // Trigger data fetch
-          toast.success("Successfully Deleted");
-        })
-        .catch((error) => {
-          console.error("Error deleting row:", error);
-        });
-    },
-    onCancel() {
-      console.log("Cancel");
-    },
-  });
-};
+            setShouldFetch(true); // Trigger data fetch
+            toast.success("Successfully Deleted");
+          })
+          .catch((error) => {
+            console.error("Error deleting row:", error);
+          });
+      },
+      onCancel() {
+        console.log("Cancel");
+      },
+    });
+  };
 
   // Handle Menu
   const handleMenuClick = (record, { key }) => {
-
     switch (key) {
       case "generate_proposal":
         showModal(record._id);
@@ -312,7 +278,6 @@ const showSingleDeleteConfirm = (id) => {
       default:
     }
   };
-
 
   const menu = (record) => (
     <Menu
@@ -363,23 +328,7 @@ const showSingleDeleteConfirm = (id) => {
     </Menu>
   );
 
-const handleInputChange = (event) => {
-  if (isModalOpen) return;
-
-  const { value } = event.target;
-  setSearchKeyword(value);
-};
-
-useEffect(() => {
-  if (searchKeyword.trim()) {
-    fetchDataWithDebounce();
-  } else {
-    // Reset fields to normal state
-    // Your code to reset fields here
-    console.log("Resetting fields to normal state");
-  }
-}, [searchKeyword, fetchDataWithDebounce]);
-
+  
   const columns = [
     {
       title: "FBO Name",
@@ -423,7 +372,7 @@ useEffect(() => {
       },
     },
 
-    // },
+
     {
       title: "Action",
       key: "action",
@@ -440,6 +389,42 @@ useEffect(() => {
       ),
     },
   ];
+
+
+  const handleInputChange = (event) => {
+    if (isModalOpen) return;
+
+    const { value } = event.target;
+    setSearchKeyword(value);
+  };
+
+  // Fetch data with debounce
+  const fetchDataWithDebounce = debounce(() => {
+    // if (searchKeyword.trim()) {
+    //   // Your backend call logic here
+    //   console.log("Fetching data for keyword:", searchKeyword);
+    // }
+  }, debounceDelay);
+
+  useEffect(() => {
+    if (searchKeyword.trim()) {
+      fetchDataWithDebounce();
+    }
+  }, [searchKeyword, fetchDataWithDebounce]);
+
+  // Fetch initial data on component mount
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Fetch data when shouldFetch changes
+  useEffect(() => {
+    if (shouldFetch) {
+      fetchData();
+      setShouldFetch(false);
+    }
+  }, [shouldFetch, fetchData]);
+
 
   return (
     <AdminDashboard>

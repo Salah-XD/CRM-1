@@ -4,7 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import SuccessMail from "./SuccessMail";
 
-const GenerateProposalSendMail = ({ visible, onClose, id }) => {
+const GenerateProposalSendMail = ({ visible, onClose, id,name,route,title}) => {
   const [mailSent, setMailSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
@@ -16,7 +16,7 @@ const GenerateProposalSendMail = ({ visible, onClose, id }) => {
       .then((values) => {
         setLoading(true);
         axios
-          .post(`/api/proposal/generateProposal/${id}`, {
+          .post(`/api/${name}/${route}/${id}`, {
             to: values.email,
             message: values.message,
           })
@@ -24,7 +24,7 @@ const GenerateProposalSendMail = ({ visible, onClose, id }) => {
             setLoading(false);
             setMailSent(true);
             message.success("Mail sent successfully");
-            onClose(); // Close GenerateProposalSendMail modal
+            onClose(); 
           })
           .catch((error) => {
             setLoading(false);
@@ -60,7 +60,7 @@ const GenerateProposalSendMail = ({ visible, onClose, id }) => {
             className="text-center align-middle font-medium text-xl title-div bg-blue-50 p-4"
             style={{ boxShadow: "0 4px 2px -2px lightgrey" }}
           >
-            Generate Proposal
+           {title}
           </div>
 
           <div className="px-12 py-4" style={{ backgroundColor: "#F6FAFB" }}>
@@ -127,7 +127,7 @@ const GenerateProposalSendMail = ({ visible, onClose, id }) => {
         <SuccessMail
           visible={mailSent}
           email={form.getFieldValue("email")}
-          title="Generate Proposal"
+          title={title}
           onCloseSuccess={handleSuccessMailClose}
         />
       )}

@@ -84,18 +84,26 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
   };
 
   const handleSelectAll = (selected, selectedRows) => {
-    setSelectedOutlets(selected ? selectedRows : []);
-    calculateTotalAmount(selected ? selectedRows : []);
+    const validSelectedRows = selected
+      ? selectedRows.filter(
+          (row) => row && row.amount !== undefined && row.amount !== null
+        )
+      : [];
+    setSelectedOutlets(validSelectedRows);
+    calculateTotalAmount(validSelectedRows);
     form.setFieldsValue({
-      total_outlet: selected ? selectedRows.length : 0,
+      total_outlet: validSelectedRows.length,
     });
   };
 
   const calculateTotalAmount = (selectedOutlets) => {
-    const total = selectedOutlets.reduce(
-      (sum, outlet) => sum + outlet.amount,
-      0
-    );
+    const total = selectedOutlets.reduce((sum, outlet) => {
+      if (outlet && outlet.amount !== undefined && outlet.amount !== null) {
+        return sum + outlet.amount;
+      } else {
+        return sum;
+      }
+    }, 0);
     setTotalAmount(total);
   };
 
@@ -105,12 +113,14 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
 
       // Collect form values
       const formData = form.getFieldsValue();
-
+      formData.total_cost = totalAmount;
+      formData.no_of_outlets = selectedOutlets.length;
 
       await axios.post("/api/agreement/createAgreement", formData);
+      form.resetFields();
       message.success("Agreement generated successfully");
-      onCancel(); 
-      
+      setShowForm(false);
+      onCancel();
     } catch (error) {
       console.error("Error saving agreement:", error);
       message.error("Error generating agreement");
@@ -168,6 +178,7 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
               <Button
                 className="bg-buttonModalColor text-white rounded"
                 onClick={handleNext}
+                disabled={selectedOutlets.length === 0}
               >
                 Next
               </Button>
@@ -178,25 +189,46 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
             <div className="text-center font-medium text-xl mb-5 rounded-md">
               Document Preview
             </div>
-            <Form.Item label="FBO name (Business Name)" name="fbo_name">
+            <Form.Item
+              label="FBO name (Business Name)"
+              name="fbo_name"
+              rules={[{ required: true, message: "Please enter FBO name!" }]}
+            >
               <Input />
             </Form.Item>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Form.Item label="From date" name="from_date">
+              <Form.Item
+                label="From date"
+                name="from_date"
+                rules={[
+                  { required: true, message: "Please select from date!" },
+                ]}
+              >
                 <DatePicker className="w-full" />
               </Form.Item>
-              <Form.Item label="To date" name="to_date">
+              <Form.Item
+                label="To date"
+                name="to_date"
+                rules={[{ required: true, message: "Please select to date!" }]}
+              >
                 <DatePicker className="w-full" />
               </Form.Item>
             </div>
-            <Form.Item label="FBO Address" name="address">
-              <Input  />
+            <Form.Item
+              label="FBO Address"
+              name="address"
+              rules={[{ required: true, message: "Please enter FBO address!" }]}
+            >
+              <Input />
             </Form.Item>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Form.Item label="No of Outlets" name="total_outlet">
                 <Input readOnly />
               </Form.Item>
-              <Form.Item label="Total Cost">
+              <Form.Item
+                label="Total Cost"
+                rules={[{ required: true, message: "Total cost is required!" }]}
+              >
                 <Input
                   value={`₹${totalAmount.toLocaleString("en-IN")}`}
                   readOnly

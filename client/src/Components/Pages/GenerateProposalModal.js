@@ -8,7 +8,6 @@ import {
   Select,
   Table,
   Button,
-  Spin,
   message,
 } from "antd";
 import moment from "moment";
@@ -75,7 +74,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId}) => {
           setProposalNumber(response.data);
           form.setFieldsValue({
             proposal_number: response.data.proposal_number,
-          }); // Ensure proposal_number is set in the form
+          }); 
         } catch (error) {
           console.error("Error in fetching proposal Number", error);
         }
@@ -138,7 +137,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId}) => {
             gst_number: businessData.gst_number,
             contact_person: businessData.contact_person,
             phone: businessData.phone,
-            email: businessData.email || "", // Handle email if available
+            email: businessData.email || "", 
           });
           setInitialValuesLoaded(true);
         } catch (error) {
@@ -401,6 +400,12 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId}) => {
                 label="FBO name (Business Name)"
                 name="fbo_name"
                 className="flex-1"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input the business name!",
+                  },
+                ]}
               >
                 <Input
                   type="text"
@@ -424,7 +429,15 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId}) => {
             </div>
             <Form.Item label="Address">
               <Input.Group>
-                <Form.Item name={["address", "line1"]}>
+                <Form.Item
+                  name={["address", "line1"]}
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please input the address line 1!",
+                    },
+                  ]}
+                >
                   <Input
                     type="text"
                     className="w-full p-2 border border-gray-300 rounded"
@@ -439,7 +452,14 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId}) => {
               </Input.Group>
             </Form.Item>
             <div className="flex space-x-4">
-              <Form.Item label="Pincode" name="pincode" className="flex-1">
+              <Form.Item
+                label="Pincode"
+                name="pincode"
+                className="flex-1"
+                rules={[
+                  { required: true, message: "Please input the pincode!" },
+                ]}
+              >
                 <Input
                   type="text"
                   className="w-full p-2 border border-gray-300 rounded"
@@ -449,6 +469,9 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId}) => {
                 label="GST Number"
                 name="gst_number"
                 className="flex-1"
+                rules={[
+                  { required: true, message: "Please input the GST number!" },
+                ]}
               >
                 <Input
                   type="text"
@@ -461,6 +484,12 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId}) => {
                 label="Contact Person Name"
                 name="contact_person"
                 className="flex-1"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input the contact person name!",
+                  },
+                ]}
               >
                 <Input
                   type="text"
@@ -471,6 +500,12 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId}) => {
                 label="Contact Person Number"
                 name="phone"
                 className="flex-1"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input the contact person number!",
+                  },
+                ]}
               >
                 <Input
                   type="text"
@@ -549,6 +584,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId}) => {
           visible={showSendMailModal}
           onClose={() => setShowSendMailModal(false)}
           id={prosposalId}
+          titl
         />
       )}
     </>

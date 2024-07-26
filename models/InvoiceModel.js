@@ -48,7 +48,6 @@ const invoiceSchema = new Schema(
     proposal_number: {
       type: String,
       required: true,
-      unique: true,
     },
     invoice_number: {
       type: String,
@@ -77,10 +76,13 @@ const invoiceSchema = new Schema(
         required: false,
       },
     },
- 
     phone: {
-      type: String,
-      required: false, 
+      type: Number,
+      required: false,
+    },
+    pincode: {
+      type: Number,
+      required: false,
     },
     outlets: {
       type: [outletSchema],

@@ -4,32 +4,24 @@ import {
   Radio,
   Button,
   Input,
-  Checkbox,
   Tag,
   Space,
   Modal,
   Dropdown,
+  Checkbox,
   Menu,
   ConfigProvider,
 } from "antd";
 import {
   DeleteOutlined,
-  PlusOutlined,
-  FilterOutlined,
-  CloudDownloadOutlined,
   MoreOutlined,
   SearchOutlined,
   MailOutlined,
   EditOutlined,
-  EyeOutlined,
-  CopyOutlined,
 } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { NavLink } from "react-router-dom";
 import toast from "react-hot-toast";
-import EnquiryForm from "./EnquiryForm";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 import GenerateProposalSendMail from "./GenerateProposalSendMail";
 import GenerateAgreementModal from "./GenrateAgreementModal";
@@ -37,7 +29,6 @@ import GenrateInvoiceModal from "./GenrateInvoiceModal";
 
 const { confirm } = Modal;
 
-const { Search } = Input;
 
 // Debounce function definition
 const debounce = (func, delay) => {
@@ -52,6 +43,8 @@ const debounce = (func, delay) => {
   };
 };
 
+
+
 // Define your debounce delay (e.g., 300ms)
 const debounceDelay = 300;
 
@@ -64,11 +57,10 @@ const ProposalTable = () => {
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
-      pageSize: 8, // Adjust page size as needed
-      total: 0, // Initial total count
+      pageSize: 8,
+      total: 0,
     },
   });
-  const [isEnquiryModalVisible, setIsEnquiryModalVisible] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isModalVisibleInvoice, setIsModalVisibleInvoice] = useState(false);
 
@@ -76,57 +68,52 @@ const ProposalTable = () => {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [shouldFetch, setShouldFetch] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState(null);
-  const [selectedEnquiryId, setSelectedEnquiryId] = useState(null);
-  const [proposalId,setProposalId]=useState(null);
-   const [showSendMailModal, setShowSendMailModal] = useState(false);
-  const navigate = useNavigate();
+  const [proposalId, setProposalId] = useState(null);
+  const [showSendMailModal, setShowSendMailModal] = useState(false);
+
 
   // Toggling
-   const showModal = () => {
-     setIsModalVisible(true);
-   };
 
-   const handleOk = () => {
-     // Handle OK action here
-     setIsModalVisible(false);
-   };
+  const handleOk = () => {
+    setIsModalVisible(false);
+  };
 
-   const handleCancel = () => {
-     setIsModalVisible(false);
-   };
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
 
-   
+  const handleInvoiceOk = () => {
+    setIsModalVisibleInvoice(false);
+  };
 
-   const handleInvoiceOk = () => {
-     // Handle OK action here
-     setIsModalVisibleInvoice(false);
-   };
+  const handleInvoiceCancel = () => {
+    setIsModalVisibleInvoice(false);
+  };
 
-   useEffect(() => {
-     console.log("Current proposalId:", proposalId); // Debugging
-   }, [proposalId]);
+  const showModalInvoice = (proposalId) => {
+    console.log(proposalId);
+    setProposalId(proposalId);
+    setIsModalVisibleInvoice(true);
+  };
 
-   const handleInvoiceCancel = () => {
-     setIsModalVisibleInvoice(false);
-   };
+  const showModalAgreement = (proposalId) => {
+    setProposalId(proposalId);
+    setIsModalVisible(true);
+  };
 
-const showModalInvoice = (proposalId) => {
-  console.log(proposalId); // This should correctly log the proposalId
-  setProposalId(proposalId);
-  setIsModalVisibleInvoice(true);
-};
-const showModalAgreement = (proposalId) => {
+  const showSendMail = (proposalId) => {
+    setProposalId(proposalId);
+    setShowSendMailModal(true);
+  };
 
-  setProposalId(proposalId);
-  setIsModalVisible(true);
-};
+  const showCloseSendMail = () => {
+    setShowSendMailModal(false);
+    setProposalId(null);
+  };
 
   // Fetch data function
   const fetchData = useCallback(() => {
     setLoading(true);
-
-    // Construct the URL with the businessId included in the path
     const url = "/api/proposal/getAllProposalDetails";
 
     axios
@@ -152,8 +139,8 @@ const showModalAgreement = (proposalId) => {
           ...prevState,
           pagination: {
             ...prevState.pagination,
-            total: total, // Set the total count from the server response
-            current: currentPage, // Update current page from response
+            total: total,
+            current: currentPage,
           },
         }));
 
@@ -170,26 +157,10 @@ const showModalAgreement = (proposalId) => {
     searchKeyword,
   ]);
 
-  // Fetch data with debounce
-  const fetchDataWithDebounce = debounce(() => {
-    if (searchKeyword.trim()) {
-      // Your backend call logic here
-      console.log("Fetching data for keyword:", searchKeyword);
-    }
-  }, debounceDelay);
-
   // Fetch initial data on component mount
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  // Fetch data when shouldFetch changes
-  useEffect(() => {
-    if (shouldFetch) {
-      fetchData();
-      setShouldFetch(false);
-    }
-  }, [shouldFetch, fetchData]);
 
   // Pagination
   const handleTableChange = (pagination, filters, sorter) => {
@@ -295,46 +266,32 @@ const showModalAgreement = (proposalId) => {
     });
   };
 
-  //handle showSendMail
-  const showSendMail=(proposalId) =>{
-   
-    setProposalId(proposalId);
-    setShowSendMailModal(true);
- 
-  }
-
-
-    const showCloseSendMail = () => {
-      setShowSendMailModal(false);
-      setProposalId(null);
-    };
-
   // Handle Menu
- const handleMenuClick = (record, { key }) => {
-   console.log("Menu clicked for record:", record); // Debugging
-   console.log("Record _id:", record._id); // Debugging
+  const handleMenuClick = (record, { key }) => {
+    console.log("Menu clicked for record:", record); // Debugging
+    console.log("Record _id:", record._id); // Debugging
 
-   switch (key) {
-     case "generate_agreement":
-       showModalAgreement(record._id);
-       break;
+    switch (key) {
+      case "generate_agreement":
+        showModalAgreement(record._id);
+        break;
 
-     case "send_mail":
-       showSendMail(record._id);
-       break;
+      case "send_mail":
+        showSendMail(record._id);
+        break;
 
-     case "generate_invoice":
-       showModalInvoice(record._id);
-       break;
+      case "generate_invoice":
+        showModalInvoice(record._id);
+        break;
 
-     case "delete":
-       showSingleDeleteConfirm(record._id);
-       break;
+      case "delete":
+        showSingleDeleteConfirm(record._id);
+        break;
 
-     default:
-       break;
-   }
- };
+      default:
+        break;
+    }
+  };
 
   const menu = (record) => (
     <Menu
@@ -361,7 +318,7 @@ const showModalAgreement = (proposalId) => {
           Generate Invoice
         </span>
       </Menu.Item>
-     <Menu.Item
+      <Menu.Item
         key="send_mail"
         style={{ margin: "8px 0", backgroundColor: "#FFE0B2" }}
       >
@@ -394,6 +351,82 @@ const showModalAgreement = (proposalId) => {
     </Menu>
   );
 
+  
+
+  const columns = [
+    {
+      title: "FBO Name",
+      dataIndex: "fbo_name",
+      key: "fbo_name",
+    },
+    {
+      title: "Date created",
+      dataIndex: "proposal_date",
+      key: "cproposal_date",
+    },
+    {
+      title: "Total No. of Outlets",
+      dataIndex: "totalOutlets",
+      key: "totalOutlets",
+    },
+    {
+      title: "No. of Outlets Invoiced",
+      dataIndex: "invoicedOutlets",
+      key: "invoicedOutlets",
+    },
+
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => {
+        let color;
+        if (status === "Mail Sent") {
+          color = "volcano";
+        } else if (status === "Partial Invoice" && status === "Sale Closed") {
+          color = "green";
+        } else if (status === "Dropped") {
+          color = "red";
+        } else {
+          color = "grey";
+        }
+        return <Tag color={color}>{status.toUpperCase()}</Tag>;
+      },
+    },
+
+    {
+      title: "Action",
+      key: "action",
+      render: (_, record) => (
+        <Dropdown
+          overlay={menu(record)}
+          trigger={["click"]}
+          placement="bottomLeft"
+          arrow
+          danger
+        >
+          <Button type="link" icon={<MoreOutlined />} />
+        </Dropdown>
+      ),
+    },
+  ];
+
+  // Fetch data when shouldFetch changes
+  useEffect(() => {
+    if (shouldFetch) {
+      fetchData();
+      setShouldFetch(false);
+    }
+  }, [shouldFetch, fetchData]);
+
+  // Fetch data with debounce
+  const fetchDataWithDebounce = debounce(() => {
+    // if (searchKeyword.trim()) {
+    // Your backend call logic here
+    // console.log("Fetching data for keyword:", searchKeyword);
+    //}
+  }, debounceDelay);
+
   const handleInputChange = (event) => {
     if (isModalOpen) return;
 
@@ -404,71 +437,9 @@ const showModalAgreement = (proposalId) => {
   useEffect(() => {
     if (searchKeyword.trim()) {
       fetchDataWithDebounce();
-    } else {
-      // Reset fields to normal state
-      // Your code to reset fields here
-      console.log("Resetting fields to normal state");
     }
   }, [searchKeyword, fetchDataWithDebounce]);
 
-   const columns = [
-     {
-       title: "FBO Name",
-       dataIndex: "fbo_name",
-       key: "fbo_name",
-     },
-     {
-       title: "Date created",
-       dataIndex: "proposal_date",
-       key: "cproposal_date",
-     },
-     {
-       title: "Total No. of Outlets",
-       dataIndex: "totalOutlets",
-       key: "totalOutlets",
-     },
-     {
-       title: "No. of Outlets Invoiced",
-       dataIndex: "invoicedOutlets",
-       key: "invoicedOutlets",
-     },
-   
-     {
-       title: "Status",
-       dataIndex: "status",
-       key: "status",
-        render: (status) => {
-          let color;
-          if (status === "Mail Sent") {
-            color = "volcano";
-          } else if (status === "Partial Invoice" && status=="Sale Closed") {
-            color = "green";
-          } else if(status=="Dropped") {
-            color = "red"; 
-          }
-          else{
-            color="grey";
-          }
-          return <Tag color={color}>{status.toUpperCase()}</Tag>;
-        },
-     },
-     
-     {
-       title: "Action",
-       key: "action",
-       render: (_, record) => (
-         <Dropdown
-           overlay={menu(record)}
-           trigger={["click"]}
-           placement="bottomLeft"
-           arrow
-           danger
-         >
-           <Button type="link" icon={<MoreOutlined />} />
-         </Dropdown>
-       ),
-     },
-   ];
 
   return (
     <AdminDashboard>
@@ -606,6 +577,9 @@ const showModalAgreement = (proposalId) => {
         visible={showSendMailModal}
         onClose={showCloseSendMail}
         id={proposalId}
+        name="proposal"
+        route="generateProposal"
+        title="Genrate Proposal"
       />
     </AdminDashboard>
   );

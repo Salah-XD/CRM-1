@@ -1,6 +1,3 @@
-import Business from "../models/bussinessModel.js";
-import Outlet from "../models/outletModel.js";
-import Enquiry from "../models/enquiryModel.js";
 import Proposal from "../models/proposalModel.js";
 import moment from "moment";
 import mongoose from "mongoose";
@@ -75,12 +72,13 @@ export const createInvoice = async (req, res) => {
       place_of_supply,
       field_executive_name,
       team_leader_name,
-      address,
-      gst_number,
+      address = {}, 
+      pincode, 
+
       contact_person,
       phone,
       outlets,
-      message,
+  
     } = req.body;
 
     // Create a new invoice instance with the provided data
@@ -94,11 +92,11 @@ export const createInvoice = async (req, res) => {
       field_executive_name,
       team_leader_name,
       address,
-      gst_number,
+      pincode, 
       contact_person,
       phone,
       outlets,
-      message,
+     
     });
 
     // Save the new invoice to the database
@@ -122,8 +120,7 @@ export const createInvoice = async (req, res) => {
       data: savedInvoice,
     });
   } catch (error) {
-    // Handle any errors that occur
-    console.error(error);
+    console.error("Error creating invoice:", error);
     // Rollback the transaction in case of error
     await session.abortTransaction();
     session.endSession();
@@ -134,6 +131,7 @@ export const createInvoice = async (req, res) => {
     });
   }
 };
+
 
 
 

@@ -1,18 +1,11 @@
 import React, { useState, useEffect } from "react";
-import {
-  Modal,
-  DatePicker,
-  Form,
-  InputNumber,
-  Input,
-  Button,
-  Table,
-  message
-} from "antd";
+import { Modal, DatePicker, Form, Input, Table, message, Select,Button} from "antd";
 import axios from "axios";
 import "../css/GenerateProposalModal.css";
 import GenerateSendMail from "./GenerateSendMail";
 import moment from "moment";
+
+const { Option } = Select;
 
 const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
   const [form] = Form.useForm();
@@ -21,66 +14,65 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
   const [selectedOutlets, setSelectedOutlets] = useState([]);
   const [items, setItems] = useState([]);
   const [outlets, setOutlets] = useState([]);
-  const [invoiceId,setInvoiceId]=useState([]);
+  const [invoiceId, setInvoiceId] = useState([]);
   const [initialValuesLoaded, setInitialValuesLoaded] = useState(false);
   const [invoiceDate, setInvoiceDate] = useState(moment());
 
-useEffect(() => {
-  if (visible) {
-    // Fetch outlets when the modal is visible
-    axios
-      .get(`/api/proposal/getOutletsByProposalId/${proposalId}`)
-      .then((response) => {
-        setOutlets(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching outlets:", error);
-      });
+  useEffect(() => {
+    if (visible) {
+      setInvoiceDate(moment());
 
-    // Fetch proposal data to initialize the form
-    axios
-      .get(`/api/invoice/getProposalById/${proposalId}`)
-      .then((response) => {
-        const {
-          address,
-          fbo_name,
-          proposal_date,
-          proposal_number,
-         
-          pincode,
-        } = response.data;
-
-        form.setFieldsValue({
-          address,
-          fbo_name,
-          proposal_date: proposal_date ? moment(proposal_date) : null,
-          proposal_number,
-         
-          pincode,
+      // Fetch outlets when the modal is visible
+      axios
+        .get(`/api/proposal/getOutletsByProposalId/${proposalId}`)
+        .then((response) => {
+          setOutlets(response.data);
+        })
+        .catch((error) => {
+          console.error("Error fetching outlets:", error);
         });
-        setInitialValuesLoaded(true);
-      })
-      .catch((error) => {
-        console.error("Error fetching proposal data:", error);
-      });
 
-    // Fetch invoice number
-    const fetchInvoiceId = async () => {
-      try {
-        const response = await axios.get("/api/invoice/generateInvoiceNumber");
-        setInvoiceId(response.data.invoice_number);
-      } catch (error) {
-        console.error("Error fetching InvoiceId", error);
-      }
-    };
+      // Fetch proposal data to initialize the form
+      axios
+        .get(`/api/invoice/getProposalById/${proposalId}`)
+        .then((response) => {
+          const {
+            address,
+            fbo_name,
+            proposal_date,
+            proposal_number,
+            pincode,
+          } = response.data;
 
-    fetchInvoiceId();
-  }
-}, [visible, proposalId, form]);
+          form.setFieldsValue({
+            address,
+            fbo_name,
+            proposal_date: proposal_date ? moment(proposal_date) : null,
+            proposal_number,
 
+            pincode,
+          });
+          setInitialValuesLoaded(true);
+        })
+        .catch((error) => {
+          console.error("Error fetching proposal data:", error);
+        });
 
+      // Fetch invoice number
+      const fetchInvoiceId = async () => {
+        try {
+          const response = await axios.get(
+            "/api/invoice/generateInvoiceNumber"
+          );
+          setInvoiceId(response.data.invoice_number);
+        } catch (error) {
+          console.error("Error fetching InvoiceId", error);
+        }
+      };
 
-
+      fetchInvoiceId();
+    }
+  }, [visible, proposalId, form]);
 
   const handleCancel = () => {
     onCancel();
@@ -88,17 +80,19 @@ useEffect(() => {
     setShowForm(false);
   };
 
+  
 
-  const handleSelect = (record, selected) => {
-    const updatedSelectedOutlets = selected
-      ? [...selectedOutlets, record]
-      : selectedOutlets.filter((outlet) => outlet._id !== record._id);
-    setSelectedOutlets(updatedSelectedOutlets);
-  };
+const handleSelect = (record, selected) => {
+  const updatedSelectedOutlets = selected
+    ? [...selectedOutlets, record]
+    : selectedOutlets.filter((outlet) => outlet._id !== record._id);
+  setSelectedOutlets(updatedSelectedOutlets);
+};
 
-  const handleSelectAll = (selected, selectedRows) => {
-    setSelectedOutlets(selected ? selectedRows : []);
-  };
+const handleSelectAll = (selected, selectedRows) => {
+  const validSelectedRows = selectedRows.filter((row) => row && row._id);
+  setSelectedOutlets(selected ? validSelectedRows : []);
+};
 
   const handleNext = () => {
     const selectedItems = selectedOutlets.map((outlet) => ({
@@ -106,66 +100,43 @@ useEffect(() => {
       foodHandlers: outlet.no_of_food_handlers,
       manDays: outlet.man_days,
       unitCost: outlet.unit_cost,
-      discount: 0,
+      discount: outlet.discount,
       amount: outlet.amount,
     }));
     setItems(selectedItems);
     setShowForm(true);
   };
 
- const handleSubmit = async () => {
-   try {
-     await form.validateFields();
+  const handleSubmit = async () => {
+    try {
+      await form.validateFields();
 
-     // Collect form values
-     const formData = form.getFieldsValue();
+      // Collect form values
+      const formData = form.getFieldsValue();
 
-     const invoiceData = {
-       ...formData,
-       proposalId,
-       outlets: items,
-       invoice_number: invoiceId,
-     };
-
-     console.log("Invoice Data to Submit:", invoiceData); // Debugging log
-
-     await axios.post("/api/invoice/createInvoice", invoiceData);
-     message.success("Invoice generated successfully");
-     onCancel(); // Close the GenerateProposalModal
-     setShowSendMailModal(true); // Show the GenerateSendMail modal
-   } catch (error) {
-     console.error("Error saving invoice:", error);
-     message.error("Error generating invoice");
-   }
- };
-
-
-
-  const handleInputChange = (index, field, value) => {
-    const newItems = [...items];
-    if (field === "outlet_name") {
-      const selectedOutlet = outlets.find(
-        (outlet) => outlet.outlet_name === value
-      );
-      newItems[index] = {
-        ...newItems[index],
-        outlet_name: value,
-        foodHandlers: selectedOutlet ? selectedOutlet.no_of_food_handlers : 0,
-        manDays: selectedOutlet ? selectedOutlet.man_days : 0,
-        unitCost: selectedOutlet ? selectedOutlet.unit_cost : 0,
+      const invoiceData = {
+        ...formData,
+        proposalId,
+        outlets: items,
+        invoice_number: invoiceId,
+        invoice_date:invoiceDate,
       };
-    } else {
-      newItems[index][field] = value;
+ 
+   
+
+      await axios.post("/api/invoice/createInvoice", invoiceData);
+      message.success("Invoice generated successfully");
+      form.resetFields();
+      setShowForm(false);
+      onCancel();
+      setShowSendMailModal(true); 
+    } catch (error) {
+      console.error("Error saving invoice:", error);
+      message.error("Error generating invoice");
     }
-    if (field !== "amount") {
-      newItems[index].amount =
-        newItems[index].foodHandlers *
-          newItems[index].manDays *
-          newItems[index].unitCost -
-        newItems[index].discount;
-    }
-    setItems(newItems);
   };
+
+ 
 
   const calculateTotals = () => {
     const subTotal = items.reduce((sum, item) => sum + item.amount, 0);
@@ -204,52 +175,87 @@ useEffect(() => {
     },
   ];
 
- const itemsColumns = [
-   {
-     title: "Outlet name",
-     dataIndex: "outlet_name",
-     key: "outlet_name",
-     render: (value) => <span className="text-center block">{value}</span>,
-   },
-   {
-     title: "No of Food Handlers",
-     dataIndex: "foodHandlers",
-     key: "foodHandlers",
-     render: (value) => <span className="text-center block">{value}</span>,
-   },
-   {
-     title: "Man Days",
-     dataIndex: "manDays",
-     key: "manDays",
-     render: (value) => <span className="text-center block">{value}</span>,
-   },
-   {
-     title: "Unit Cost",
-     dataIndex: "unitCost",
-     key: "unitCost",
-     render: (value) => <span className="text-center block">{value}</span>,
-   },
-   {
-     title: "Discount",
-     dataIndex: "discount",
-     key: "discount",
-     render: (value) => <span className="text-center block">{value}</span>,
-   },
-   {
-     title: "Amount",
-     dataIndex: "amount",
-     key: "amount",
-     render: (amount) => (
-       <span className="text-center block">
-         {amount.toLocaleString("en-IN", {
-           style: "currency",
-           currency: "INR",
-         })}
-       </span>
-     ),
-   },
- ];
-
+  const itemsColumns = [
+    {
+      title: "Outlet name",
+      dataIndex: "outlet_name",
+      key: "outlet_name",
+      render: (value) => <span className="text-center block">{value}</span>,
+    },
+    {
+      title: "No of Food Handlers",
+      dataIndex: "foodHandlers",
+      key: "foodHandlers",
+      render: (value) => <span className="text-center block">{value}</span>,
+    },
+    {
+      title: "Man Days",
+      dataIndex: "manDays",
+      key: "manDays",
+      render: (value) => <span className="text-center block">{value}</span>,
+    },
+    {
+      title: "Unit Cost",
+      dataIndex: "unitCost",
+      key: "unitCost",
+      render: (value) => <span className="text-center block">{value}</span>,
+    },
+    {
+      title: "Discount",
+      dataIndex: "discount",
+      key: "discount",
+      render: (value) => <span className="text-center block">{value}</span>,
+    },
+    {
+      title: "Amount",
+      dataIndex: "amount",
+      key: "amount",
+      render: (amount) => (
+        <span className="text-center block">
+          {amount.toLocaleString("en-IN", {
+            style: "currency",
+            currency: "INR",
+          })}
+        </span>
+      ),
+    },
+  ];
+  const statesAndUTs = [
+    "Andhra Pradesh",
+    "Arunachal Pradesh",
+    "Assam",
+    "Bihar",
+    "Chhattisgarh",
+    "Goa",
+    "Gujarat",
+    "Haryana",
+    "Himachal Pradesh",
+    "Jharkhand",
+    "Karnataka",
+    "Kerala",
+    "Madhya Pradesh",
+    "Maharashtra",
+    "Manipur",
+    "Meghalaya",
+    "Mizoram",
+    "Nagaland",
+    "Odisha",
+    "Punjab",
+    "Rajasthan",
+    "Sikkim",
+    "Tamil Nadu",
+    "Telangana",
+    "Tripura",
+    "Uttar Pradesh",
+    "Uttarakhand",
+    "West Bengal",
+    "Andaman and Nicobar Islands",
+    "Chandigarh",
+    "Dadra and Nagar Haveli and Daman and Diu",
+    "Lakshadweep",
+    "Delhi",
+    "Puducherry",
+  ];
 
   return (
     <>
@@ -288,8 +294,9 @@ useEffect(() => {
               />
               <div className="text-center mt-4">
                 <Button
-                  className="bg-buttonModalColor px-4 py-2 text-white rounded"
+                  className="bg-buttonModalColor  text-white rounded"
                   onClick={handleNext}
+                  disabled={selectedOutlets.length === 0} // Disable if no outlets are selected
                 >
                   Next
                 </Button>
@@ -304,6 +311,7 @@ useEffect(() => {
                 label="FBO name (Business Name)"
                 name="fbo_name"
                 className="flex-1"
+                rules={[{ required: true, message: "Please enter FBO name!" }]}
               >
                 <Input
                   type="text"
@@ -315,21 +323,34 @@ useEffect(() => {
                   label="Invoice date"
                   className="flex-1"
                   size="large"
-                  name="invoice_date"
+                  rules={[
+                    { required: true, message: "Please select invoice date!" },
+                  ]}
                 >
-                  <DatePicker className="w-full" />
+                  {" "}
+                  <DatePicker value={invoiceDate} className="w-full" />
                 </Form.Item>
                 <Form.Item
                   label="Proposal number (Order Ref No.)"
                   className="flex-1"
                   name="proposal_number"
+                  rules={[
+                    { required: true, message: "Proposal number is required!" },
+                  ]}
                 >
                   <Input
                     placeholder="Auto Generated"
                     className="w-full p-2 border border-gray-300 rounded"
+                    readOnly
                   />
                 </Form.Item>
-                <Form.Item label="Invoice number" className="flex-1">
+                <Form.Item
+                  label="Invoice number"
+                  className="flex-1"
+                  rules={[
+                    { required: true, message: "Invoice number is required!" },
+                  ]}
+                >
                   <Input
                     value={invoiceId}
                     placeholder="Auto Generated"
@@ -339,13 +360,29 @@ useEffect(() => {
               </div>
               <Form.Item label="Address">
                 <Input.Group>
-                  <Form.Item name={["address", "line1"]}>
+                  <Form.Item
+                    name={["address", "line1"]}
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please enter address line 1!",
+                      },
+                    ]}
+                  >
                     <Input
                       type="text"
                       className="w-full p-2 border border-gray-300 rounded"
                     />
                   </Form.Item>
-                  <Form.Item name={["address", "line2"]}>
+                  <Form.Item
+                    name={["address", "line2"]}
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please enter address line 2!",
+                      },
+                    ]}
+                  >
                     <Input
                       type="text"
                       className="w-full p-2 border border-gray-300 rounded"
@@ -354,21 +391,35 @@ useEffect(() => {
                 </Input.Group>
               </Form.Item>
               <div className="flex space-x-4">
-                <Form.Item label="Pincode" name="pincode" className="flex-1">
+                <Form.Item
+                  label="Pincode"
+                  name="pincode"
+                  className="flex-1"
+                  rules={[{ required: true, message: "Please enter pincode!" }]}
+                >
                   <Input
                     type="text"
                     className="w-full p-2 border border-gray-300 rounded"
                   />
                 </Form.Item>
                 <Form.Item
-                  label="Place Of Supply"
                   name="place_of_supply"
+                  label="Place of Supply"
                   className="flex-1"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please select place of supply!",
+                    },
+                  ]}
                 >
-                  <Input
-                    type="text"
-                    className="w-full p-2 border border-gray-300 rounded"
-                  />
+                  <Select placeholder="Select place of supply">
+                    {statesAndUTs.map((state) => (
+                      <Option key={state} value={state}>
+                        {state}
+                      </Option>
+                    ))}
+                  </Select>
                 </Form.Item>
               </div>
               <div className="flex space-x-4">
@@ -376,6 +427,12 @@ useEffect(() => {
                   label="Field Executive Name"
                   name="field_executive_name"
                   className="flex-1"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please enter field executive name!",
+                    },
+                  ]}
                 >
                   <Input
                     type="text"
@@ -386,6 +443,12 @@ useEffect(() => {
                   label="Team Leader Name"
                   name="team_leader_name"
                   className="flex-1"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please enter team leader name!",
+                    },
+                  ]}
                 >
                   <Input
                     type="text"
@@ -442,12 +505,12 @@ useEffect(() => {
                 </div>
               </div>
               <div className="text-center mt-4">
-                <Button
+                <button
                   className="bg-buttonModalColor px-4 py-2 text-white rounded"
                   htmlType="submit"
                 >
                   Generate
-                </Button>
+                </button>
               </div>
             </div>
           )}

@@ -14,22 +14,16 @@ import {
 } from "antd";
 import {
   DeleteOutlined,
-  PlusOutlined,
-  FilterOutlined,
-  CloudDownloadOutlined,
   MoreOutlined,
   SearchOutlined,
   MailOutlined,
   EditOutlined,
-  EyeOutlined,
-  CopyOutlined,
+
 } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { NavLink } from "react-router-dom";
 import toast from "react-hot-toast";
-import EnquiryForm from "./EnquiryForm";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 import GenerateProposalSendMail from "./GenerateProposalSendMail";
 import GenerateAgreementModal from "./GenrateAgreementModal";
@@ -37,7 +31,6 @@ import GenrateAgreementModal from "./GenrateAgreementModal";
 
 const { confirm } = Modal;
 
-const { Search } = Input;
 
 // Debounce function definition
 const debounce = (func, delay) => {
@@ -68,7 +61,7 @@ const ProposalTable = () => {
       total: 0, // Initial total count
     },
   });
-  const [isEnquiryModalVisible, setIsEnquiryModalVisible] = useState(false);
+
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isModalVisibleAgreement, setIsModalVisibleAgreement] = useState(false);
 
@@ -76,19 +69,13 @@ const ProposalTable = () => {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [shouldFetch, setShouldFetch] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState(null);
-  const [selectedEnquiryId, setSelectedEnquiryId] = useState(null);
   const [proposalId, setProposalId] = useState(null);
   const [showSendMailModal, setShowSendMailModal] = useState(false);
   const navigate = useNavigate();
 
   // Toggling
-  const showModal = () => {
-    setIsModalVisible(true);
-  };
 
   const handleOk = () => {
-    // Handle OK action here
     setIsModalVisible(false);
   };
 
@@ -97,7 +84,6 @@ const ProposalTable = () => {
   };
 
   const handleAgreementOk = () => {
-    // Handle OK action here
     setIsModalVisibleAgreement(false);
   };
 
@@ -106,7 +92,7 @@ const ProposalTable = () => {
   };
 
   const showModalAgreement = (proposalId) => {
-    console.log(proposalId); // This should correctly log the proposalId
+    console.log(proposalId);
     setProposalId(proposalId);
     setIsModalVisibleAgreement(true);
   };
@@ -158,27 +144,6 @@ const ProposalTable = () => {
     sortData,
     searchKeyword,
   ]);
-
-  // Fetch data with debounce
-  const fetchDataWithDebounce = debounce(() => {
-    if (searchKeyword.trim()) {
-      // Your backend call logic here
-      console.log("Fetching data for keyword:", searchKeyword);
-    }
-  }, debounceDelay);
-
-  // Fetch initial data on component mount
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  // Fetch data when shouldFetch changes
-  useEffect(() => {
-    if (shouldFetch) {
-      fetchData();
-      setShouldFetch(false);
-    }
-  }, [shouldFetch, fetchData]);
 
   // Pagination
   const handleTableChange = (pagination, filters, sorter) => {
@@ -302,8 +267,6 @@ const ProposalTable = () => {
     console.log("Record _id:", record._id); // Debugging
 
     switch (key) {
-    
-
       case "generate_agreement":
         showModalAgreement(record._id);
         break;
@@ -355,23 +318,7 @@ const ProposalTable = () => {
     </Menu>
   );
 
-  const handleInputChange = (event) => {
-    if (isModalOpen) return;
-
-    const { value } = event.target;
-    setSearchKeyword(value);
-  };
-
-  useEffect(() => {
-    if (searchKeyword.trim()) {
-      fetchDataWithDebounce();
-    } else {
-      // Reset fields to normal state
-      // Your code to reset fields here
-      console.log("Resetting fields to normal state");
-    }
-  }, [searchKeyword, fetchDataWithDebounce]);
-
+  
   const columns = [
     {
       title: "FBO Name",
@@ -426,6 +373,46 @@ const ProposalTable = () => {
       ),
     },
   ];
+
+
+
+  // Fetch data with debounce
+  const fetchDataWithDebounce = debounce(() => {
+    if (searchKeyword.trim()) {
+      // Your backend call logic here
+      console.log("Fetching data for keyword:", searchKeyword);
+    }
+  }, debounceDelay);
+
+  // Fetch initial data on component mount
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Fetch data when shouldFetch changes
+  useEffect(() => {
+    if (shouldFetch) {
+      fetchData();
+      setShouldFetch(false);
+    }
+  }, [shouldFetch, fetchData]);
+  const handleInputChange = (event) => {
+    if (isModalOpen) return;
+
+    const { value } = event.target;
+    setSearchKeyword(value);
+  };
+
+  useEffect(() => {
+    if (searchKeyword.trim()) {
+      fetchDataWithDebounce();
+    } else {
+      // Reset fields to normal state
+      // Your code to reset fields here
+      console.log("Resetting fields to normal state");
+    }
+  }, [searchKeyword, fetchDataWithDebounce]);
+
 
   return (
     <AdminDashboard>

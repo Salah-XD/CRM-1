@@ -88,6 +88,10 @@ const proposalSchema = new Schema(
       type: [outletSchema],
       required: true,
     },
+    pincode:{
+   type: Number,
+   required: true,
+    },
     message:{
       type:String,
       

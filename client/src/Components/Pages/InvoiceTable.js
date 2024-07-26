@@ -4,7 +4,6 @@ import {
   Radio,
   Button,
   Input,
-  Checkbox,
   Tag,
   Space,
   Modal,
@@ -14,30 +13,21 @@ import {
 } from "antd";
 import {
   DeleteOutlined,
-  PlusOutlined,
-  FilterOutlined,
-  CloudDownloadOutlined,
   MoreOutlined,
   SearchOutlined,
   MailOutlined,
   EditOutlined,
-  EyeOutlined,
-  CopyOutlined,
 } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { NavLink } from "react-router-dom";
 import toast from "react-hot-toast";
-import EnquiryForm from "./EnquiryForm";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 import GenerateProposalSendMail from "./GenerateProposalSendMail";
-import GenerateAgreementModal from "./GenrateAgreementModal";
-import GenrateInvoiceModal from "./GenrateInvoiceModal";
+
+
 
 const { confirm } = Modal;
-
-const { Search } = Input;
 
 // Debounce function definition
 const debounce = (func, delay) => {
@@ -68,7 +58,6 @@ const ProposalTable = () => {
       total: 0, // Initial total count
     },
   });
-  const [isEnquiryModalVisible, setIsEnquiryModalVisible] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isModalVisibleInvoice, setIsModalVisibleInvoice] = useState(false);
 
@@ -76,9 +65,7 @@ const ProposalTable = () => {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [shouldFetch, setShouldFetch] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState(null);
-  const [selectedEnquiryId, setSelectedEnquiryId] = useState(null);
-  const [proposalId, setProposalId] = useState(null);
+  const [invoiceId, setProposalId] = useState(null);
   const [showSendMailModal, setShowSendMailModal] = useState(false);
   const navigate = useNavigate();
 
@@ -87,30 +74,21 @@ const ProposalTable = () => {
     setIsModalVisible(true);
   };
 
-  const handleOk = () => {
-    // Handle OK action here
-    setIsModalVisible(false);
-  };
-
-  const handleCancel = () => {
-    setIsModalVisible(false);
-  };
-
-  const handleInvoiceOk = () => {
-    // Handle OK action here
-    setIsModalVisibleInvoice(false);
-  };
-
-  
-
-  const handleInvoiceCancel = () => {
-    setIsModalVisibleInvoice(false);
-  };
-
-  const showModalInvoice = (proposalId) => {
-    console.log(proposalId); // This should correctly log the proposalId
-    setProposalId(proposalId);
+  const showModalInvoice = (invoiceId) => {
+    console.log(invoiceId);
+    setProposalId(invoiceId);
     setIsModalVisibleInvoice(true);
+  };
+
+  const showSendMail = (invoiceId) => {
+    setProposalId(invoiceId);
+    setShowSendMailModal(true);
+    console.log(invoiceId, showSendMailModal + "top");
+  };
+
+  const showCloseSendMail = () => {
+    setShowSendMailModal(false);
+    setProposalId(null);
   };
 
   // Fetch data function
@@ -163,24 +141,10 @@ const ProposalTable = () => {
 
   // Fetch data with debounce
   const fetchDataWithDebounce = debounce(() => {
-    if (searchKeyword.trim()) {
-      // Your backend call logic here
-      console.log("Fetching data for keyword:", searchKeyword);
-    }
+    // if (searchKeyword.trim()) {
+    //   console.log("Fetching data for keyword:", searchKeyword);
+    // }
   }, debounceDelay);
-
-  // Fetch initial data on component mount
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  // Fetch data when shouldFetch changes
-  useEffect(() => {
-    if (shouldFetch) {
-      fetchData();
-      setShouldFetch(false);
-    }
-  }, [shouldFetch, fetchData]);
 
   // Pagination
   const handleTableChange = (pagination, filters, sorter) => {
@@ -286,18 +250,6 @@ const ProposalTable = () => {
     });
   };
 
-  //handle showSendMail
-  const showSendMail = (proposalId) => {
-    setProposalId(proposalId);
-    setShowSendMailModal(true);
-    console.log(proposalId, showSendMailModal + "top");
-  };
-
-  const showCloseSendMail = () => {
-    setShowSendMailModal(false);
-    setProposalId(null);
-  };
-
   // Handle Menu
   const handleMenuClick = (record, { key }) => {
     console.log("Menu clicked for record:", record); // Debugging
@@ -325,12 +277,39 @@ const ProposalTable = () => {
     }
   };
 
+  // Fetch initial data on component mount
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Fetch data when shouldFetch changes
+  useEffect(() => {
+    if (shouldFetch) {
+      fetchData();
+      setShouldFetch(false);
+    }
+  }, [shouldFetch, fetchData]);
+
+  const handleInputChange = (event) => {
+    if (isModalOpen) return;
+
+    const { value } = event.target;
+    setSearchKeyword(value);
+  };
+
+  useEffect(() => {
+    if (searchKeyword.trim()) {
+      fetchDataWithDebounce();
+    } 
+  }, [searchKeyword, fetchDataWithDebounce]);
+
+
+
   const menu = (record) => (
     <Menu
       onClick={(e) => handleMenuClick(record, e)}
       style={{ padding: "8px" }}
     >
-  
       <Menu.Item
         key="send_mail"
         style={{ margin: "8px 0", backgroundColor: "#FFE0B2" }}
@@ -363,23 +342,6 @@ const ProposalTable = () => {
       </Menu.Item>
     </Menu>
   );
-
-  const handleInputChange = (event) => {
-    if (isModalOpen) return;
-
-    const { value } = event.target;
-    setSearchKeyword(value);
-  };
-
-  useEffect(() => {
-    if (searchKeyword.trim()) {
-      fetchDataWithDebounce();
-    } else {
-      // Reset fields to normal state
-      // Your code to reset fields here
-      console.log("Resetting fields to normal state");
-    }
-  }, [searchKeyword, fetchDataWithDebounce]);
 
   const columns = [
     {
@@ -415,7 +377,7 @@ const ProposalTable = () => {
           color = "green";
         } else if (status == "Hold") {
           color = "red";
-        } else  if (status == "paid") {
+        } else if (status == "paid") {
           color = "green";
         }
         return <Tag color={color}>{status.toUpperCase()}</Tag>;
@@ -558,22 +520,14 @@ const ProposalTable = () => {
           </ConfigProvider>
         </div>
       </div>
-      <GenerateAgreementModal
-        visible={isModalVisible}
-        onOk={handleOk}
-        onCancel={handleCancel}
-      />
-      <GenrateInvoiceModal
-        proposalId={proposalId}
-        visible={isModalVisibleInvoice}
-        onOk={handleInvoiceOk}
-        onCancel={handleInvoiceCancel}
-      />
-
+    
       <GenerateProposalSendMail
         visible={showSendMailModal}
         onClose={showCloseSendMail}
-        id={proposalId}
+        id={invoiceId}
+        name="invoice"
+        route="generateInvoice"
+        title="Genrate Invoice"
       />
     </AdminDashboard>
   );

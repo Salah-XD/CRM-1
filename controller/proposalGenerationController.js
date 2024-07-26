@@ -3,7 +3,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import nodemailer from "nodemailer";
 import Proposal from "../models/proposalModel.js";
-import Invoice from "../models/invoiceModel.js";
+
 
 const __dirname = path.resolve();
 
@@ -21,29 +21,24 @@ export const generateProposal = async (req, res) => {
 
     const {
       fbo_name,
+      contact_person,
       phone,
       address: { line1, line2 },
       gst_number,
       outlets,
+      proposal_number,
       proposal_date,
-      pincode,
-      invoice_number,
-      invoice_date,
-      field_executive_name,
-      team_leader_name,
-      proposal_number
-
     } = proposalDetails;
 
     // Calculate total, cgst, sgst, and total
-    let sub_total = 0;
+    let total = 0;
     outlets.forEach((outlet) => {
-       sub_total += parseFloat(outlet.amount.$numberInt || outlet.amount);
+       total += parseFloat(outlet.amount.$numberInt || outlet.amount);
     });
 
-    const cgst =  sub_total * 0.09; // 9% CGST
-    const sgst =  sub_total * 0.09; // 9% SGST
-    const total =  sub_total + cgst + sgst;
+    const cgst =  total * 0.09; // 9% CGST
+    const sgst =  total * 0.09; // 9% SGST
+    const overallTotal = total + cgst + sgst;
 
     // Convert MongoDB date format
     const proposalDate = proposal_date?.$date?.$numberLong
@@ -86,21 +81,21 @@ export const generateProposal = async (req, res) => {
       .join("");
 
     // Inject dynamic data into HTML template
-    const dynamicContent = htmlTemplate
-    .replace(/{{imageData}}/g, imageData)
-      .replace(/{{fbo_name}}/g, fbo_name)
-      .replace(/{{invoice_numer}}/g, invoice_number)
-      .replace(/{{invoice_date}}/g, invoice_date.toLocaleDateString())
-      .replace(/{{proposal_number}}/g, proposal_number)
-      .replace(/{{address}}/g, `${line1}, ${line2 || ""}`)
-      .replace(/{{field_executive_name}}/g, field_executive_name)
-      .replace(/{{team_leader_name}}/g, team_leader_name)
-      .replace(/{{gst_number}}/g,gst_number)
-      .replace(/{{pincode}}/g, pincode)
-      .replace(/{{sub_total}}/g, totalAmount.toFixed(2)) // Ensure toFixed to 2 decimal places
-      .replace(/{{cgst}}/g, cgst.toFixed(2)) // Ensure toFixed to 2 decimal places
-      .replace(/{{sgst}}/g, sgst.toFixed(2)) // Ensure toFixed to 2 decimal places
-      .replace(/{{total}}/g, total.toFixed(2)); // Ensure toFixed to 2 decimal places
+   const dynamicContent = htmlTemplate
+     .replace(/{{fbo_name}}/g, fbo_name)
+     .replace(/{{contact_person}}/g, contact_person)
+     .replace(/{{contactPersonNumber}}/g, phone)
+     .replace(/{{address}}/g, `${line1}, ${line2}`)
+     .replace(/{{gst_number}}/g, gst_number)
+     .replace(/{{proposalNumber}}/g, proposal_number)
+     .replace(/{{proposalDate}}/g, proposalDate.toLocaleDateString())
+     .replace(/{{outletRows}}/g, outletRows)
+     .replace(/{{imageData}}/g, imageData)
+     .replace(/{{total}}/g, total)
+     .replace(/{{cgst}}/g, cgst)
+     .replace(/{{sgst}}/g, sgst)
+     .replace(/{{overallTotal}}/g, overallTotal);
+
 
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
@@ -146,7 +141,7 @@ export const generateProposal = async (req, res) => {
     console.log("Email sent:", info.response);
 
     // Update proposal status to "Mail Sent"
-    await Invoice.findByIdAndUpdate(invoiceId, { status: "Mail Sent" });
+    await Proposal.findByIdAndUpdate(proposalId, { status: "Mail Sent" });
 
     // Respond to client
     res.status(200).json({ message: "Email sent successfully" });
