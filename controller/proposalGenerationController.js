@@ -69,7 +69,7 @@ export const generateProposal = async (req, res) => {
 
         return `
       <tr>
-        <td class="">${outlet.outlet_name || ""}</td>
+        <td class="border">${outlet.outlet_name || ""}</td>
         <td class="border text-center">${noOfFoodHandlers}</td>
         <td class="border text-center">${manDays}</td>
         <td class="border text-center">${unitCost}</td>

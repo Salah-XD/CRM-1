@@ -97,9 +97,9 @@ const handleSelectAll = (selected, selectedRows) => {
   const handleNext = () => {
     const selectedItems = selectedOutlets.map((outlet) => ({
       outlet_name: outlet.outlet_name,
-      foodHandlers: outlet.no_of_food_handlers,
-      manDays: outlet.man_days,
-      unitCost: outlet.unit_cost,
+      no_of_food_handlers: outlet.no_of_food_handlers,
+      man_days: outlet.man_days,
+      unit_cost: outlet.unit_cost,
       discount: outlet.discount,
       amount: outlet.amount,
     }));
@@ -184,20 +184,20 @@ const handleSelectAll = (selected, selectedRows) => {
     },
     {
       title: "No of Food Handlers",
-      dataIndex: "foodHandlers",
-      key: "foodHandlers",
+      dataIndex: "no_of_food_handlers",
+      key: "no_of_food_handlers",
       render: (value) => <span className="text-center block">{value}</span>,
     },
     {
       title: "Man Days",
-      dataIndex: "manDays",
-      key: "manDays",
+      dataIndex: "man_days",
+      key: "man_days",
       render: (value) => <span className="text-center block">{value}</span>,
     },
     {
       title: "Unit Cost",
-      dataIndex: "unitCost",
-      key: "unitCost",
+      dataIndex: "unit_cost",
+      key: "unit_cost",
       render: (value) => <span className="text-center block">{value}</span>,
     },
     {

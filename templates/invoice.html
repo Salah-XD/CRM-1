@@ -11,11 +11,11 @@
     <style>
       body {
         background-color: #ffffff;
-        font-size: 10px; /* Reduced font size */
+        font-size: 11px; /* Increased font size */
       }
       .container {
         background-color: #ffffff;
-        padding: 8px; /* Reduced padding */
+        padding: 10px; /* Increased padding */
         max-width: 100%;
         margin: auto;
       }
@@ -26,7 +26,7 @@
       }
       table {
         border-collapse: collapse;
-        font-size: 10px; /* Reduced font size */
+        font-size: 11px; /* Increased font size */
       }
       th {
         background-color: #edf2f7;
@@ -34,7 +34,7 @@
       th,
       td {
         border: 1px solid #e2e8f0;
-        padding: 2px 4px; /* Reduced padding */
+        padding: 4px 6px; /* Increased padding */
       }
       .header-info,
       .bill-info,
@@ -42,13 +42,13 @@
       .bank-info,
       .declaration,
       .signature {
-        margin-bottom: 4px; /* Reduced margin */
+        margin-bottom: 6px; /* Increased margin */
       }
       .header-info h2,
       .bill-info h2,
       .bank-info h2,
       .declaration h2 {
-        font-size: 12px; /* Reduced font size */
+        font-size: 13px; /* Increased font size */
       }
       .text-right p {
         margin: 0;
@@ -87,7 +87,7 @@
         <p><span class="font-semibold">Name:</span> {{fbo_name}}</p>
         <p><span class="font-semibold">Address:</span> {{address}}</p>
         <p><span class="font-semibold">GSTIN:</span> {{gst_number}}</p>
-        <p><span class="font-semibold">State (Place of Supply):</span> {{State}}</p>
+        <p><span class="font-semibold">State (Place of Supply):</span> {{place_of_supply}}</p>
         <p><span class="font-semibold">pincode Code:</span> {{pincode}}</p>
       </div>
 
@@ -104,41 +104,34 @@
             <th class="px-2 py-1">Unit Cost</th>
             <th class="px-2 py-1">Discount</th>
             <th class="px-2 py-1">Amount</th>
-            <th class="px-2 py-1">Sub Total</th>
-            <th class="px-2 py-1">GST Rate</th>
-            <th class="px-2 py-1">GST Amount</th>
-            <th class="px-2 py-1">Total</th>
           </tr>
         </thead>
         <tbody>
           <!-- <tr>
-       
             <td class="px-2 py-1">{{outlet_name}}</td>
             <td class="px-2 py-1">{{no_of_food_handlers}}</td>
             <td class="px-2 py-1">{{man_days}}</td>
             <td class="px-2 py-1">{{unit_cost}}</td>
             <td class="px-2 py-1">{{discount}}</td>
             <td class="px-2 py-1">{{amount}}</td>
-            <td class="px-2 py-1">{{sub_total}}</td>
-            <td class="px-2 py-1">{{gst_rate}}</td>
-            <td class="px-2 py-1">{{gst_amount}}</td>
-            <td class="px-2 py-1">{{total}}</td>
-          </tr>  -->
-
-          {{itemRows}}
-          <!-- Repeat for each service rendered, total 6 rows -->
+          </tr> -->
+          {{outletItems}}
+          <tr>
+            <td class="px-2 py-1 font-bold text-right" colspan="5">Sub Total</td>
+            <td class="px-2 py-1 font-bold text-center ">{{sub_total}}</td>
+          </tr>
         </tbody>
       </table>
 
       <div class="total-info mb-2">
         <p class="font-semibold text-gray-700 mb-4">
           Total Invoice amount in words:
-          <span class="font-normal">{{Total Amount In Word}}</span>
+          <span class="font-normal">{{totalInWords}}</span>
         </p>
         <p><span class="font-semibold">Total Amount before Tax:</span>{{sub_total}}</p>
-        <p><span class="font-semibold">Add: CGST:</span>{{CGST}}</p>
-        <p><span class="font-semibold">Add: SGST:</span>{{SGST}}</p>
-        <p><span class="font-semibold">Total Amount after Tax:</span>{{total}}</p>
+        <p><span class="font-semibold">Add: CGST(9%):</span>{{cgst}}</p>
+        <p><span class="font-semibold">Add: SGST(9%):</span>{{sgst}}</p>
+        <p><span class="font-semibold">Total Amount after Tax:</span>{{overallTotal}}</p>
         <p><span class="font-semibold">Gst On Reverse Charge:</span>{{Gst Charge}}</p>
       </div>
 
