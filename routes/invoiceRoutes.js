@@ -9,13 +9,9 @@ import {
   deleteFields
 } from "../controller/invoiceController.js";
 
-import {generateInvoice} from "../controller/invoicesGenerationController.js"
-
+import {generateInvoice} from "../controller/invoicesGenerationController.js";
 
 const router = express.Router();
-
-
-
 
 router.get("/generateInvoiceNumber", generateInvoiceNumber);
 
@@ -26,7 +22,6 @@ router.get("/getProposalById/:proposalId", getProposalById);
 router.get("/getAllInvoiceDeatails", getAllInvoiceDetail);
 
 router.delete("/deleteFields", deleteFields);
-
 
 router.post("/createInvoice", createInvoice);
 

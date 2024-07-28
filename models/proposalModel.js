@@ -53,6 +53,7 @@ const proposalSchema = new Schema(
         "Partial Invoiced",
         "Sale closed",
         "Dropped",
+        "Pending"
       ],
       default: "Mail not sent",
       required: true,
@@ -81,6 +82,10 @@ const proposalSchema = new Schema(
       required: true,
     },
     phone: {
+      type: String,
+      required: true,
+    },
+    email:{
       type: String,
       required: true,
     },

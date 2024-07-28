@@ -84,8 +84,8 @@ export const getAllAgreementDetails = async (req, res) => {
     const agreementsWithCounts = agreements.map((agreement) => {
       const totalOutlets = agreement.no_of_outlets;
       const formattedDate = moment(agreement.agreement_date).format(
-        "YYYY-MM-DD"
-      ); // Format date to 'YYYY-MM-DD'
+        "MM/DD/YYYY"
+      );
 
       return {
         _id: agreement._id,

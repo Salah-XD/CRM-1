@@ -2,32 +2,38 @@ import mongoose from "mongoose";
 
 const { Schema, model } = mongoose;
 
-const outletSchema = new Schema({
-  outlet_name: {
-    type: String,
-    required: true,
+const outletSchema = new Schema(
+  {
+    _id: {
+      type: String, 
+    },
+    outlet_name: {
+      type: String,
+      required: true,
+    },
+    man_days: {
+      type: Number,
+      default: 0,
+    },
+    no_of_food_handlers: {
+      type: Number,
+      default: 0,
+    },
+    amount: {
+      type: Number,
+      default: 0,
+    },
+    discount: {
+      type: Number,
+      default: 0,
+    },
+    unit_cost: {
+      type: Number,
+      default: 0,
+    },
   },
-  man_days: {
-    type: Number,
-    default: 0,
-  },
-  no_of_food_handlers: {
-    type: Number,
-    default: 0,
-  },
-  amount: {
-    type: Number,
-    default: 0,
-  },
-  discount: {
-    type: Number,
-    default: 0,
-  },
-  unit_cost: {
-    type: Number,
-    default: 0,
-  },
-});
+  { _id: false }
+); // Disable automatic ID creation
 
 const invoiceSchema = new Schema(
   {
@@ -78,6 +84,10 @@ const invoiceSchema = new Schema(
     },
     phone: {
       type: Number,
+      required: false,
+    },
+    email: {
+      type: String,
       required: false,
     },
     pincode: {

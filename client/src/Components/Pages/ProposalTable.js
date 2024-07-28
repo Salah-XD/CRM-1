@@ -11,6 +11,8 @@ import {
   Checkbox,
   Menu,
   ConfigProvider,
+  Select,
+  message
 } from "antd";
 import {
   DeleteOutlined,
@@ -28,6 +30,7 @@ import GenerateAgreementModal from "./GenrateAgreementModal";
 import GenrateInvoiceModal from "./GenrateInvoiceModal";
 
 const { confirm } = Modal;
+
 
 
 // Debounce function definition
@@ -83,10 +86,12 @@ const ProposalTable = () => {
   };
 
   const handleInvoiceOk = () => {
+
     setIsModalVisibleInvoice(false);
   };
 
   const handleInvoiceCancel = () => {
+        fetchData();
     setIsModalVisibleInvoice(false);
   };
 
@@ -107,6 +112,7 @@ const ProposalTable = () => {
   };
 
   const showCloseSendMail = () => {
+    fetchData();
     setShowSendMailModal(false);
     setProposalId(null);
   };
@@ -361,8 +367,8 @@ const ProposalTable = () => {
     },
     {
       title: "Date created",
-      dataIndex: "proposal_date",
-      key: "cproposal_date",
+      dataIndex: "date_created",
+      key: "date_created",
     },
     {
       title: "Total No. of Outlets",
@@ -376,23 +382,64 @@ const ProposalTable = () => {
     },
 
     {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status) => {
-        let color;
-        if (status === "Mail Sent") {
-          color = "volcano";
-        } else if (status === "Partial Invoice" && status === "Sale Closed") {
-          color = "green";
-        } else if (status === "Dropped") {
-          color = "red";
-        } else {
-          color = "grey";
-        }
-        return <Tag color={color}>{status.toUpperCase()}</Tag>;
-      },
-    },
+  title: "Status",
+  dataIndex: "status",
+  key: "status",
+  render: (status, record) => {
+    const statusOptions = [
+      "Mail Sent",
+      "Mail not sent",
+      "Partial Invoiced",
+      "Sale closed",
+      "Dropped",
+      "Pending",
+    ];
+
+    const getTagColor = (option) => {
+      switch (option) {
+        case "Mail Sent":
+          return "volcano";
+        case "Partial Invoiced":
+        case "Sale Closed":
+          return "green";
+        case "Dropped":
+          return "red";
+        case "Mail not sent":
+        case "Pending":
+          return "grey";
+        default:
+          return "blue";
+      }
+    };
+
+    return (
+      <Select
+        defaultValue={status}
+        style={{
+          width: "auto",
+          minWidth: "120px",
+          border: "none",
+          boxShadow: "none",
+          padding: "0",
+        }}
+        dropdownStyle={{
+          width: "auto",
+          border: "none", // Remove border from dropdown
+        }}
+        onChange={(value) => handleStatusChange(value, record)}
+      >
+        {statusOptions.map((option) => (
+          <Select.Option key={option} value={option}>
+            <Tag color={getTagColor(option)}>
+              {option.toUpperCase()}
+            </Tag>
+          </Select.Option>
+        ))}
+      </Select>
+    );
+  },
+},
+
 
     {
       title: "Action",
@@ -440,7 +487,20 @@ const ProposalTable = () => {
     }
   }, [searchKeyword, fetchDataWithDebounce]);
 
-
+ const handleStatusChange = (value, record) => {
+   axios
+     .put(`/api/proposal/updateProposalStatus/${record._id}`, {
+       status: value,
+     })
+     .then((response) => {
+       message.success("Status updated successfully");
+       setShouldFetch(true);
+     })
+     .catch((error) => {
+       console.error("Error updating status:", error);
+       toast.error("Failed to update status");
+     });
+ };
   return (
     <AdminDashboard>
       <div className="bg-blue-50 m-6">

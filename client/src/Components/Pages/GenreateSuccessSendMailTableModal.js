@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { Modal, Button, Input, message, Form } from "antd";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import SuccessMail from "./SuccessMail";
+import SuccessTableMail from "./SuccessTableMail";
 
-const GenerateProposalSendMail = ({ visible, onClose, id,name,route,title}) => {
+const GenreateSuccessSendMailTableModal = ({ visible, onClose, id,onOk,title,route,name}) => {
   const [mailSent, setMailSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
@@ -22,9 +22,11 @@ const GenerateProposalSendMail = ({ visible, onClose, id,name,route,title}) => {
           })
           .then((response) => {
             setLoading(false);
-            setMailSent(true);
+            onOk();
             message.success("Mail sent successfully");
-            onClose(); 
+            setMailSent(true);
+
+            
           })
           .catch((error) => {
             setLoading(false);
@@ -42,7 +44,6 @@ const GenerateProposalSendMail = ({ visible, onClose, id,name,route,title}) => {
 
   const handleSuccessMailClose = () => {
     setMailSent(false);
-    onClose(); // Close parent component
   };
 
   return (
@@ -71,8 +72,7 @@ const GenerateProposalSendMail = ({ visible, onClose, id,name,route,title}) => {
               Document generated successfully
             </p>
             <p className="text-gray-600 mb-4">
-              Generated document can be accessed through the client link that
-              will be sent to the client.
+              Note: Generated document is attached in the email.
             </p>
 
             <Form form={form} layout="vertical">
@@ -87,7 +87,8 @@ const GenerateProposalSendMail = ({ visible, onClose, id,name,route,title}) => {
                 />
               </Form.Item>
               <p className="text-gray-500 mb-4">
-                Note: Generated document is attached in the email.
+                Note: This mail will be sent to CCs also. You can edit it in
+                Settings.
               </p>
               <Form.Item
                 name="message"
@@ -123,7 +124,7 @@ const GenerateProposalSendMail = ({ visible, onClose, id,name,route,title}) => {
       </Modal>
 
       {mailSent && (
-        <SuccessMail
+        <SuccessTableMail
           visible={mailSent}
           email={form.getFieldValue("email")}
           title={title}
@@ -134,4 +135,4 @@ const GenerateProposalSendMail = ({ visible, onClose, id,name,route,title}) => {
   );
 };
 
-export default GenerateProposalSendMail;
+export default GenreateSuccessSendMailTableModal;

@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Modal, DatePicker, Form, Input, Table, message, Select,Button} from "antd";
+import {
+  Modal,
+  DatePicker,
+  Form,
+  Input,
+  Table,
+  message,
+  Select,
+  Button,
+} from "antd";
 import axios from "axios";
 import "../css/GenerateProposalModal.css";
-import GenerateSendMail from "./GenerateSendMail";
+import GenreateSuccessSendMailTableModal from "./GenreateSuccessSendMailTableModal";
 import moment from "moment";
 
 const { Option } = Select;
@@ -14,9 +23,12 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
   const [selectedOutlets, setSelectedOutlets] = useState([]);
   const [items, setItems] = useState([]);
   const [outlets, setOutlets] = useState([]);
-  const [invoiceId, setInvoiceId] = useState([]);
+  const [invoiceNumber, setInvoiceNumber] = useState([]);
+  const [InvoiceId, setInvoiceId] = useState([]);
   const [initialValuesLoaded, setInitialValuesLoaded] = useState(false);
   const [invoiceDate, setInvoiceDate] = useState(moment());
+  const [phone, setPhone] = useState(0);
+  const [email, setEmail] = useState("");
 
   useEffect(() => {
     if (visible) {
@@ -42,14 +54,17 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
             proposal_date,
             proposal_number,
             pincode,
+            phone,
+            email,
           } = response.data;
-
+          console.log(email);
+          setEmail(email);
+          setPhone(phone);
           form.setFieldsValue({
             address,
             fbo_name,
             proposal_date: proposal_date ? moment(proposal_date) : null,
             proposal_number,
-
             pincode,
           });
           setInitialValuesLoaded(true);
@@ -64,7 +79,7 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
           const response = await axios.get(
             "/api/invoice/generateInvoiceNumber"
           );
-          setInvoiceId(response.data.invoice_number);
+          setInvoiceNumber(response.data.invoice_number);
         } catch (error) {
           console.error("Error fetching InvoiceId", error);
         }
@@ -80,22 +95,21 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
     setShowForm(false);
   };
 
-  
+  const handleSelect = (record, selected) => {
+    const updatedSelectedOutlets = selected
+      ? [...selectedOutlets, record]
+      : selectedOutlets.filter((outlet) => outlet._id !== record._id);
+    setSelectedOutlets(updatedSelectedOutlets);
+  };
 
-const handleSelect = (record, selected) => {
-  const updatedSelectedOutlets = selected
-    ? [...selectedOutlets, record]
-    : selectedOutlets.filter((outlet) => outlet._id !== record._id);
-  setSelectedOutlets(updatedSelectedOutlets);
-};
-
-const handleSelectAll = (selected, selectedRows) => {
-  const validSelectedRows = selectedRows.filter((row) => row && row._id);
-  setSelectedOutlets(selected ? validSelectedRows : []);
-};
+  const handleSelectAll = (selected, selectedRows) => {
+    const validSelectedRows = selectedRows.filter((row) => row && row._id);
+    setSelectedOutlets(selected ? validSelectedRows : []);
+  };
 
   const handleNext = () => {
     const selectedItems = selectedOutlets.map((outlet) => ({
+      _id: outlet._id,
       outlet_name: outlet.outlet_name,
       no_of_food_handlers: outlet.no_of_food_handlers,
       man_days: outlet.man_days,
@@ -109,34 +123,49 @@ const handleSelectAll = (selected, selectedRows) => {
 
   const handleSubmit = async () => {
     try {
+      // Validate the form fields
       await form.validateFields();
 
       // Collect form values
       const formData = form.getFieldsValue();
 
+      // Prepare the data to be sent
       const invoiceData = {
         ...formData,
         proposalId,
         outlets: items,
-        invoice_number: invoiceId,
-        invoice_date:invoiceDate,
+        invoice_number: invoiceNumber,
+        invoice_date: invoiceDate,
+        email: email,
+        phone: phone,
       };
- 
-   
 
-      await axios.post("/api/invoice/createInvoice", invoiceData);
-      message.success("Invoice generated successfully");
-      form.resetFields();
-      setShowForm(false);
-      onCancel();
-      setShowSendMailModal(true); 
+      // Send the request and wait for the response
+      const response = await axios.post(
+        "/api/invoice/createInvoice",
+        invoiceData
+      );
+
+      // Check if the response is successful based on status code
+      if (response.status === 201 && response.data && response.data.data) {
+        message.success("Invoice generated successfully");
+        form.resetFields();
+        setShowForm(false);
+        onCancel();
+        setInvoiceId(response.data.data._id);
+        setShowSendMailModal(true);
+      } else {
+        message.error("Failed to generate invoice");
+      }
     } catch (error) {
       console.error("Error saving invoice:", error);
-      message.error("Error generating invoice");
+      message.error(
+        `Error generating invoice: ${
+          error.response?.data?.message || error.message
+        }`
+      );
     }
   };
-
- 
 
   const calculateTotals = () => {
     const subTotal = items.reduce((sum, item) => sum + item.amount, 0);
@@ -257,6 +286,9 @@ const handleSelectAll = (selected, selectedRows) => {
     "Puducherry",
   ];
 
+  const handleOk = () => {
+    setShowSendMailModal(false);
+  };
   return (
     <>
       <Modal
@@ -285,13 +317,28 @@ const handleSelectAll = (selected, selectedRows) => {
                 rowKey={(record) => record._id}
                 rowSelection={{
                   selectedRowKeys: selectedOutlets.map((outlet) => outlet._id),
-                  onSelect: handleSelect,
-                  onSelectAll: handleSelectAll,
+                  onSelect: (record, selected) => {
+                    if (!record.is_invoiced) {
+                      handleSelect(record, selected);
+                    }
+                  },
+                  onSelectAll: (selected, selectedRows) => {
+                    const validSelectedRows = selectedRows.filter(
+                      (row) => row && !row.is_invoiced
+                    );
+                    handleSelectAll(selected, validSelectedRows);
+                  },
+                  getCheckboxProps: (record) => ({
+                    disabled: record.is_invoiced,
+                  }),
                 }}
                 rowClassName={(record) =>
-                  record.is_invoiced ? "disabled-row" : ""
+                  record.is_invoiced
+                    ? "bg-gray-200 pointer-events-none opacity-50"
+                    : ""
                 }
               />
+
               <div className="text-center mt-4">
                 <Button
                   className="bg-buttonModalColor  text-white rounded"
@@ -328,6 +375,7 @@ const handleSelectAll = (selected, selectedRows) => {
                   ]}
                 >
                   {" "}
+                
                   <DatePicker value={invoiceDate} className="w-full" />
                 </Form.Item>
                 <Form.Item
@@ -352,7 +400,7 @@ const handleSelectAll = (selected, selectedRows) => {
                   ]}
                 >
                   <Input
-                    value={invoiceId}
+                    value={invoiceNumber}
                     placeholder="Auto Generated"
                     className="w-full p-2 border border-gray-300 rounded"
                   />
@@ -517,14 +565,18 @@ const handleSelectAll = (selected, selectedRows) => {
         </Form>
       </Modal>
 
-      {showSendMailModal && (
-        <GenerateSendMail
-          onClose={() => setShowSendMailModal(false)}
-          title="Generate Invoice"
-          inputPlaceholder="Greeting from unavar"
-          successMessage="Your custom success message"
-        />
-      )}
+      <GenreateSuccessSendMailTableModal
+        onClose={() => {
+          setShowSendMailModal(false);
+          setSelectedOutlets([]);
+        }}
+        id={InvoiceId}
+        onOk={handleOk}
+        title="Generate Proposal"
+        name="invoice"
+        route="generateInvoice"
+        visible={showSendMailModal}
+      />
     </>
   );
 };

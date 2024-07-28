@@ -87,6 +87,7 @@ const ProposalTable = () => {
   };
 
   const showCloseSendMail = () => {
+    fetchData();
     setShowSendMailModal(false);
     setProposalId(null);
   };
@@ -360,9 +361,14 @@ const ProposalTable = () => {
       key: "invoice_date",
     },
     {
-      title: "phone",
+      title: "Phone",
       dataIndex: "phone",
       key: "phone",
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
+      key: "email",
     },
 
     {

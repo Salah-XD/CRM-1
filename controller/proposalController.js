@@ -10,7 +10,7 @@ import mongoose from "mongoose";
 
 export const getOutletDetailsById = async (req, res) => {
   try {
-    const { enquiryId } = req.params; // Get the enquiry ID from request parameters
+    const { enquiryId } = req.params; 
 
     // Find the enquiry that matches the enquiry ID and select the business ID
     const enquiry = await Enquiry.findById(enquiryId).select("business");
@@ -18,7 +18,7 @@ export const getOutletDetailsById = async (req, res) => {
       return res.status(404).json({ message: "Enquiry not found" });
     }
 
-    const { business } = enquiry; // Extract the business ID from the enquiry
+    const { business } = enquiry; 
 
     // Find outlets that match the business ID and select only branch name and outlet ID
     const outlets = await Outlet.find(
@@ -88,7 +88,7 @@ export const getBusinessDetailsByEnquiryId = async (req, res) => {
     // Find the business by ID
     const business = await Business.findOne(
       { _id: businessId },
-      "name address  gst_number contact_person phone"
+      "name address  gst_number contact_person phone email"
     );
     if (!business) {
       return res.status(404).json({ message: "Business not found" });
@@ -107,7 +107,7 @@ export const getBusinessDetailsByEnquiryId = async (req, res) => {
 
 // Controller function to save data
 export const createProposalAndOutlet = async (req, res) => {
-  console.log(req.body);
+  //console.log(req.body);
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -124,7 +124,8 @@ export const createProposalAndOutlet = async (req, res) => {
       phone,
       outlets,
       enquiryId, 
-      pincode
+      pincode,
+      email
     } = req.body;
 
     // Create a new Proposal instance with outlets
@@ -138,7 +139,9 @@ export const createProposalAndOutlet = async (req, res) => {
       contact_person,
       phone,
       outlets,
-      pincode
+      pincode,
+      message:"Proposal Created",
+      email
     });
 
     // Save the Proposal to the database
@@ -257,7 +260,7 @@ export const getAllProposalDetails = async (req, res) => {
     const proposals = await query
       .skip((pageNumber - 1) * sizePerPage)
       .limit(sizePerPage)
-      .select("fbo_name outlets proposal_date status"); // Select only the required fields
+      .select("fbo_name outlets proposal_date status message updated_at"); // Select required fields
 
     // Calculate total outlets and invoiced outlets for each proposal
     const proposalsWithCounts = proposals.map((proposal) => {
@@ -267,14 +270,19 @@ export const getAllProposalDetails = async (req, res) => {
         (outlet) => outlet.is_invoiced
       ).length;
 
-      const formattedDate = moment(proposal.proposal_date).fromNow(); // Format proposal_date using Moment.js
+      const formattedProposalDate = moment(proposal.proposal_date).fromNow(); // Format proposal_date using Moment.js
+      const formattedUpdatedAt = moment(proposal.updated_at).fromNow(); // Format updated_at using Moment.js
+      const dateCreated = `${proposal.message} ${formattedUpdatedAt}`; // Concatenate message and formatted updated_at
+      console.log(dateCreated);
+
       return {
         _id: proposal._id,
         fbo_name: proposal.fbo_name,
-        totalOutlets, // Total number of outlets
-        invoicedOutlets, // Number of invoiced outlets
-        proposal_date: formattedDate, // Update proposal_date with formatted date
-        status: proposal.status, // Status of the proposal
+        totalOutlets, 
+        invoicedOutlets, 
+        proposal_date: formattedProposalDate, 
+        status: proposal.status, 
+        date_created: dateCreated, 
       };
     });
 
@@ -288,6 +296,7 @@ export const getAllProposalDetails = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 
 //Controller to get all the all the outlets
@@ -335,5 +344,40 @@ export const deleteFields = async (req, res) => {
   } catch (err) {
     console.error("Error deleting proposals:", err);
     res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+export const updateProposalStatus = async (req, res) => {
+  console.log(req.body);
+  const { proposalId } = req.params; 
+  const { status } = req.body; 
+  try {
+    // Validate input
+    if (!proposalId || !status) {
+      return res
+        .status(400)
+        .json({ error: "Proposal ID and status are required" });
+    }
+
+    // Find and update the proposal
+    const updatedProposal = await Proposal.findByIdAndUpdate(
+      proposalId,
+      { $set: { status, message: "Updated Status" } },
+      { new: true, runValidators: true } 
+    );
+
+    // Check if the proposal was found and updated
+    if (!updatedProposal) {
+      return res.status(404).json({ error: "Proposal not found" });
+    }
+
+    // Send a successful response
+    res
+      .status(200)
+      .json({ message: "Proposal updated successfully", updatedProposal });
+  } catch (error) {
+    // Handle errors
+    res.status(500).json({ error: "Server error", details: error.message });
   }
 };

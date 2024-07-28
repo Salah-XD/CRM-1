@@ -4,8 +4,6 @@ import mongoose from "mongoose";
 import InvoiceCounter from "../models/invoiceCounter.js";
 import Invoice from "../models/invoiceModel.js";
 
-
-
 export const generateInvoiceNumber = async (req, res) => {
   try {
     // Find the current counter without incrementing it
@@ -33,13 +31,12 @@ export const generateInvoiceNumber = async (req, res) => {
   }
 };
 
-
 export const getProposalById = async (req, res) => {
   const { proposalId } = req.params;
 
   try {
     const proposal = await Proposal.findById(proposalId).select(
-      "fbo_name pincode address gst_number proposal_date proposal_number"
+      "fbo_name pincode address gst_number proposal_date proposal_number phone email"
     );
 
     if (!proposal) {
@@ -52,9 +49,6 @@ export const getProposalById = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-
-
 
 export const createInvoice = async (req, res) => {
   console.log(req.body);
@@ -72,13 +66,12 @@ export const createInvoice = async (req, res) => {
       place_of_supply,
       field_executive_name,
       team_leader_name,
-      address = {}, 
-      pincode, 
-
+      address = {},
+      pincode,
       contact_person,
       phone,
       outlets,
-  
+      email,
     } = req.body;
 
     // Create a new invoice instance with the provided data
@@ -92,15 +85,24 @@ export const createInvoice = async (req, res) => {
       field_executive_name,
       team_leader_name,
       address,
-      pincode, 
+      pincode,
       contact_person,
       phone,
       outlets,
-     
+      email
     });
 
     // Save the new invoice to the database
     const savedInvoice = await newInvoice.save({ session });
+
+    const outletIds = outlets.map((outlet) => outlet._id);
+
+    // Update the Proposal model outlets object
+    await Proposal.updateMany(
+      { "outlets._id": { $in: outletIds } },
+      { $set: { "outlets.$[elem].is_invoiced": true } },
+      { arrayFilters: [{ "elem._id": { $in: outletIds } }], session }
+    );
 
     // Update the InvoiceCounter collection
     await InvoiceCounter.findOneAndUpdate(
@@ -131,9 +133,6 @@ export const createInvoice = async (req, res) => {
     });
   }
 };
-
-
-
 
 //Get all the proposal Details
 export const getAllInvoiceDetail = async (req, res) => {
@@ -186,7 +185,9 @@ export const getAllInvoiceDetail = async (req, res) => {
     const invoices = await query
       .skip((pageNumber - 1) * sizePerPage)
       .limit(sizePerPage)
-      .select("fbo_name proposal_number phone outlets invoice_date status"); // Select only the required fields
+      .select(
+        "fbo_name proposal_number phone email outlets invoice_date status"
+      ); // Select only the required fields, including email
 
     // Calculate total outlets and invoiced outlets for each invoice
     const invoicesWithCounts = invoices.map((invoice) => {
@@ -196,16 +197,17 @@ export const getAllInvoiceDetail = async (req, res) => {
         (outlet) => outlet.is_invoiced
       ).length;
 
-      const formattedDate = moment(invoice.invoice_date).fromNow(); // Format invoice_date using Moment.js
+  
       return {
         _id: invoice._id,
         fbo_name: invoice.fbo_name,
         proposal_number: invoice.proposal_number,
         phone: invoice.phone,
-        invoice_date: formattedDate, // Update invoice_date with formatted date
-        status: invoice.status, // Status of the invoice
-        totalOutlets: totalOutlets, // Total outlets
-        invoicedOutlets: invoicedOutlets, // Invoiced outlets
+        email: invoice.email,
+        invoice_date: moment(invoice.invoice_date).format("MM/DD/YYYY"),
+        status: invoice.status, 
+        totalOutlets: totalOutlets, 
+        invoicedOutlets: invoicedOutlets, 
       };
     });
 

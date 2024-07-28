@@ -13,11 +13,11 @@ import {
 import moment from "moment";
 import axios from "axios";
 import GenreateSuccessSendMailTableModal from "./GenreateSuccessSendMailTableModal";
-import "../css/GenerateProposalModal.css";
+import "../css/UpdateProposalModal.css";
 
 const { Option } = Select;
 
-const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
+const UpdateGenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
   const [form] = Form.useForm();
   const [outletItem, setItems] = useState([
     {
@@ -39,7 +39,6 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
   const [sgst, setSgst] = useState(0);
   const [cgst, setCgst] = useState(0);
   const [total, setTotal] = useState(0);
-  const [email,setEmail]=useState(0);
   const [prosposalId, setPropsalId] = useState();
   const handleCancel = () => {
     setItems([]);
@@ -63,23 +62,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
 
   useEffect(() => {
     if (visible) {
-      setProposalDate(moment());
-
-      const fetchProposalNumber = async () => {
-        try {
-          const response = await axios.get(
-            "/api/proposal/genrateProposalNumber"
-          );
-          setProposalNumber(response.data);
-          form.setFieldsValue({
-            proposal_number: response.data.proposal_number,
-          });
-        } catch (error) {
-          console.error("Error in fetching proposal Number", error);
-        }
-      };
-
-
+    
       const fetchOutlets = async () => {
         try {
           const response = await axios.get(
@@ -115,9 +98,6 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
           );
           const businessData = response.data;
 
-        
-                setEmail(businessData.email);
-
           const addressLine1 = businessData.address?.line1 || "";
           const addressLine2 = businessData.address?.line2 || "";
 
@@ -129,19 +109,19 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
 
           // Concatenate city and state if both exist
           const line2 = [city, state].filter(Boolean).join(", ");
-     
-             form.setFieldsValue({
-               fbo_name: businessData.name,
-               address: {
-                 line1: line1,
-                 line2: line2,
-               },
-               pincode: businessData.address?.pincode || "",
-               gst_number: businessData.gst_number,
-               contact_person: businessData.contact_person,
 
-              
-             });
+          form.setFieldsValue({
+            fbo_name: businessData.name,
+            address: {
+              line1: line1,
+              line2: line2,
+            },
+            pincode: businessData.address?.pincode || "",
+            gst_number: businessData.gst_number,
+            contact_person: businessData.contact_person,
+            phone: businessData.phone,
+            email: businessData.email || "",
+          });
           setInitialValuesLoaded(true);
         } catch (error) {
           console.error("Error fetching business details", error);
@@ -169,7 +149,6 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
         enquiryId: enquiryId,
         proposal_date: proposal_date.format("YYYY-MM-DD"),
         outlets: outletItem,
-        email:email,
       };
 
       // Make POST request to server
@@ -599,18 +578,10 @@ const handleInputChange = (index, field, value) => {
         </Form>
       </Modal>
      
-        <GenreateSuccessSendMailTableModal
-          onClose={() => setShowSendMailModal(false)}
-          id={prosposalId}
-          onOk={handleOk}
-          title="Generate Proposal"
-          name="proposal"
-          route="generateProposal"
-          visible={showSendMailModal}
-        />
+        
     
     </>
   );
 };
 
-export default GenerateProposalModal;
+export default UpdateGenerateProposalModal;
