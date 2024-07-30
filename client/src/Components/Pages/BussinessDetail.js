@@ -1,17 +1,46 @@
-import React from "react";
-import { Form, Input, Button, Select } from "antd";
-import { NavLink, useLocation } from "react-router-dom";
+import React, { useState, forwardRef, useImperativeHandle,useEffect} from "react";
+import { Form, Input,  Checkbox } from "antd";
+import {  useLocation } from "react-router-dom";
 
-const { Option } = Select;
-
-const BusinessDetail = ({ onSubmit, loading, disabled }) => {
+const BusinessDetail = forwardRef(({ data, onChange,onSubmit,loading }, ref) => {
   const [form] = Form.useForm();
   const location = useLocation();
+ const [isGstEnabled, setIsGstEnabled] = useState(data.enable_gst ?? true);
+
+   useEffect(() => {
+     form.setFieldsValue(data);
+     setIsGstEnabled(data.enable_gst ?? true);
+   }, [data, form]);
+
+
+  useImperativeHandle(ref, () => ({
+    submit: () =>
+      new Promise((resolve, reject) => {
+        form
+          .validateFields()
+          .then((values) => {
+            onChange(values);
+            resolve(values);
+          })
+          .catch(reject);
+      }),
+  }));
+
+
+const handleFinish = (values) => {
+  onChange(values); // Update the parent state with form values
+};
+
+  const handleGstCheckboxChange = (e) => {
+    setIsGstEnabled(e.target.checked);
+    if (!e.target.checked) {
+      form.setFieldsValue({ gst_number: "" });
+    }
+  };
 
   const handleSubmit = async (values) => {
-   
     if (location.pathname === "/client-onboarding") {
-       values.status = "pending";
+      values.status = "pending";
       values.added_by = "Client Form";
     } else {
       values.added_by = "Manual";
@@ -20,18 +49,40 @@ const BusinessDetail = ({ onSubmit, loading, disabled }) => {
     onSubmit(values);
   };
 
+  const industryOptions = [
+    "Catering",
+    "Manufacturing",
+    "Trade and Retail",
+    "Transportation",
+  ];
+
+  const verticalOptions = [
+    "Sweet Shop",
+    "Meat Retail",
+    "Hub",
+    "Market",
+    "General Manufacturing",
+    "Meat & Meat Processing",
+    "Dairy Processing",
+    "Catering",
+    "Transportation",
+    "Storage/Warehouse",
+    "Institute Canteen",
+    "Industrial Canteen",
+    "Temple Kitchen",
+  ];
+
   const innerDivClass =
     location.pathname === "/client-onboarding"
-      ? "m-6 p-4   w-3/4 mx-auto"
-      : "ml-6  ";
+      ? "m-6 p-4 w-3/4 mx-auto"
+      : "ml-6";
 
-
- 
-const baseDivClass = location.pathname === "/client-onboarding" ? "ml-16" : "margin";
+  const baseDivClass =
+    location.pathname === "/client-onboarding" ? "ml-16" : "margin";
 
   return (
     <div className="w-full">
-      <Form form={form} layout="vertical" onFinish={handleSubmit}>
+      <Form form={form} layout="vertical" onFinish={handleFinish}>
         <div className={innerDivClass}>
           <Form.Item
             className="w-1/2"
@@ -85,43 +136,56 @@ const baseDivClass = location.pathname === "/client-onboarding" ? "ml-16" : "mar
             label={
               <span className="text-gray-600 font-semibold">Phone Number</span>
             }
-            rules={[{ required: true, message: "Please enter phone number" }]}
+            rules={[
+              { required: true, message: "Please enter phone number" },
+              {
+                pattern: /^[0-9]{10}$/,
+                message: "Phone number must be 10 digits",
+              },
+            ]}
           >
             <Input
               placeholder="Enter your phone number"
               className="placeholder-gray-400 p-3 rounded-lg"
             />
           </Form.Item>
+
           <Form.Item
             className="w-1/4"
-            label={
-              <span className="text-gray-600 font-semibold">
-                FSSAI License Number
-              </span>
-            }
-            name="fssai_license_number"
-            rules={[
-              { required: false, message: "Please enter FSSAI License Number" },
-            ]}
+            name="enable_gst"
+            valuePropName="checked"
+            initialValue={true}
           >
-            <Input
-              placeholder="Enter your License Number"
-              className="placeholder-gray-400 p-3 rounded-lg"
-            />
+            <Checkbox onChange={handleGstCheckboxChange}>
+              <span className="text-gray-600 font-semibold">
+                Do you have GST Number?
+              </span>
+            </Checkbox>
           </Form.Item>
           <Form.Item
+            name="gst_number"
             className="w-1/4"
             label={
               <span className="text-gray-600 font-semibold">GST Number</span>
             }
-            name="gst_number"
-            rules={[{ required: false, message: "Please enter GST number" }]}
+            rules={[
+              {
+                required: isGstEnabled,
+                message: "Please enter GST number",
+              },
+              {
+                pattern: /^[A-Za-z0-9]{14}$/,
+                message: "GST number must be 14 alphanumeric characters",
+              },
+            ]}
           >
             <Input
               placeholder="Enter your GST number"
               className="placeholder-gray-400 p-3 rounded-lg"
+              disabled={!isGstEnabled}
             />
           </Form.Item>
+
           <Form.Item
             name="type_of_industry"
             className="w-1/4"
@@ -134,13 +198,15 @@ const baseDivClass = location.pathname === "/client-onboarding" ? "ml-16" : "mar
               { required: false, message: "Please select industry type" },
             ]}
           >
-            <Select placeholder="Select Industry Type" size={"large"}>
-              <Option value="Catering">Catering</Option>
-              <Option value="Meat">Meat</Option>
-              <Option value="Sweet">Sweet</Option>
-              <Option value="Shop">Shop</Option>
-              <Option value="Bakery">Bakery</Option>
-            </Select>
+            <Checkbox.Group>
+              <div className="flex flex-col">
+                {industryOptions.map((option) => (
+                  <Checkbox key={option} value={option} className="mb-2">
+                    {option}
+                  </Checkbox>
+                ))}
+              </div>
+            </Checkbox.Group>
           </Form.Item>
           <Form.Item
             name="Vertical_of_industry"
@@ -154,21 +220,20 @@ const baseDivClass = location.pathname === "/client-onboarding" ? "ml-16" : "mar
               { required: false, message: "Please select industry vertical" },
             ]}
           >
-            <Select placeholder="Select Industry Vertical" size={"large"}>
-              <Option value="Star hotel">Star hotel</Option>
-              <Option value="Ethnic restaurant">Ethnic restaurant</Option>
-              <Option value="QSR">QSR</Option>
-              <Option value="Industrial catering">Industrial catering</Option>
-              <Option value="Meat Retail">Meat Retail</Option>
-              <Option value="Sweet Retail">Sweet Retail</Option>
-              <Option value="Bakery">Bakery</Option>
-              <Option value="Others">Others</Option>
-            </Select>
+            <Checkbox.Group>
+              <div className="flex flex-col">
+                {verticalOptions.map((option) => (
+                  <Checkbox key={option} value={option} className="mb-2">
+                    {option}
+                  </Checkbox>
+                ))}
+              </div>
+            </Checkbox.Group>
           </Form.Item>
           <Form.Item
             label={
               <span className="text-gray-600 font-semibold">
-                Registerd Address
+                Registered Address
               </span>
             }
             name={["address", "line1"]}
@@ -228,7 +293,7 @@ const baseDivClass = location.pathname === "/client-onboarding" ? "ml-16" : "mar
           </div>
         </div>
 
-        <div className="sticky bottom-0  z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">
+        {/* <div className="sticky bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">
           <div className={baseDivClass}>
             <Form.Item>
               <NavLink to="/client-profile">
@@ -246,10 +311,10 @@ const baseDivClass = location.pathname === "/client-onboarding" ? "ml-16" : "mar
               </Button>
             </Form.Item>
           </div>
-        </div>
+        </div> */}
       </Form>
     </div>
   );
-};
+});
 
 export default BusinessDetail;

@@ -12,12 +12,11 @@ import {
 } from "antd";
 import moment from "moment";
 import axios from "axios";
-import GenreateSuccessSendMailTableModal from "./GenreateSuccessSendMailTableModal";
-import "../css/UpdateProposalModal.css";
+
 
 const { Option } = Select;
 
-const UpdateGenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
+const UpdateGenerateProposalModal = ({ visible, onOk, onCancel, proposalId }) => {
   const [form] = Form.useForm();
   const [outletItem, setItems] = useState([
     {
@@ -30,29 +29,15 @@ const UpdateGenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => 
       amount: 0,
     },
   ]);
+
   const [proposal_date, setProposalDate] = useState(moment());
   const [proposal_number, setProposalNumber] = useState("");
   const [outlets, setOutlets] = useState([]);
-  const [initialValuesLoaded, setInitialValuesLoaded] = useState(false);
-  const [showSendMailModal, setShowSendMailModal] = useState(false);
   const [subTotal, setSubTotal] = useState(0);
   const [sgst, setSgst] = useState(0);
   const [cgst, setCgst] = useState(0);
   const [total, setTotal] = useState(0);
-  const [prosposalId, setPropsalId] = useState();
   const handleCancel = () => {
-    setItems([]);
-    setItems([
-      {
-        outletId: "",
-        outlet_name: "",
-        no_of_food_handlers: 0,
-        man_days: 0,
-        unit_cost: 0,
-        discount: 0,
-        amount: 0,
-      },
-    ]);
     setSubTotal(0);
     setSgst(0);
     setCgst(0);
@@ -60,133 +45,101 @@ const UpdateGenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => 
     onCancel();
   };
 
-  useEffect(() => {
-    if (visible) {
-    
-      const fetchOutlets = async () => {
-        try {
-          const response = await axios.get(
-            `/api/proposal/getOutletDetailsById/${enquiryId}`
-          );
-          const outletData = response.data;
-          setOutlets(outletData);
+useEffect(() => {
+  fetchProposalDetails();
+}, [proposalId]);
 
-          // Set items state with fetched data
-          setItems(
-            outletData.map((outlet) => ({
-              outletId: outlet._id || "",
-              outlet_name: outlet.branch_name || "",
-              no_of_food_handlers: outlet.no_of_food_handlers || 0,
-              man_days: calculateManDays(outlet.no_of_food_handlers || 0),
-              unit_cost: outlet.unit_cost || 0,
-              discount: 0,
-              amount:
-                (outlet.no_of_food_handlers || 0) *
-                calculateManDays(outlet.no_of_food_handlers || 0) *
-                (outlet.unit_cost || 0),
-            }))
-          );
-        } catch (error) {
-          console.error("Error fetching outlets", error);
-        }
-      };
+const fetchProposalDetails = async () => {
+  try {
+    const response = await axios.get(
+      `/api/proposal/getProposalById/${proposalId}`
+    );
+    const proposalData = response.data;
+ console.log(outletItem);
+    // Initialize form fields with fetched data
+    form.setFieldsValue({
+      fbo_name: proposalData.fbo_name,
+      address: {
+        line1: proposalData.address.line1,
+        line2: proposalData.address.line2,
+      },
+      pincode: proposalData.pincode,
+      gst_number: proposalData.gst_number,
+      contact_person: proposalData.contact_person,
+      phone: proposalData.phone,
+      email: proposalData.email || "",
+      proposal_number: proposalData.proposal_number,
+    });
+     
+      // Set items state with outlets from the fetched proposal data
+      const initializedItems = proposalData.outlets.map((outlet) => ({
+        outletId: outlet._id || "",
+        outlet_name: outlet.outlet_name || "",
+        no_of_food_handlers: outlet.no_of_food_handlers || 50,
+        man_days: outlet.man_days || 0,
+        unit_cost: outlet.unit_cost || 0,
+        discount: outlet.discount || 0,
+        amount: outlet.amount || 0,
+      }));
 
-      const fetchBusinessDetails = async () => {
-        try {
-          const response = await axios.get(
-            `/api/proposal/getBusinessDetailsByEnquiryId/${enquiryId}`
-          );
-          const businessData = response.data;
+      setItems(initializedItems); 
+      console.log("Initialized outlet items:", initializedItems); 
+      calculateTotals(initializedItems); 
+     console.log(outletItem);
+  } catch (error) {
+    console.error("Error fetching proposal details", error);
+  }
+};
 
-          const addressLine1 = businessData.address?.line1 || "";
-          const addressLine2 = businessData.address?.line2 || "";
 
-          // Concatenate addressLine1 with addressLine2 if either one exists
-          const line1 = [addressLine1, addressLine2].filter(Boolean).join(", ");
 
-          const city = businessData.address?.city || "";
-          const state = businessData.address?.state || "";
 
-          // Concatenate city and state if both exist
-          const line2 = [city, state].filter(Boolean).join(", ");
 
-          form.setFieldsValue({
-            fbo_name: businessData.name,
-            address: {
-              line1: line1,
-              line2: line2,
-            },
-            pincode: businessData.address?.pincode || "",
-            gst_number: businessData.gst_number,
-            contact_person: businessData.contact_person,
-            phone: businessData.phone,
-            email: businessData.email || "",
-          });
-          setInitialValuesLoaded(true);
-        } catch (error) {
-          console.error("Error fetching business details", error);
-        }
-      };
 
-      fetchOutlets();
-      fetchProposalNumber();
-      fetchBusinessDetails();
-    }
-  }, [visible, enquiryId, form]);
 
 
   const handleSubmit = async () => {
     try {
-      // Validate form fields before submission
       await form.validateFields();
 
-      // Collect form values
       const formData = form.getFieldsValue();
 
-      // Prepare data to send
       const proposalData = {
         ...formData,
-        enquiryId: enquiryId,
+        proposalId: proposalId,
         proposal_date: proposal_date.format("YYYY-MM-DD"),
         outlets: outletItem,
       };
 
-      // Make POST request to server
       const response = await axios.post(
         "/api/proposal/createProposalAndOutlet",
         proposalData
       );
       onOk();
-      setPropsalId(response.data.proposal._id);
-      // console.log(response.data.proposal._id);
-      setShowSendMailModal(true);
-
-      message.success("Proposal generated successfully!");
+      message.success("Proposal updated successfully!");
     } catch (error) {
-      message.error("Failed to generate proposal.");
+      message.error("Failed to update proposal.");
     }
   };
 
-
-
- const addItem = () => {
-   setItems((prevItems) => {
-     const newItems = [
-       ...prevItems,
-       {
-         outletId: "",
-         outlet_name: "",
-         no_of_food_handlers: 0,
-         man_days: 0,
-         unit_cost: 0,
-         discount: 0,
-         amount: 0,
-       },
-     ];
-     calculateTotals(newItems); 
-     return newItems;
-   });
- };
+  const addItem = () => {
+    setItems((prevItems) => {
+      const newItems = [
+        ...prevItems,
+        {
+          outletId: "",
+          outlet_name: "",
+          no_of_food_handlers: 0,
+          man_days: 0,
+          unit_cost: 0,
+          discount: 0,
+          amount: 0,
+        },
+      ];
+      calculateTotals(newItems);
+      return newItems;
+    });
+  };
 
   const removeItem = (index) => {
     const newItems = outletItem.filter((item, i) => i !== index);
@@ -202,44 +155,40 @@ const UpdateGenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => 
     return 3;
   };
 
-
-
-const handleInputChange = (index, field, value) => {
-  setItems((prevItems) => {
-    const newItems = [...prevItems];
-    if (field === "outletId") {
-      const selectedOutlet = outlets.find((outlet) => outlet._id === value);
-      const man_days = calculateManDays(
-        selectedOutlet ? selectedOutlet.no_of_food_handlers : 0
-      );
-      newItems[index] = {
-        ...newItems[index],
-        outletId: value,
-        outlet_name: selectedOutlet ? selectedOutlet.branch_name : "",
-        no_of_food_handlers: selectedOutlet
-          ? selectedOutlet.no_of_food_handlers
-          : 0,
-        man_days,
-        unit_cost: 0, // Set unit_cost to 0 when an outlet is selected
-      };
-    } else {
-      newItems[index][field] = value;
-      if (field === "no_of_food_handlers") {
-        newItems[index].man_days = calculateManDays(value);
+  const handleInputChange = (index, field, value) => {
+    setItems((prevItems) => {
+      const newItems = [...prevItems];
+      if (field === "outletId") {
+        const selectedOutlet = outlets.find((outlet) => outlet._id === value);
+        const man_days = calculateManDays(
+          selectedOutlet ? selectedOutlet.no_of_food_handlers : 0
+        );
+        newItems[index] = {
+          ...newItems[index],
+          outletId: value,
+          outlet_name: selectedOutlet ? selectedOutlet.branch_name : "",
+          no_of_food_handlers: selectedOutlet
+            ? selectedOutlet.no_of_food_handlers
+            : 0,
+          man_days,
+          unit_cost: 0, // Set unit_cost to 0 when an outlet is selected
+        };
+      } else {
+        newItems[index][field] = value;
+        if (field === "no_of_food_handlers") {
+          newItems[index].man_days = calculateManDays(value);
+        }
       }
-    }
-    newItems[index].amount =
-      newItems[index].no_of_food_handlers *
-        newItems[index].man_days *
-        newItems[index].unit_cost -
-      newItems[index].discount;
+      newItems[index].amount =
+        newItems[index].no_of_food_handlers *
+          newItems[index].man_days *
+          newItems[index].unit_cost -
+        newItems[index].discount;
 
-    calculateTotals(newItems); // Update totals when items change
-    return newItems;
-  });
-};
-
-
+      calculateTotals(newItems); // Update totals when items change
+      return newItems;
+    });
+  };
 
   const calculateTotals = () => {
     if (!Array.isArray(outletItem) || outletItem.length === 0) {
@@ -288,7 +237,7 @@ const handleInputChange = (index, field, value) => {
           style={{ width: 120 }}
         >
           {outlets.map((outlet) => (
-            <Option key={outlet._id} value={outlet._id}>
+            <Option key={outlet._id} value={outlet.branch_name}>
               {outlet.branch_name}
             </Option>
           ))}
@@ -365,10 +314,6 @@ const handleInputChange = (index, field, value) => {
     },
   ];
 
- const handleOk = () => {
-  setShowSendMailModal(false);
- };
-
   return (
     <>
       <Modal
@@ -384,14 +329,14 @@ const handleInputChange = (index, field, value) => {
             className="text-center align-middle font-medium text-xl title-div bg-blue-50 p-7"
             style={{ boxShadow: "0 4px 2px -2px lightgrey" }}
           >
-            Generate Proposal
+            Edit Generate Proposal
           </div>
           <div
             className="px-8 pt-4 pb-8"
             style={{ backgroundColor: "#F6FAFB" }}
           >
             <div className="text-center font-medium text-xl mb-5 rounded-md">
-              Document Preview
+              Edit Document
             </div>
             <div className="flex space-x-4">
               <Form.Item
@@ -519,6 +464,7 @@ const handleInputChange = (index, field, value) => {
                 columns={columns}
                 pagination={false}
               />
+
               <button
                 type="button"
                 onClick={addItem}
@@ -577,9 +523,6 @@ const handleInputChange = (index, field, value) => {
           </div>
         </Form>
       </Modal>
-     
-        
-    
     </>
   );
 };

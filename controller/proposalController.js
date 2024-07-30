@@ -381,3 +381,24 @@ export const updateProposalStatus = async (req, res) => {
     res.status(500).json({ error: "Server error", details: error.message });
   }
 };
+
+
+export const getProposalById = async (req, res, next) => {
+  const { proposalId } = req.params; // Extract the ID from the request parameters
+
+  try {
+    // Find the proposal by ID
+    const proposal = await Proposal.findById(proposalId);
+
+    // Check if the proposal exists
+    if (!proposal) {
+      return res.status(404).json({ message: "Proposal not found" });
+    }
+
+    // Send the proposal data as a response
+    res.status(200).json(proposal);
+  } catch (error) {
+    // Pass any errors to the error handling middleware
+    next(error);
+  }
+};

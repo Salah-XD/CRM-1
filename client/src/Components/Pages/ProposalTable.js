@@ -28,6 +28,7 @@ import { ExclamationCircleFilled } from "@ant-design/icons";
 import GenerateProposalSendMail from "./GenerateProposalSendMail";
 import GenerateAgreementModal from "./GenrateAgreementModal";
 import GenrateInvoiceModal from "./GenrateInvoiceModal";
+import UpdateGenerateProposalModal from "./UpdateGenrateProposalModal";
 
 const { confirm } = Modal;
 
@@ -73,6 +74,7 @@ const ProposalTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [proposalId, setProposalId] = useState(null);
   const [showSendMailModal, setShowSendMailModal] = useState(false);
+  const [UpdateProposal, setUpdateProposal] = useState(false);
 
 
   // Toggling
@@ -116,6 +118,17 @@ const ProposalTable = () => {
     setShowSendMailModal(false);
     setProposalId(null);
   };
+
+  const showUpdateProposal=(proposalId)=>{
+      setProposalId(proposalId);
+      setUpdateProposal(true);
+  }
+
+  const handleUpdatePropsoalCancel=()=>{
+    fetchData();
+    setUpdateProposal(false);
+    setProposalId(null);
+  }
 
   // Fetch data function
   const fetchData = useCallback(() => {
@@ -293,6 +306,10 @@ const ProposalTable = () => {
       case "delete":
         showSingleDeleteConfirm(record._id);
         break;
+
+        case "edit":
+          showUpdateProposal(record._id);
+          break;
 
       default:
         break;
@@ -632,7 +649,12 @@ const ProposalTable = () => {
         onOk={handleInvoiceOk}
         onCancel={handleInvoiceCancel}
       />
-
+      <UpdateGenerateProposalModal
+        visible={UpdateProposal}
+        onOk={handleOk}
+        onCancel={handleUpdatePropsoalCancel}
+        proposalId={proposalId}
+      />
       <GenerateProposalSendMail
         visible={showSendMailModal}
         onClose={showCloseSendMail}

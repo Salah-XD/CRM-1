@@ -13,19 +13,29 @@ const businessSchema = new Schema({
   },
   type_of_industry: {
     type: String,
-    enum: ["Catering", "Meat", "Sweet", "Shop", "Bakery"],
-  },
-  Vertical_of_industry: {
-    type: String,
     enum: [
-      "Star hotel",
-      "Ethnic restaurant",
-      "QSR",
-      "Industrial catering",
+      "Catering",
+      "Manufacturing",
+      "Trade and retail",
+      "Transportation",
+    ],
+  },
+  vertical_of_industry: {
+    type: [String],
+    enum: [
+      "Sweet Shop",
       "Meat Retail",
-      "Sweet Retail",
-      "Bakery",
-      "Others(Type)",
+      "Hub",
+      "Market",
+      "General Manufacturing",
+      "Meat & Meat Processing",
+      "Dairy Processing",
+      "Catering",
+      "Transportation",
+      "Storage/Warehouse",
+      "Institute Canteen",
+      "Industrial Canteen",
+      "Temple Kitchen",
     ],
   },
   fssai_license_number: {
@@ -42,13 +52,12 @@ const businessSchema = new Schema({
   gst_number: {
     type: String,
   },
- address: {
+  address: {
     line1: { type: String },
     line2: { type: String },
     state: { type: String },
     city: { type: String },
     pincode: { type: String },
-  
   },
   added_by: {
     type: String,

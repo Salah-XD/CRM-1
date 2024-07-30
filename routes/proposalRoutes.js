@@ -9,7 +9,8 @@ import {
   getAllProposalDetails,
   getOutletsByProposalId,
   deleteFields,
-  updateProposalStatus
+  updateProposalStatus,
+  getProposalById,
 } from "../controller/proposalController.js";
 
 import { generateProposal } from "../controller/proposalGenerationController.js";
@@ -41,6 +42,8 @@ router.delete("/deleteFields", deleteFields);
 
 
 router.put("/updateProposalStatus/:proposalId", updateProposalStatus);
+
+router.get("/getProposalById/:proposalId", getProposalById);
 
 
 

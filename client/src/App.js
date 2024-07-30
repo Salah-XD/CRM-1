@@ -47,6 +47,7 @@ function App() {
           <Route path="/invoice" element={<InvoiceTable />} />
           <Route path="/proposal" element={<ProposalTable />} />
           <Route path="/agreement" element={<AgreementTable />} />
+          <Route path="/add" element={<BusinessDetail />} />
         </Route>
 
         <Route element={<AuditAdminRoute />}>
