@@ -187,23 +187,6 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
               disabled={!isEditable}
             />
           </Form.Item>
-
-          <Form.Item
-            label={
-              <span className="text-gray-600 font-semibold">
-                FSSAI License Number
-              </span>
-            }
-            className="w-1/4"
-            name="fssai_license_number"
-           
-          >
-            <Input
-              placeholder="Enter your License Number"
-              className="placeholder-gray-400 p-3 rounded-lg"
-              disabled={!isEditable}
-            />
-          </Form.Item>
           <Form.Item
             className="w-1/4"
             label={
