@@ -1,4 +1,4 @@
-import React, { useState,useEffect ,useRef } from "react";
+import React, { useState, useRef } from "react";
 import { Button, message, Steps, theme } from "antd";
 import BusinessDetail from "./BussinessDetail";
 import OutletDetail from "./OutletDetail";
@@ -9,11 +9,13 @@ const AddClientForm = ({ newClientTitle }) => {
   const [current, setCurrent] = useState(0);
   const [formData, setFormData] = useState({
     businessDetail: {},
-    outletDetail: {},
+    outletDetail: { items: [] }, // Initialize with an empty array for outlets
+    questionnairesDetail: {}, // Initialize questionnairesDetail
   });
 
   const businessDetailRef = useRef();
   const outletDetailRef = useRef();
+  const questionnairesFormRef = useRef();
 
   // Moves to the next step
   const next = () => {
@@ -25,18 +27,22 @@ const AddClientForm = ({ newClientTitle }) => {
           setCurrent(current + 1);
         })
         .catch((error) => {
-        
+          console.error("Error submitting Business Detail:", error);
+          message.error("Failed to submit Business Detail. Please try again.");
         });
     } else if (current === 1) {
       // Validate Outlet Detail and move to the next step
-      outletDetailRef.current
+     setCurrent(current + 1);
+    } else if (current === 2) {
+      // Validate Questionnaires and move to the next step
+      questionnairesFormRef.current
         ?.submit()
         .then(() => {
-          setCurrent(current + 1);
+          handleSubmit();
         })
         .catch((error) => {
-          console.error("Error submitting Outlet Detail:", error);
-          message.error("Failed to submit Outlet Detail. Please try again.");
+          console.error("Error submitting Questionnaires:", error);
+          message.error("Failed to submit Questionnaires. Please try again.");
         });
     } else {
       setCurrent(current + 1);
@@ -55,46 +61,69 @@ const AddClientForm = ({ newClientTitle }) => {
     setFormData((prev) => ({ ...prev, outletDetail: data }));
   };
 
+  const handleQuestionnairesDetailChange = (data) => {
+    setFormData((prev) => ({ ...prev, questionnairesDetail: data }));
+  };
+
   // Submits the form data
   const handleSubmit = async () => {
-    try {
-      // Submitting business details
-      const businessResponse = await fetch(
-        "https://your-backend-api.com/business",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData.businessDetail),
-        }
-      );
+    message.success("i am triggerd");
+    // try {
+    //   // Submitting business details
+    //   const businessResponse = await fetch(
+    //     "https://your-backend-api.com/business",
+    //     {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify(formData.businessDetail),
+    //     }
+    //   );
 
-      if (!businessResponse.ok)
-        throw new Error("Failed to submit business detail");
+    //   if (!businessResponse.ok)
+    //     throw new Error("Failed to submit business detail");
 
-      const businessData = await businessResponse.json();
-      const businessId = businessData.id;
+    //   const businessData = await businessResponse.json();
+    //   const businessId = businessData.id;
 
-      // Submitting outlet details with businessId
-      const outletResponse = await fetch(
-        "https://your-backend-api.com/outlet",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ ...formData.outletDetail, businessId }),
-        }
-      );
+    //   // Submitting outlet details with businessId
+    //   const outletResponse = await fetch(
+    //     "https://your-backend-api.com/outlet",
+    //     {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify({ ...formData.outletDetail, businessId }),
+    //     }
+    //   );
 
-      if (!outletResponse.ok) throw new Error("Failed to submit outlet detail");
+    //   if (!outletResponse.ok) throw new Error("Failed to submit outlet detail");
 
-      message.success("Data submitted successfully!");
-    } catch (error) {
-      console.error("Error during submission process:", error);
-      message.error("An error occurred during the submission.");
-    }
+    //   // Submitting questionnaires details with businessId
+    //   const questionnairesResponse = await fetch(
+    //     "https://your-backend-api.com/questionnaires",
+    //     {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //       },
+    //       body: JSON.stringify({
+    //         ...formData.questionnairesDetail,
+    //         businessId,
+    //       }),
+    //     }
+    //   );
+
+    //   if (!questionnairesResponse.ok)
+    //     throw new Error("Failed to submit questionnaires detail");
+
+    //   message.success("Data submitted successfully!");
+    // } catch (error) {
+    //   console.error("Error during submission process:", error);
+    //   message.error("An error occurred during the submission.");
+    // }
   };
 
   // Steps configuration
@@ -123,9 +152,9 @@ const AddClientForm = ({ newClientTitle }) => {
       title: "Questionnaires",
       content: (
         <QuestionnairesForm
-          //ref={outletDetailRef}
-          data={formData.outletDetail}
-          //onChange={handleQuestionnariesDetailChange}
+          ref={questionnairesFormRef}
+          data={formData.questionnairesDetail}
+          onChange={handleQuestionnairesDetailChange} // Handle the change
         />
       ),
     },
@@ -153,7 +182,7 @@ const AddClientForm = ({ newClientTitle }) => {
         </div>
       </div>
 
-      <div style={stepsContainerStyle} >
+      <div style={stepsContainerStyle}>
         <Steps current={current} items={items} />
       </div>
       <div style={contentStyle}>{steps[current].content}</div>
@@ -165,7 +194,7 @@ const AddClientForm = ({ newClientTitle }) => {
             </Button>
           )}
           {current === steps.length - 1 && (
-            <Button type="primary" onClick={handleSubmit}>
+            <Button type="primary" onClick={next}>
               Submit
             </Button>
           )}

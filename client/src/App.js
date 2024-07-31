@@ -48,23 +48,22 @@ function App() {
           <Route path="/proposal" element={<ProposalTable />} />
           <Route path="/agreement" element={<AgreementTable />} />
           <Route path="/add" element={<BusinessDetail />} />
+          <Route
+            path="/client-profile/add-business"
+            element={
+              <AdminDashboard>
+                <AddClient newClientTitle={"Client Details Form"}>
+                  <BusinessDetail />
+                </AddClient>
+              </AdminDashboard>
+            }
+          />
         </Route>
 
         <Route element={<AuditAdminRoute />}>
           <Route path="/audit-plan" element={<AuditPlan />} />
           <Route path="/agreement" element={<Agreement />} />
         </Route>
-
-        <Route
-          path="/client-profile/add-business"
-          element={
-            <AdminDashboard>
-              <AddClient newClientTitle={"Client Details Form"}>
-                <BusinessDetail />
-              </AddClient>
-            </AdminDashboard>
-          }
-        />
 
         <Route
           path="client-profile/update-client"

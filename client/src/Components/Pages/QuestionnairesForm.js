@@ -1,10 +1,5 @@
-import React, {
-  useState,
-  forwardRef,
-  useImperativeHandle,
-  useEffect,
-} from "react";
-import { Form, Input, Checkbox, Button } from "antd";
+import React, { useEffect, forwardRef, useImperativeHandle } from "react";
+import { Form, Input, Button } from "antd";
 import { useLocation } from "react-router-dom";
 
 const QuestionnairesForm = forwardRef(
@@ -17,22 +12,49 @@ const QuestionnairesForm = forwardRef(
         ? "m-6 p-4 w-3/4 mx-auto"
         : "ml-6";
 
+    // Set form fields based on data when component mounts or data changes
+    useEffect(() => {
+      if (data) {
+        form.setFieldsValue(data);
+      }
+    }, [data, form]);
+
+
+    
+    useImperativeHandle(ref, () => ({
+      submit: () =>
+        new Promise((resolve, reject) => {
+          form
+            .validateFields()
+            .then((values) => {
+              onChange(values);
+              resolve(values);
+            })
+            .catch(reject);
+        }),
+    }));
+
     const handleFinish = (values) => {
       // Handle form submission
       console.log("Form values: ", values);
-      onSubmit(values);
+      onSubmit(values); // Trigger the submit handler
     };
 
     return (
-      <div className="w-full">
-        <Form form={form} layout="vertical" onFinish={handleFinish}>
-          <div className={innerDivClass}>
+      <div className="min-h-screen">
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleFinish}
+          className="h-full"
+        >
+          <div className={innerDivClass + " h-full"}>
             <Form.Item
               className="w-1/2"
               name="existing_consultancy_name"
               label={
                 <span className="text-gray-600 font-semibold">
-                  Existing Consultancy Name*
+                  Existing Consultancy Name
                 </span>
               }
               rules={[
@@ -52,7 +74,7 @@ const QuestionnairesForm = forwardRef(
               name="fostac_agency_name"
               label={
                 <span className="text-gray-600 font-semibold">
-                  FOSTAC Agency Name*
+                  FOSTAC Agency Name
                 </span>
               }
               rules={[
@@ -78,11 +100,6 @@ const QuestionnairesForm = forwardRef(
                 className="placeholder-gray-400 p-3 rounded-lg w-full"
                 rows={4}
               />
-            </Form.Item>
-            <Form.Item className="w-full">
-              <Button type="primary" htmlType="submit" loading={loading}>
-                Submit
-              </Button>
             </Form.Item>
           </div>
         </Form>
