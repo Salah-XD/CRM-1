@@ -12,16 +12,11 @@ const businessSchema = new Schema({
     required: true,
   },
   type_of_industry: {
-    type: String,
-    enum: [
-      "Catering",
-      "Manufacturing",
-      "Trade and retail",
-      "Transportation",
-    ],
+    type: [String],
+    enum: ["Catering", "Manufacturing", "Trade and retail", "Transportation"],
   },
   vertical_of_industry: {
-    type: [String],
+    type: [String], 
     enum: [
       "Sweet Shop",
       "Meat Retail",
@@ -76,6 +71,10 @@ const businessSchema = new Schema({
   updated_at: {
     type: Date,
     default: null,
+  },
+  gst_enable: {
+    type: Boolean,
+    default: false, // Default to false
   },
 });
 

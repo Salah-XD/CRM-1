@@ -14,7 +14,7 @@ const outletSchema = new Schema(
       required: true,
     },
     fssai_license_number: {
-      type: String,
+      type: Number,
     },
     no_of_food_handlers: {
       type: String,

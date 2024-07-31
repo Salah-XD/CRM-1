@@ -18,6 +18,7 @@ import {
   getBranchNamesByBusinessId,
   getAllClientDetails,
   updateBusinessStatus,
+  saveQuestionary,
 } from "../controller/clinetController.js";
 const router = express.Router();
  
@@ -33,6 +34,12 @@ const router = express.Router();
 
 // Route to save Client data
 router.post("/saveClientData", saveBusiness);
+
+
+router.post("/saveQuestionary", saveQuestionary);
+
+
+
 
 
 // Route to save Client data

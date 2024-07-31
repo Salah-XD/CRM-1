@@ -3,24 +3,28 @@ import { Button, message, Steps, theme } from "antd";
 import BusinessDetail from "./BussinessDetail";
 import OutletDetail from "./OutletDetail";
 import QuestionnairesForm from "./QuestionnairesForm";
+import { useNavigate, useLocation } from "react-router-dom";
+
+import axios from "axios";
 
 const AddClientForm = ({ newClientTitle }) => {
   const { token } = theme.useToken();
   const [current, setCurrent] = useState(0);
   const [formData, setFormData] = useState({
     businessDetail: {},
-    outletDetail: { items: [] }, // Initialize with an empty array for outlets
-    questionnairesDetail: {}, // Initialize questionnairesDetail
+    outletDetail: { items: [] },
+    questionnairesDetail: {},
   });
 
   const businessDetailRef = useRef();
   const outletDetailRef = useRef();
   const questionnairesFormRef = useRef();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // Moves to the next step
+
   const next = () => {
     if (current === 0) {
-      // Validate Business Detail and move to the next step
       businessDetailRef.current
         ?.submit()
         .then(() => {
@@ -31,14 +35,19 @@ const AddClientForm = ({ newClientTitle }) => {
           message.error("Failed to submit Business Detail. Please try again.");
         });
     } else if (current === 1) {
-      // Validate Outlet Detail and move to the next step
-     setCurrent(current + 1);
+      if (formData.outletDetail.items.length > 0) {
+        setCurrent(current + 1);
+      } else {
+        message.error("Please add at least one outlet.");
+      }
     } else if (current === 2) {
-      // Validate Questionnaires and move to the next step
       questionnairesFormRef.current
         ?.submit()
         .then(() => {
-          handleSubmit();
+          setFormData((prev) => {
+            handleSubmit(prev);
+            return prev;
+          });
         })
         .catch((error) => {
           console.error("Error submitting Questionnaires:", error);
@@ -49,10 +58,8 @@ const AddClientForm = ({ newClientTitle }) => {
     }
   };
 
-  // Moves to the previous step
   const prev = () => setCurrent(current - 1);
 
-  // Handles the form data changes from child components
   const handleBusinessDetailChange = (data) => {
     setFormData((prev) => ({ ...prev, businessDetail: data }));
   };
@@ -65,68 +72,42 @@ const AddClientForm = ({ newClientTitle }) => {
     setFormData((prev) => ({ ...prev, questionnairesDetail: data }));
   };
 
-  // Submits the form data
-  const handleSubmit = async () => {
-    message.success("i am triggerd");
-    // try {
-    //   // Submitting business details
-    //   const businessResponse = await fetch(
-    //     "https://your-backend-api.com/business",
-    //     {
-    //       method: "POST",
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //       },
-    //       body: JSON.stringify(formData.businessDetail),
-    //     }
-    //   );
+  const handleSubmit = async (data) => {
+    try {
+      const businessResponse = await axios.post(
+        "/api/saveClientData",
+        data.businessDetail
+      );
 
-    //   if (!businessResponse.ok)
-    //     throw new Error("Failed to submit business detail");
+      const businessData = businessResponse.data.data;
+      const businessId = businessData._id;
 
-    //   const businessData = await businessResponse.json();
-    //   const businessId = businessData.id;
+      const outletPromises = data.outletDetail.items.map((outlet) =>
+        axios.post("/api/saveOutlet", {
+          ...outlet,
+          business: businessId,
+        })
+      );
 
-    //   // Submitting outlet details with businessId
-    //   const outletResponse = await fetch(
-    //     "https://your-backend-api.com/outlet",
-    //     {
-    //       method: "POST",
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //       },
-    //       body: JSON.stringify({ ...formData.outletDetail, businessId }),
-    //     }
-    //   );
+      await Promise.all(outletPromises);
 
-    //   if (!outletResponse.ok) throw new Error("Failed to submit outlet detail");
+      await axios.post("/api/saveQuestionary", {
+        ...data.questionnairesDetail,
+        business: businessId,
+      });
 
-    //   // Submitting questionnaires details with businessId
-    //   const questionnairesResponse = await fetch(
-    //     "https://your-backend-api.com/questionnaires",
-    //     {
-    //       method: "POST",
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //       },
-    //       body: JSON.stringify({
-    //         ...formData.questionnairesDetail,
-    //         businessId,
-    //       }),
-    //     }
-    //   );
-
-    //   if (!questionnairesResponse.ok)
-    //     throw new Error("Failed to submit questionnaires detail");
-
-    //   message.success("Data submitted successfully!");
-    // } catch (error) {
-    //   console.error("Error during submission process:", error);
-    //   message.error("An error occurred during the submission.");
-    // }
+      message.success("Data submitted successfully!");
+      if (location.pathname === "/client-onboarding") {
+        navigate("/client-success");
+      } else {
+        navigate("/client-profile");
+      }
+    } catch (error) {
+      console.error("Error during submission process:", error);
+      message.error("An error occurred during the submission.");
+    }
   };
 
-  // Steps configuration
   const steps = [
     {
       title: "Business Detail",
@@ -154,7 +135,7 @@ const AddClientForm = ({ newClientTitle }) => {
         <QuestionnairesForm
           ref={questionnairesFormRef}
           data={formData.questionnairesDetail}
-          onChange={handleQuestionnairesDetailChange} // Handle the change
+          onChange={handleQuestionnairesDetailChange}
         />
       ),
     },

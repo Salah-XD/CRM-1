@@ -25,7 +25,7 @@ const OutletForm = ({ isModalVisible, handleOk, handleCancel, item }) => {
   return (
     <Modal
       className="h-80vh overflow-hidden"
-      title={<span className="text-xl">Add/Update Outlet</span>}
+      title={<span className="text-xl">Add Outlet</span>}
       visible={isModalVisible}
       onCancel={handleCancel}
       footer={null}

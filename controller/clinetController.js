@@ -3,11 +3,12 @@ import Business from "../models/bussinessModel.js";
 import Outlet from "../models/outletModel.js";
 import nodemailer from "nodemailer";
 import mongoose from "mongoose";
+import Questionaries from "../models/questionariesModle.js";
 
 
 // Controller function to handle saving client data
 export const saveBusiness = async (req, res) => {
-  //console.log(req.body);
+console.log(req.body);
   try {
     const {
       name,
@@ -21,6 +22,7 @@ export const saveBusiness = async (req, res) => {
       address,
       added_by,
       status,
+      gst_enable,
     } = req.body;
 
     // Validate required fields
@@ -43,6 +45,7 @@ export const saveBusiness = async (req, res) => {
       address, 
       added_by,
       status, 
+      gst_enable,
       created_at: new Date(), 
     });
 
@@ -138,6 +141,7 @@ export const getBusinessDetailsById = async (req, res) => {
 
 // Controller function to save outlet information
 export const saveOutlet = async (req, res) => {
+  console.log(req.body);
   try {
     const {
       branch_name,
@@ -344,15 +348,22 @@ export const countOutletsForBusinesses = async (req, res) => {
 };
 
 export const deleteFields = async (req, res) => {
-  //console.log(req.body);
   try {
-    const arrayOfBusinessIds = req.body; 
+    const arrayOfBusinessIds = req.body;
 
-    // Validate arrayOfBusinessIds here if necessary
+    // Validate arrayOfBusinessIds if necessary
+    if (!Array.isArray(arrayOfBusinessIds)) {
+      return res
+        .status(400)
+        .json({ error: "Invalid input format. Expected an array of IDs." });
+    }
 
     const deletionPromises = arrayOfBusinessIds.map(async (businessId) => {
       // Delete all outlets linked to this business
       await Outlet.deleteMany({ business: businessId });
+
+      // Delete all questionaries linked to this business
+      await Questionaries.deleteMany({ business: businessId });
 
       // Delete Business document
       await Business.deleteOne({ _id: businessId });
@@ -704,5 +715,40 @@ export const updateBusinessStatus = async (req, res) => {
   } catch (error) {
     console.error("Error updating business status:", error);
     return res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+export const saveQuestionary = async (req, res) => {
+  console.log(req.body);
+  try {
+    const {
+      existing_consultancy_name,
+      fostac_agency_name,
+      other_certifications,
+      business,
+    } = req.body;
+
+    if (!existing_consultancy_name || !fostac_agency_name || !business) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "Existing consultancy name, FOSTAC Agency Name, and Business are required.",
+        });
+    }
+
+    const newQuestionary = new Questionaries({
+      existing_consultancy_name,
+      fostac_agency_name,
+      other_certifications,
+      business,
+    });
+
+    const savedQuestionary = await newQuestionary.save();
+    res.status(201).json(savedQuestionary);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
 };

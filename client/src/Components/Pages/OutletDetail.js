@@ -2,10 +2,10 @@ import React from "react";
 import { Table, Button, Modal, message } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import OutletForm from "./OutletForm";
-import "../css/outletForm.css"; // Import the custom CSS
+import "../css/outletForm.css"; 
 
 const OutletDetail = ({ data, onChange }) => {
-  const [isModalVisible, setIsModalVisible] = React.useState(false);
+  const [isModalVisible, setIsModalVisible] = React.useState(true);
   const [editingItem, setEditingItem] = React.useState(null); // State for the item being edited
   const [pagination, setPagination] = React.useState({
     current: 1,

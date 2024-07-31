@@ -1,5 +1,5 @@
 import React, { useState, forwardRef, useImperativeHandle,useEffect} from "react";
-import { Form, Input,  Checkbox } from "antd";
+import { Form, Input,  Checkbox,message } from "antd";
 import {  useLocation } from "react-router-dom";
 
 const BusinessDetail = forwardRef(({ data, onChange,onSubmit,loading }, ref) => {
@@ -19,6 +19,14 @@ const BusinessDetail = forwardRef(({ data, onChange,onSubmit,loading }, ref) => 
         form
           .validateFields()
           .then((values) => {
+
+              if (location.pathname === "/client-onboarding") {
+                values.status = "pending";
+                values.added_by = "Client Form";
+              } else {
+                values.added_by = "Manual";
+                values.status = "approved";
+              }
             onChange(values);
             resolve(values);
           })
@@ -28,7 +36,7 @@ const BusinessDetail = forwardRef(({ data, onChange,onSubmit,loading }, ref) => 
 
 
 const handleFinish = (values) => {
-  onChange(values); // Update the parent state with form values
+  onChange(values); 
 };
 
   const handleGstCheckboxChange = (e) => {
@@ -39,20 +47,14 @@ const handleFinish = (values) => {
   };
 
   const handleSubmit = async (values) => {
-    if (location.pathname === "/client-onboarding") {
-      values.status = "pending";
-      values.added_by = "Client Form";
-    } else {
-      values.added_by = "Manual";
-      values.status = "approved";
-    }
+    
     onSubmit(values);
   };
 
   const industryOptions = [
     "Catering",
     "Manufacturing",
-    "Trade and Retail",
+    "Trade and retail",
     "Transportation",
   ];
 
