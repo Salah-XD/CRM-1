@@ -19,28 +19,20 @@ import {
   getAllClientDetails,
   updateBusinessStatus,
   saveQuestionary,
+  getQuestionaryByBusiness,
+  updateQuestionary
 } from "../controller/clinetController.js";
 const router = express.Router();
  
 
-// import { generateInvoices } from "../controller/invoicesController.js";
-
-
-
-
-
-
-// router.post("/generate-invoices", generateInvoices);
-
 // Route to save Client data
 router.post("/saveClientData", saveBusiness);
 
-
 router.post("/saveQuestionary", saveQuestionary);
 
+router.get("/getQuestionaryByBusiness/:businessId", getQuestionaryByBusiness);
 
-
-
+router.put("/updateQuestionary/:businessId", updateQuestionary);
 
 // Route to save Client data
 router.put("/updateClientData", updateBusiness);

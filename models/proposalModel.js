@@ -2,44 +2,53 @@ import mongoose from "mongoose";
 
 const { Schema, model } = mongoose;
 
-const outletSchema = new Schema(
-  {
-    outlet_name: {
-      type: String,
-      required: true,
-    },
-    man_days: {
-      type: Number,
-      default: 0,
-    },
-    no_of_food_handlers: {
-      type: Number,
-      default: 0,
-    },
-    amount: {
-      type: Number,
-      default: 0,
-    },
-    discount: {
-      type: Number,
-      default: 0,
-    },
-    unit_cost: {
-      type: Number,
-      default: 0,
-    },
-    is_invoiced: {
-      type: Boolean,
-      default: false,
-    },
+const outletSchema = new Schema({
+  outlet_name: {
+    type: String,
+    required: true,
   },
-
-);
+  man_days: {
+    type: Number,
+    default: 0,
+  },
+  no_of_food_handlers: {
+    type: Number,
+    default: 0,
+  },
+  description: {
+    type: "String",
+  },
+  service: {
+    type: String,
+  },
+  quantity: {
+    type: Number,
+    default: 0,
+  },
+  unit_cost: {
+    type: Number,
+    default: 0,
+  },
+  amount: {
+    type: Number,
+    default: 0,
+  },
+  is_invoiced: {
+    type: Boolean,
+    default: false,
+  },
+});
 
 const proposalSchema = new Schema(
   {
-    fbo_name:{
-      type:String,
+
+    assigned_auditor:{
+       type: Schema.Types.ObjectId,
+      ref: "Auditor",
+      required: true,
+    },
+    fbo_name: {
+      type: String,
     },
     proposal_date: {
       type: Date,
@@ -53,7 +62,7 @@ const proposalSchema = new Schema(
         "Partial Invoiced",
         "Sale closed",
         "Dropped",
-        "Pending"
+        "Pending",
       ],
       default: "Mail not sent",
       required: true,
@@ -85,7 +94,7 @@ const proposalSchema = new Schema(
       type: String,
       required: true,
     },
-    email:{
+    email: {
       type: String,
       required: true,
     },
@@ -93,13 +102,15 @@ const proposalSchema = new Schema(
       type: [outletSchema],
       required: true,
     },
-    pincode:{
-   type: Number,
-   required: true,
+    pincode: {
+      type: Number,
+      required: true,
     },
-    message:{
-      type:String,
-      
+    message: {
+      type: String,
+    },
+    note:{
+      type:String
     }
   },
   {

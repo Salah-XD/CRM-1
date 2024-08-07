@@ -9,9 +9,10 @@ import enquiryRoutes from "./routes/enquiryRoutes.js";
 import proposalRoutes from "./routes/proposalRoutes.js";
 import invoiceRoutes from "./routes/invoiceRoutes.js";
 import agreementRoutes from "./routes/agreementRoutes.js"
+import auditorRoutes from "./routes/auditorRoutes.js"
 
-import path from "path";
-import { fileURLToPath } from "url";
+//import path from "path";
+ //import { fileURLToPath } from "url";
 
 // Configure environment variables
 dotenv.config();
@@ -20,14 +21,14 @@ dotenv.config();
 const app = express();
 
 // Get current filename and directory
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+//const __filename = fileURLToPath(import.meta.url);
+//const __dirname = path.dirname(__filename);
 
 
 
 
 // // Serve React app
-app.use(express.static(path.join(__dirname, "./client/build")));
+// app.use(express.static(path.join(__dirname, "./client/build")));
 
 
 // Connect to database and start server
@@ -53,11 +54,12 @@ app.use("/api/proposal", proposalRoutes);
 app.use("/api/invoice", invoiceRoutes);
 app.use("/api/agreement", agreementRoutes);
 app.use("/api/auth", authenticatinRoutes);
+app.use("/api/auditor", auditorRoutes);
 
 // All other routes (non-API routes) go to React app
- app.use("*", function (req, res) {
-   res.sendFile(path.join(__dirname, "./client/build/index.html"));
- })
+ //app.use("*", function (req, res) {
+   //res.sendFile(path.join(__dirname, "./client/build/index.html"));
+ //})
 
 
 app.use((err, req, res, next) => {

@@ -107,7 +107,7 @@ export const getBusinessDetailsByEnquiryId = async (req, res) => {
 
 // Controller function to save data
 export const createProposalAndOutlet = async (req, res) => {
-  //console.log(req.body);
+  console.log(req.body);
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -123,9 +123,11 @@ export const createProposalAndOutlet = async (req, res) => {
       contact_person,
       phone,
       outlets,
-      enquiryId, 
+      enquiryId,
       pincode,
-      email
+      email,
+      note,
+      assigned_auditor,
     } = req.body;
 
     // Create a new Proposal instance with outlets
@@ -140,8 +142,10 @@ export const createProposalAndOutlet = async (req, res) => {
       phone,
       outlets,
       pincode,
-      message:"Proposal Created",
-      email
+      message: "Proposal Created",
+      email,
+      note,
+      assigned_auditor,
     });
 
     // Save the Proposal to the database

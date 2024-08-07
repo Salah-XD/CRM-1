@@ -4,7 +4,6 @@ import path from "path";
 import nodemailer from "nodemailer";
 import Proposal from "../models/proposalModel.js";
 
-
 const __dirname = path.resolve();
 
 export const generateProposal = async (req, res) => {
@@ -33,11 +32,11 @@ export const generateProposal = async (req, res) => {
     // Calculate total, cgst, sgst, and total
     let total = 0;
     outlets.forEach((outlet) => {
-       total += parseFloat(outlet.amount.$numberInt || outlet.amount);
+      total += parseFloat(outlet.amount.$numberInt || outlet.amount);
     });
 
-    const cgst =  total * 0.09; // 9% CGST
-    const sgst =  total * 0.09; // 9% SGST
+    const cgst = total * 0.09; // 9% CGST
+    const sgst = total * 0.09; // 9% SGST
     const overallTotal = total + cgst + sgst;
 
     // Convert MongoDB date format
@@ -58,44 +57,43 @@ export const generateProposal = async (req, res) => {
     // Generate the outlet content dynamically
     const outletRows = outlets
       .map((outlet) => {
-        const noOfFoodHandlers =
-          outlet.no_of_food_handlers?.$numberInt ||
-          outlet.no_of_food_handlers ||
-          0;
+        const outletName = outlet.outlet_name || "";
+        const description = outlet.description || "";
+        const service = outlet.service || "";
         const manDays = outlet.man_days?.$numberDouble || outlet.man_days || 0;
+        const quantity = outlet.quantity?.$numberInt || outlet.quantity || 0;
         const unitCost = outlet.unit_cost?.$numberInt || outlet.unit_cost || 0;
-        const discount = outlet.discount?.$numberInt || outlet.discount || 0;
         const amount = outlet.amount?.$numberInt || outlet.amount || 0;
 
         return `
       <tr>
-        <td class="border">${outlet.outlet_name || ""}</td>
-        <td class="border text-center">${noOfFoodHandlers}</td>
-        <td class="border text-center">${manDays}</td>
-        <td class="border text-center">${unitCost}</td>
-        <td class="border text-center">${discount}</td>
-        <td class="border">${amount}</td>
+        <td class="px-2 py-1 text-center">${outletName}</td>
+        <td class="px-2 py-1 text-center">${description}</td>
+        <td class="px-2 py-1 text-center">${service}</td>
+        <td class="px-2 py-1 text-center">${manDays}</td>
+        <td class="px-2 py-1 text-center">${quantity}</td>
+        <td class="px-2 py-1 text-center">${unitCost}</td>
+        <td class="px-2 py-1 text-center">${amount}</td>
       </tr>
     `;
       })
       .join("");
 
     // Inject dynamic data into HTML template
-   const dynamicContent = htmlTemplate
-     .replace(/{{fbo_name}}/g, fbo_name)
-     .replace(/{{contact_person}}/g, contact_person)
-     .replace(/{{contactPersonNumber}}/g, phone)
-     .replace(/{{address}}/g, `${line1}, ${line2}`)
-     .replace(/{{gst_number}}/g, gst_number)
-     .replace(/{{proposalNumber}}/g, proposal_number)
-     .replace(/{{proposalDate}}/g, proposalDate.toLocaleDateString())
-     .replace(/{{outletRows}}/g, outletRows)
-     .replace(/{{imageData}}/g, imageData)
-     .replace(/{{total}}/g, total)
-     .replace(/{{cgst}}/g, cgst)
-     .replace(/{{sgst}}/g, sgst)
-     .replace(/{{overallTotal}}/g, overallTotal);
-
+    const dynamicContent = htmlTemplate
+      .replace(/{{fbo_name}}/g, fbo_name)
+      .replace(/{{contact_person}}/g, contact_person)
+      .replace(/{{contactPersonNumber}}/g, phone)
+      .replace(/{{address}}/g, `${line1}, ${line2}`)
+      .replace(/{{gst_number}}/g, gst_number)
+      .replace(/{{proposalNumber}}/g, proposal_number)
+      .replace(/{{proposalDate}}/g, proposalDate.toLocaleDateString())
+      .replace(/{{outletRows}}/g, outletRows)
+      .replace(/{{imageData}}/g, imageData)
+      .replace(/{{total}}/g, total)
+      .replace(/{{cgst}}/g, cgst)
+      .replace(/{{sgst}}/g, sgst)
+      .replace(/{{overallTotal}}/g, overallTotal);
 
     const browser = await puppeteer.launch();
     const page = await browser.newPage();

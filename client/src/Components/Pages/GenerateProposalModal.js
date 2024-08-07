@@ -10,12 +10,14 @@ import {
   Button,
   message,
 } from "antd";
+import { DeleteOutlined } from "@ant-design/icons";
 import moment from "moment";
 import axios from "axios";
 import GenreateSuccessSendMailTableModal from "./GenreateSuccessSendMailTableModal";
 import "../css/GenerateProposalModal.css";
 
 const { Option } = Select;
+const { TextArea } = Input;
 
 const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
   const [form] = Form.useForm();
@@ -39,8 +41,11 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
   const [sgst, setSgst] = useState(0);
   const [cgst, setCgst] = useState(0);
   const [total, setTotal] = useState(0);
-  const [email,setEmail]=useState(0);
+  const [email, setEmail] = useState(0);
   const [prosposalId, setPropsalId] = useState();
+const [auditors, setAuditors] = useState([]);
+
+
   const handleCancel = () => {
     setItems([]);
     setItems([
@@ -79,7 +84,6 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
         }
       };
 
-
       const fetchOutlets = async () => {
         try {
           const response = await axios.get(
@@ -94,13 +98,10 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
               outletId: outlet._id || "",
               outlet_name: outlet.branch_name || "",
               no_of_food_handlers: outlet.no_of_food_handlers || 0,
-              man_days: calculateManDays(outlet.no_of_food_handlers || 0),
+              man_days: 0,
               unit_cost: outlet.unit_cost || 0,
               discount: 0,
-              amount:
-                (outlet.no_of_food_handlers || 0) *
-                calculateManDays(outlet.no_of_food_handlers || 0) *
-                (outlet.unit_cost || 0),
+              amount: 0,
             }))
           );
         } catch (error) {
@@ -115,8 +116,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
           );
           const businessData = response.data;
 
-        
-                setEmail(businessData.email);
+          setEmail(businessData.email);
 
           const addressLine1 = businessData.address?.line1 || "";
           const addressLine2 = businessData.address?.line2 || "";
@@ -129,31 +129,38 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
 
           // Concatenate city and state if both exist
           const line2 = [city, state].filter(Boolean).join(", ");
-     
-             form.setFieldsValue({
-               fbo_name: businessData.name,
-               address: {
-                 line1: line1,
-                 line2: line2,
-               },
-               pincode: businessData.address?.pincode || "",
-               gst_number: businessData.gst_number,
-               contact_person: businessData.contact_person,
 
-              
-             });
+          form.setFieldsValue({
+            fbo_name: businessData.name,
+            address: {
+              line1: line1,
+              line2: line2,
+            },
+            pincode: businessData.address?.pincode || "",
+            gst_number: businessData.gst_number,
+            contact_person: businessData.contact_person,
+          });
           setInitialValuesLoaded(true);
         } catch (error) {
           console.error("Error fetching business details", error);
         }
       };
 
+      const fetchAllAuditors = async () => {
+        try {
+          const response = await axios.get("/api/auditor/getAllAuditors"); // Adjust the endpoint as needed
+          setAuditors(response.data);
+        } catch (error) {
+          console.error("Error fetching auditors:", error);
+        }
+      };
+
       fetchOutlets();
       fetchProposalNumber();
       fetchBusinessDetails();
+      fetchAllAuditors();
     }
   }, [visible, enquiryId, form]);
-
 
   const handleSubmit = async () => {
     try {
@@ -169,7 +176,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
         enquiryId: enquiryId,
         proposal_date: proposal_date.format("YYYY-MM-DD"),
         outlets: outletItem,
-        email:email,
+        email: email,
       };
 
       // Make POST request to server
@@ -188,26 +195,24 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
     }
   };
 
-
-
- const addItem = () => {
-   setItems((prevItems) => {
-     const newItems = [
-       ...prevItems,
-       {
-         outletId: "",
-         outlet_name: "",
-         no_of_food_handlers: 0,
-         man_days: 0,
-         unit_cost: 0,
-         discount: 0,
-         amount: 0,
-       },
-     ];
-     calculateTotals(newItems); 
-     return newItems;
-   });
- };
+  const addItem = () => {
+    setItems((prevItems) => {
+      const newItems = [
+        ...prevItems,
+        {
+          outletId: "",
+          outlet_name: "",
+          no_of_food_handlers: 0,
+          man_days: 0,
+          unit_cost: 0,
+          discount: 0,
+          amount: 0,
+        },
+      ];
+      calculateTotals(newItems);
+      return newItems;
+    });
+  };
 
   const removeItem = (index) => {
     const newItems = outletItem.filter((item, i) => i !== index);
@@ -215,6 +220,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
   };
 
   const calculateManDays = (foodHandlers) => {
+    // console.log("i executed with f", foodHandlers);
     if (foodHandlers <= 50) return 0.5;
     if (foodHandlers <= 100) return 1;
     if (foodHandlers <= 300) return 1.5;
@@ -223,47 +229,109 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
     return 3;
   };
 
+  const calculateStorageManDays = (area) => {
+    //  console.log("i executed with A", area);
+    if (area < 15000) return 0.5;
+    if (area >= 15000 && area <= 50000) return 1;
+    if (area > 50000) return 1.5;
+    return 0;
+  };
 
+  const calculateVehicleManDays = (noOfVehicles) => {
+    //  console.log("i executed with v", noOfVehicles);
+    if (noOfVehicles <= 2) return 0.5;
+    if (noOfVehicles >= 3 && noOfVehicles <= 5) return 1;
+    if (noOfVehicles >= 6 && noOfVehicles <= 7) return 1.5;
+    if (noOfVehicles >= 8 && noOfVehicles <= 10) return 2;
+    return 2;
+  };
 
-const handleInputChange = (index, field, value) => {
-  setItems((prevItems) => {
-    const newItems = [...prevItems];
-    if (field === "outletId") {
-      const selectedOutlet = outlets.find((outlet) => outlet._id === value);
-      const man_days = calculateManDays(
-        selectedOutlet ? selectedOutlet.no_of_food_handlers : 0
-      );
-      newItems[index] = {
-        ...newItems[index],
-        outletId: value,
-        outlet_name: selectedOutlet ? selectedOutlet.branch_name : "",
-        no_of_food_handlers: selectedOutlet
-          ? selectedOutlet.no_of_food_handlers
-          : 0,
-        man_days,
-        unit_cost: 0, // Set unit_cost to 0 when an outlet is selected
-      };
-    } else {
-      newItems[index][field] = value;
-      if (field === "no_of_food_handlers") {
-        newItems[index].man_days = calculateManDays(value);
+  const handleInputChange = (index, field, value) => {
+    setItems((prevItems) => {
+      const newItems = [...prevItems];
+      const currentItem = newItems[index];
+
+      if (field === "outletId") {
+        if (value === "others") {
+          newItems[index] = {
+            ...currentItem,
+            outletId: value,
+            outlet_name: "Others",
+            no_of_food_handlers: 0,
+            man_days: 0,
+            unit_cost: 0,
+            discount: 0,
+            amount: 0,
+          };
+        } else {
+          const selectedOutlet = outlets.find((outlet) => outlet._id === value);
+          newItems[index] = {
+            ...currentItem,
+            outletId: value,
+            outlet_name: selectedOutlet ? selectedOutlet.branch_name : "",
+            no_of_food_handlers: selectedOutlet
+              ? selectedOutlet.no_of_food_handlers
+              : 0,
+            man_days: 0,
+            unit_cost: 0,
+            discount: 0,
+            amount: 0,
+          };
+        }
+      } else if (field === "service") {
+        newItems[index] = {
+          ...currentItem,
+          service: value,
+        };
+
+        // Recalculate man_days based on selected service type
+        if (value === "no_of_food_handlers") {
+          newItems[index].man_days = calculateManDays(
+            newItems[index].no_of_food_handlers
+          );
+        } else if (value === "vehicle") {
+          newItems[index].man_days = calculateVehicleManDays(
+            newItems[index].no_of_food_handlers
+          );
+        } else if (value === "area") {
+          newItems[index].man_days = calculateStorageManDays(
+            newItems[index].no_of_food_handlers
+          );
+        }
+      } else {
+        newItems[index] = {
+          ...currentItem,
+          [field]: value,
+        };
+
+        // Recalculate man_days if relevant field changes
+        if (field === "no_of_food_handlers") {
+          const service = newItems[index].service || "No of Food Handlers";
+          if (service === "no_of_food_handlers") {
+            newItems[index].man_days = calculateManDays(value);
+          } else if (service === "vehicle") {
+            newItems[index].man_days = calculateVehicleManDays(value);
+          } else if (service === "area") {
+            newItems[index].man_days = calculateStorageManDays(value);
+          }
+        }
       }
-    }
-    newItems[index].amount =
-      newItems[index].no_of_food_handlers *
-        newItems[index].man_days *
-        newItems[index].unit_cost -
-      newItems[index].discount;
 
-    calculateTotals(newItems); // Update totals when items change
-    return newItems;
-  });
-};
+      // Recalculate amount
+      if (field === "quantity" || field === "unit_cost") {
+        newItems[index].amount =
+          newItems[index].quantity * newItems[index].unit_cost;
+      }
 
+      // Recalculate totals
+      calculateTotals(newItems);
 
+      return newItems;
+    });
+  };
 
-  const calculateTotals = () => {
-    if (!Array.isArray(outletItem) || outletItem.length === 0) {
+  const calculateTotals = (items) => {
+    if (!Array.isArray(items) || items.length === 0) {
       setSubTotal(0);
       setSgst(0);
       setCgst(0);
@@ -271,10 +339,11 @@ const handleInputChange = (index, field, value) => {
       return;
     }
 
-    const calculatedSubTotal = outletItem.reduce((sum, item) => {
-      const amount = typeof item.amount === "number" ? item.amount : 0;
-      return sum + amount;
-    }, 0);
+    // Calculate subtotal by summing up all amounts
+    const calculatedSubTotal = items.reduce(
+      (sum, item) => sum + (parseFloat(item.amount) || 0),
+      0
+    );
 
     const calculatedIgst = calculatedSubTotal * 0.09;
     const calculatedCgst = calculatedSubTotal * 0.09;
@@ -285,16 +354,6 @@ const handleInputChange = (index, field, value) => {
     setSgst(calculatedIgst);
     setCgst(calculatedCgst);
     setTotal(calculatedTotal);
-
-    // Update each outletItem with the totals
-    const updatedItems = outletItem.map((item) => ({
-      ...item,
-      sgst: calculatedIgst,
-      cgst: calculatedCgst,
-      subTotal: calculatedSubTotal,
-      total: calculatedTotal,
-    }));
-    setItems(updatedItems);
   };
 
   const columns = [
@@ -308,6 +367,7 @@ const handleInputChange = (index, field, value) => {
           className="w-full"
           style={{ width: 120 }}
         >
+          <Option value="others">Others</Option>
           {outlets.map((outlet) => (
             <Option key={outlet._id} value={outlet._id}>
               {outlet.branch_name}
@@ -317,18 +377,64 @@ const handleInputChange = (index, field, value) => {
       ),
     },
     {
-      title: "No of Food Handlers",
-      dataIndex: "no_of_food_handlers",
-      render: (text, record, index) => (
-        <InputNumber
-          min={0}
-          value={text}
-          onChange={(value) =>
-            handleInputChange(index, "no_of_food_handlers", value)
-          }
-          className="w-full"
-        />
-      ),
+      title: "Description",
+      dataIndex: "description",
+      render: (text, record, index) => {
+        const isOthers = record.outletId === "others";
+        return isOthers ? (
+          <Input
+            value={text}
+            onChange={(e) =>
+              handleInputChange(index, "description", e.target.value)
+            }
+            className="w-full"
+          />
+        ) : (
+          <Select
+            value={text}
+            className="w-full"
+            style={{ width: 120 }}
+            onChange={(value) => handleInputChange(index, "description", value)}
+          >
+            <Option value="TPA">TPA</Option>
+            <Option value="Hygiene Rating">Hygiene Rating</Option>
+            <Option value="ER Station">ER Station</Option>
+            <Option value="ER Fruit and Vegetable Market">
+              ER Fruit and Vegetable Market
+            </Option>
+            <Option value="ER Hub">ER Hub</Option>
+            <Option value="ER Campus">ER Campus</Option>
+            <Option value="ER Worship Place">ER Worship Place</Option>
+          </Select>
+        );
+      },
+    },
+    {
+      title: "Service",
+      dataIndex: "service",
+      render: (text, record, index) => {
+        const isOthers = record.outletId === "others";
+        return isOthers ? (
+          <Input
+            value={text}
+            onChange={(e) =>
+              handleInputChange(index, "service", e.target.value)
+            }
+            className="w-full"
+          />
+        ) : (
+          <Select
+            value={text}
+            className="w-full"
+            style={{ width: 120 }}
+            onChange={(value) => handleInputChange(index, "service", value)}
+          >
+            <Option value="no_of_food_handlers">Food Handlers</Option>
+            <Option value="vehicle">Vehicle</Option>
+            <Option value="area">Area</Option>
+          </Select>
+        );
+      },
     },
     {
       title: "Man Days",
@@ -338,6 +444,18 @@ const handleInputChange = (index, field, value) => {
           min={0}
           value={text}
           onChange={(value) => handleInputChange(index, "man_days", value)}
+          className="w-full"
+        />
+      ),
+    },
+    {
+      title: "QTY",
+      dataIndex: "quantity",
+      render: (text, record, index) => (
+        <InputNumber
+          min={0}
+          value={text}
+          onChange={(value) => handleInputChange(index, "quantity", value)}
           className="w-full"
         />
       ),
@@ -355,18 +473,6 @@ const handleInputChange = (index, field, value) => {
       ),
     },
     {
-      title: "Discount(₹)",
-      dataIndex: "discount",
-      render: (text, record, index) => (
-        <InputNumber
-          min={0}
-          value={text}
-          onChange={(value) => handleInputChange(index, "discount", value)}
-          className="w-full"
-        />
-      ),
-    },
-    {
       title: "Amount(₹)",
       dataIndex: "amount",
       render: (text) =>
@@ -379,16 +485,19 @@ const handleInputChange = (index, field, value) => {
       title: "Action",
       dataIndex: "action",
       render: (_, __, index) => (
-        <Button onClick={() => removeItem(index)} type="link" danger>
-          Remove
-        </Button>
+        <Button
+          onClick={() => removeItem(index)}
+          type="link"
+          danger
+          icon={<DeleteOutlined />}
+        />
       ),
     },
   ];
 
- const handleOk = () => {
-  setShowSendMailModal(false);
- };
+  const handleOk = () => {
+    setShowSendMailModal(false);
+  };
 
   return (
     <>
@@ -396,7 +505,7 @@ const handleInputChange = (index, field, value) => {
         visible={visible}
         onCancel={handleCancel}
         footer={null}
-        width={900}
+        width={1000}
         style={{ padding: "0 !important" }}
         className="acc-modal"
       >
@@ -532,6 +641,28 @@ const handleInputChange = (index, field, value) => {
                 />
               </Form.Item>
             </div>
+            <Form.Item
+              name="assigned_auditor"
+              label="Assigned Auditor"
+              rules={[{ required: true, message: "Please select an auditor!" }]}
+            >
+              <Select placeholder="Select an auditor">
+                {auditors.map((auditor) => (
+                  <Option key={auditor._id} value={auditor._id}>
+                    {auditor.auditor_name}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
+
+            <div>
+              <Form.Item label="Note" name="note" className="flex-1">
+                <TextArea
+                  className="w-full p-2 border border-gray-300 rounded"
+                  defaultValue="This is note"
+                />
+              </Form.Item>
+            </div>
 
             <div className="my-4">
               <h3 className="text-lg font-semibold mb-2">Items table</h3>
@@ -598,17 +729,16 @@ const handleInputChange = (index, field, value) => {
           </div>
         </Form>
       </Modal>
-     
-        <GenreateSuccessSendMailTableModal
-          onClose={() => setShowSendMailModal(false)}
-          id={prosposalId}
-          onOk={handleOk}
-          title="Generate Proposal"
-          name="proposal"
-          route="generateProposal"
-          visible={showSendMailModal}
-        />
-    
+
+      <GenreateSuccessSendMailTableModal
+        onClose={() => setShowSendMailModal(false)}
+        id={prosposalId}
+        onOk={handleOk}
+        title="Generate Proposal"
+        name="proposal"
+        route="generateProposal"
+        visible={showSendMailModal}
+      />
     </>
   );
 };

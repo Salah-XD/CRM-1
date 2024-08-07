@@ -2,7 +2,6 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import ClientTable from "./Components/Pages/ClientTable";
-import AddClientForm from "./Components/Pages/AddClient";
 import BusinessDetail from "./Components/Pages/BussinessDetail";
 import OutletDetail from "./Components/Pages/OutletDetail";
 import ClientOnboarding from "./Components/Pages/ClientOnboarding";
@@ -94,14 +93,7 @@ function App() {
             </AdminDashboard>
           }
         />
-        <Route
-          path="/add-client"
-          element={
-            <AdminDashboard>
-              <AddClientForm newClientTitle="New Client" />
-            </AdminDashboard>
-          }
-        />
+        
         <Route
           path="/client-profile/add-outlet"
           element={

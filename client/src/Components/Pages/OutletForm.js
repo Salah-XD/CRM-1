@@ -1,22 +1,41 @@
 import React, { useEffect } from "react";
 import { Modal, Form, Input, Button } from "antd";
-import "../css/outletForm.css"; // Import the custom CSS
+import axios from "axios";
+import "../css/outletForm.css"; 
 
-const OutletForm = ({ isModalVisible, handleOk, handleCancel, item }) => {
+const OutletForm = ({
+  isModalVisible,
+  handleOk,
+  handleCancel,
+  item,
+  businessId,
+}) => {
   const [form] = Form.useForm();
 
   useEffect(() => {
     if (item) {
       form.setFieldsValue(item);
-    } else {
-      form.resetFields();
     }
   }, [item, form]);
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      handleOk(values);
+      const formData = { ...values, business:businessId };
+
+      if (businessId) {
+        // Specific dynamic route - Make axios POST request
+        await axios.post("/api/saveOutlet", formData);
+           handleOk();
+        formData.resetFields();
+     
+      } else {
+        // Other routes - Use handleOk
+        handleOk(formData);
+        formData.resetFields();
+      }
+
+      form.resetFields();
     } catch (error) {
       console.error("Error saving outlet data:", error);
     }
@@ -72,14 +91,20 @@ const OutletForm = ({ isModalVisible, handleOk, handleCancel, item }) => {
           />
         </Form.Item>
         <Form.Item
+          name="gst_number"
           label={
             <span className="text-gray-600 font-semibold">GST Number</span>
           }
-          name="gst_number"
+          rules={[
+            {
+              pattern: /^[A-Za-z0-9]{14}$/,
+              message: "GST number must be 14 alphanumeric characters",
+            },
+          ]}
         >
           <Input
-            placeholder="Enter GST number"
-            className="placeholder-gray-400 p-3 rounded-lg w-full"
+            placeholder="Enter your GST number"
+            className="placeholder-gray-400 p-3 rounded-lg"
           />
         </Form.Item>
         <Form.Item

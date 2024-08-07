@@ -1,15 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Select, Spin, Button } from "antd";
+import { Form, Input, Select, Spin, Button, Checkbox, message } from "antd";
 import { useNavigate, useLocation, useParams, NavLink } from "react-router-dom";
 import axios from "axios";
-import toast from "react-hot-toast";
+
 
 const { Option } = Select;
 
-const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
+const UpdateBusinessDetail = ({
+  loading,
+  setLoading,
+  setBusinessId,
+  onNext,
+}) => {
   const [initialValues, setInitialValues] = useState(null);
-  const [isEditable, setIsEditable] = useState(false); // State to manage editability
-  const [showUpdateButtons, setShowUpdateButtons] = useState(false); // State to manage visibility of update buttons
+  const [isEditable, setIsEditable] = useState(false);
+  const [showUpdateButtons, setShowUpdateButtons] = useState(false);
+  const [isGstEnabled, setIsGstEnabled] = useState(true); // New state for GST checkbox
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
@@ -35,20 +41,22 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
             phone: businessData.phone,
             email: businessData.email,
             gst_number: businessData.gst_number,
-            type_of_industry: businessData.type_of_industry,
-            vertical_of_industry: businessData.Vertical_of_industry,
+            type_of_industry: businessData.type_of_industry || [],
+            vertical_of_industry: businessData.vertical_of_industry || [],
             "address.line1": businessData.address?.line1 || "",
             "address.line2": businessData.address?.line2 || "",
             "address.city": businessData.address?.city || "",
             "address.state": businessData.address?.state || "",
             "address.pincode": businessData.address?.pincode || "",
+            enable_gst: !!businessData.gst_number, // Set initial state for GST checkbox
           });
+          setIsGstEnabled(!!businessData.gst_number); // Set state based on initial data
         } else {
-          toast.error("Failed to fetch business data");
+          message.error("Failed to fetch business data");
           console.error("Response data: ", response.data);
         }
       } catch (error) {
-        toast.error("Error fetching business data");
+        message.error("Error fetching business data");
         console.error("Error: ", error);
       }
     };
@@ -62,8 +70,14 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
 
   const handleSubmit = async (values) => {
     try {
-      setLoading(true); // Start loading
+     
       const requestData = { ...values };
+
+
+      if (!requestData.enable_gst) {
+        requestData.gst_number = "";
+      }
+
       const idFromPath = location.pathname.split("/").pop();
       if (idFromPath && idFromPath !== "update-business") {
         requestData._id = idFromPath;
@@ -75,18 +89,22 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
       }
 
       if (response.data?.success) {
-        toast.success("Business data updated successfully");
-     
+        message.success("Business data updated successfully");
+        setIsEditable(false);
+        setShowUpdateButtons(false);
+
       } else {
-        toast.error("An Error Occurred");
-        console.error("Update response: ", response.data);
+        message.error("An Error Occurred");
+       console.error("Update response: ", response.data);
       }
     } catch (error) {
-      toast.error("Error updating business data");
+      message.error("Error updating business data");
       console.error("Error: ", error);
-    } finally {
-      setLoading(false); // Stop loading
-    }
+    } 
+  };
+
+  const handleGstCheckboxChange = (e) => {
+    setIsGstEnabled(e.target.checked);
   };
 
   if (!initialValues) {
@@ -187,19 +205,44 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
               disabled={!isEditable}
             />
           </Form.Item>
+
           <Form.Item
+            name="enable_gst"
+            valuePropName="checked"
+            className="w-1/4"
+            initialValue={initialValues.enable_gst || true}
+          >
+            <Checkbox onChange={handleGstCheckboxChange} disabled={!isEditable}>
+              <span className="text-gray-600 font-semibold">
+                Do you have GST Number?
+              </span>
+            </Checkbox>
+          </Form.Item>
+
+          <Form.Item
+            name="gst_number"
             className="w-1/4"
             label={
               <span className="text-gray-600 font-semibold">GST Number</span>
             }
-            name="gst_number"
+            rules={[
+              {
+                required: isGstEnabled,
+                message: "Please enter GST number",
+              },
+              {
+                pattern: /^[A-Za-z0-9]{14}$/,
+                message: "GST number must be 14 alphanumeric characters",
+              },
+            ]}
           >
             <Input
               placeholder="Enter your GST number"
               className="placeholder-gray-400 p-3 rounded-lg"
-              disabled={!isEditable}
+              disabled={!isEditable || !isGstEnabled}
             />
           </Form.Item>
+
           <Form.Item
             name="vertical_of_industry"
             className="w-1/4"
@@ -212,18 +255,29 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
             <Select
               placeholder="Select Industry Vertical"
               size={"large"}
+              mode="multiple"
               disabled={!isEditable}
             >
-              <Option value="Star hotel">Star hotel</Option>
-              <Option value="Ethnic restaurant">Ethnic restaurant</Option>
-              <Option value="QSR">QSR</Option>
-              <Option value="Industrial catering">Industrial catering</Option>
+              <Option value="Sweet Shop">Sweet Shop</Option>
               <Option value="Meat Retail">Meat Retail</Option>
-              <Option value="Sweet Retail">Sweet Retail</Option>
-              <Option value="Bakery">Bakery</Option>
-              <Option value="Others">Others</Option>
+              <Option value="Hub">Hub</Option>
+              <Option value="Market">Market</Option>
+              <Option value="General Manufacturing">
+                General Manufacturing
+              </Option>
+              <Option value="Meat & Meat Processing">
+                Meat & Meat Processing
+              </Option>
+              <Option value="Dairy Processing">Dairy Processing</Option>
+              <Option value="Catering">Catering</Option>
+              <Option value="Transportation">Transportation</Option>
+              <Option value="Storage/Warehouse">Storage/Warehouse</Option>
+              <Option value="Institute Canteen">Institute Canteen</Option>
+              <Option value="Industrial Canteen">Industrial Canteen</Option>
+              <Option value="Temple Kitchen">Temple Kitchen</Option>
             </Select>
           </Form.Item>
+
           <Form.Item
             name="type_of_industry"
             className="w-1/4"
@@ -235,15 +289,17 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
           >
             <Select
               placeholder="Select Type of Industry"
-              disabled={!isEditable}
               size="large"
+              mode="multiple"
+              disabled={!isEditable}
             >
               <Option value="Catering">Catering</Option>
-              <Option value="Meat">Meat</Option>
-              <Option value="Sweet">Sweet</Option>
-              <Option value="Bakery">Bakery</Option>
+              <Option value="Manufacturing">Manufacturing</Option>
+              <Option value="Trade and retail">Trade and Retail</Option>
+              <Option value="Transportation">Transportation</Option>
             </Select>
           </Form.Item>
+
           <Form.Item
             label={<span className="text-gray-600 font-semibold">Address</span>}
             name="address.line1"
@@ -294,16 +350,11 @@ const UpdateBusinessDetail = ({ loading, setLoading, setBusinessId }) => {
           }`}
         >
           <Form.Item>
-            <NavLink to="/client-profile">
-              <Button className="border-primary text-primary border-2 font-semibold">
-                Cancel
-              </Button>
-            </NavLink>
             <Button
               type="primary"
               className="ml-6"
               htmlType="submit"
-              loading={loading}
+    
             >
               Update
             </Button>

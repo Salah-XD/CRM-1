@@ -14,7 +14,7 @@ console.log(req.body);
       name,
       contact_person,
       type_of_industry,
-      Vertical_of_industry,
+      vertical_of_industry,
       fssai_license_number,
       phone,
       email,
@@ -37,7 +37,7 @@ console.log(req.body);
       name,
       contact_person,
       type_of_industry,
-      Vertical_of_industry,
+      vertical_of_industry,
       fssai_license_number,
       phone,
       email,
@@ -61,13 +61,14 @@ console.log(req.body);
 
 //Controller function to handle update of client data
 export const updateBusiness = async (req, res) => {
+  console.log(req.body);
   try {
     const {
       _id,
       name,
       contact_person,
       type_of_industry,
-      Vertical_of_industry,
+      vertical_of_industry,
       fssai_license_number,
       phone,
       email,
@@ -93,18 +94,47 @@ export const updateBusiness = async (req, res) => {
       return res.status(404).json({ message: "Business not found" });
     }
 
+    // Log incoming values for debugging
+    console.log("Updating business with values:", {
+      name,
+      contact_person,
+      type_of_industry,
+      vertical_of_industry,
+      fssai_license_number,
+      phone,
+      email,
+      gst_number,
+      address: { line1, line2, city, state, pincode },
+      updated_by,
+    });
+
     // Update business fields
-    existingBusiness.name = name;
-    existingBusiness.contact_person = contact_person;
-    existingBusiness.type_of_industry = type_of_industry;
-    existingBusiness.Vertical_of_industry = Vertical_of_industry;
-    existingBusiness.fssai_license_number = fssai_license_number;
-    existingBusiness.phone = phone;
-    existingBusiness.email = email;
-    existingBusiness.gst_number = gst_number;
-    existingBusiness.address = { line1, line2, city, state, pincode };
-    existingBusiness.updated_by = updated_by;
+    existingBusiness.name = name || existingBusiness.name;
+    existingBusiness.contact_person =
+      contact_person || existingBusiness.contact_person;
+    existingBusiness.type_of_industry = Array.isArray(type_of_industry)
+      ? type_of_industry
+      : existingBusiness.type_of_industry;
+    existingBusiness.vertical_of_industry = Array.isArray(vertical_of_industry)
+      ? vertical_of_industry
+      : existingBusiness.vertical_of_industry;
+    existingBusiness.fssai_license_number =
+      fssai_license_number || existingBusiness.fssai_license_number;
+    existingBusiness.phone = phone || existingBusiness.phone;
+    existingBusiness.email = email || existingBusiness.email;
+    existingBusiness.gst_number = gst_number || existingBusiness.gst_number;
+    existingBusiness.address = {
+      line1: line1 || existingBusiness.address.line1,
+      line2: line2 || existingBusiness.address.line2,
+      city: city || existingBusiness.address.city,
+      state: state || existingBusiness.address.state,
+      pincode: pincode || existingBusiness.address.pincode,
+    };
+    existingBusiness.updated_by = updated_by || existingBusiness.updated_by;
     existingBusiness.updated_at = new Date(); // Record update timestamp
+
+    // Log the updated business for debugging
+    console.log("Updated business:", existingBusiness);
 
     // Save the updated business to the database
     await existingBusiness.save();
@@ -115,6 +145,8 @@ export const updateBusiness = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
 
 // Controller to fetch business details by form ID or ID
 export const getBusinessDetailsById = async (req, res) => {
@@ -752,3 +784,79 @@ export const saveQuestionary = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+
+export const getQuestionaryByBusiness = async (req, res) => {
+  try {
+    const { businessId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(businessId)) {
+      return res.status(400).json({ message: "Invalid business ID" });
+    }
+
+    const questionaries = await Questionaries.findOne({ business: businessId });
+
+    if (!questionaries) {
+      return res.status(404).json({ message: "Questionaries not found" });
+    }
+
+    res.status(200).json({ success: true, data: questionaries });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+
+// controllers/questionaryController.js
+export const updateQuestionary = async (req, res) => {
+  try {
+    const { businessId } = req.params; // The ID of the business
+    const {
+      existing_consultancy_name,
+      fostac_agency_name,
+      other_certifications,
+    } = req.body;
+
+    // Check if businessId is provided
+    if (!businessId) {
+      return res.status(400).json({ message: "Business ID is required" });
+    }
+
+    // Find the business by ID
+    const business = await Business.findById(businessId);
+    if (!business) {
+      return res.status(404).json({ message: "Business not found" });
+    }
+
+    // Find the questionary associated with the business
+    const questionary = await Questionaries.findOne({ business: businessId });
+    if (!questionary) {
+      return res.status(404).json({ message: "Questionary not found" });
+    }
+
+    // Update the fields that are provided
+    if (existing_consultancy_name)
+      questionary.existing_consultancy_name = existing_consultancy_name;
+    if (fostac_agency_name) questionary.fostac_agency_name = fostac_agency_name;
+    if (other_certifications)
+      questionary.other_certifications = other_certifications;
+
+    // Save the updated questionary
+    await questionary.save();
+
+   return res
+     .status(200)
+     .json({
+       success: true,
+       message: "Questionary updated successfully",
+       data: questionary,
+     });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+

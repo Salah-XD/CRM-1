@@ -6,7 +6,7 @@ import {
   ExclamationCircleFilled,
   MoreOutlined,
 } from "@ant-design/icons";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import axios from "axios";
 import { NavLink } from "react-router-dom";
 import OutletForm from "./OutletForm";
@@ -15,7 +15,7 @@ import toast from "react-hot-toast";
 
 const { confirm } = Modal;
 
-const UpdateOutlet = ({ businessId }) => {
+const UpdateOutlet = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false); // State for update modal visibility
   const [flattenedTableData, setFlattenedTableData] = useState([]);
@@ -29,7 +29,7 @@ const UpdateOutlet = ({ businessId }) => {
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
-      pageSize: 2,
+      pageSize: 6,
     },
   });
 
@@ -48,6 +48,9 @@ const UpdateOutlet = ({ businessId }) => {
       setFlattenedTableData([]);
     }
   };
+  const { id } = useParams();
+  const businessId=id;
+
 
   const fetchData = () => {
     setLoading(true);
@@ -199,7 +202,7 @@ const UpdateOutlet = ({ businessId }) => {
       onOk() {
         const selectedIds = selectedRows.map((row) => row._id);
         axios
-          .delete(`/deleteOutletFields`, { data: selectedIds })
+          .delete(`/api/deleteOutletFields`, { data: selectedIds })
           .then(() => {
             fetchData();
             setSelectedRowKeys([]);
@@ -214,8 +217,11 @@ const UpdateOutlet = ({ businessId }) => {
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center m-6">
+    <div className="w-3/4 mx-auto flex-grow" style={{ marginBottom: 380 }}>
+      <div
+        className="flex justify-between items-center m-6 "
+        style={{ marginTop: 100 }}
+      >
         <h2 className="text-lg font-semibold">Outlet List</h2>
         <div className="space-x-2">
           <Button
@@ -257,7 +263,6 @@ const UpdateOutlet = ({ businessId }) => {
         isModalVisible={isModalVisible}
         handleOk={handleOk}
         handleCancel={handleCancel}
-        model={{ businessId }}
       />
 
       <UpdateOutletForm
@@ -268,7 +273,7 @@ const UpdateOutlet = ({ businessId }) => {
         businessId={businessId}
       />
 
-      <div className="fixed bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">
+      {/* <div className="fixed bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">
         <NavLink to="/">
           <Button className="border-primary  text- border-2 font-semibold">
             Cancel
@@ -282,7 +287,7 @@ const UpdateOutlet = ({ businessId }) => {
         >
           Submit
         </Button>
-      </div>
+      </div> */}
     </div>
   );
 };

@@ -98,9 +98,12 @@ const OutletDetail = ({ data, onChange }) => {
 
   return (
     <>
-      <div className="min-h-screen flex flex-col justify-between">
+      <div style={{ marginBottom: 380 }}>
         <div className="w-3/4 mx-auto flex-grow">
-          <div className="flex justify-between items-center m-6">
+          <div
+            className="flex justify-between items-center mx-6"
+            style={{ marginTop: 100 }}
+          >
             <h2 className="text-lg font-semibold">Outlet List</h2>
             <div className="space-x-2">
               <Button
@@ -108,12 +111,13 @@ const OutletDetail = ({ data, onChange }) => {
                 shape="round"
                 icon={<PlusOutlined />}
                 onClick={() => showModal()}
+                className="add-outlet-button"
               >
                 Add Outlet
               </Button>
             </div>
           </div>
-          <div className="m-6 flex-grow">
+          <div className="m-6">
             <Table
               columns={columns}
               dataSource={data.items}

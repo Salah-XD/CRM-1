@@ -15,24 +15,18 @@ import {
 } from "antd";
 import {
   DeleteOutlined,
-  PlusOutlined,
-  FilterOutlined,
-  CloudDownloadOutlined,
   ExclamationCircleOutlined ,
   MoreOutlined,
   SearchOutlined,
   EyeOutlined,
-  CopyOutlined,
 } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { NavLink } from "react-router-dom";
 import toast from "react-hot-toast";
 import SendMailModal from "./SendMail";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 const { confirm } = Modal;
-const { Search } = Input;
 
 // Debounce function definition
 const debounce = (func, delay) => {
@@ -59,8 +53,8 @@ const ClientApprovalTable = () => {
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
-      pageSize: 8, // Adjust page size as needed
-      total: 0, // Initial total count
+      pageSize: 8, 
+      total: 0, 
     },
   });
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -98,7 +92,7 @@ const ClientApprovalTable = () => {
 
         const flattenedData = responseData.map((row, index) => ({
           ...row,
-          key: `${row._id}-${index}`, // Combine _id with index for a unique key
+          key: `${row._id}-${index}`, 
         }));
         setFlattenedTableData(flattenedData);
 
@@ -106,8 +100,8 @@ const ClientApprovalTable = () => {
           ...prevState,
           pagination: {
             ...prevState.pagination,
-            total: total, // Set the total count from the server response
-            current: currentPage, // Update current page from response
+            total: total, 
+            current: currentPage, 
           },
         }));
 
@@ -209,6 +203,51 @@ const ClientApprovalTable = () => {
 
   //Confimr Approval of client list
 const confirmApproval = (id) => {
+  // Define a function to handle the approval API call
+  const handleApproval = () => {
+    axios
+      .put(`/api/updateBusinessStatus/${id}`)
+      .then((response) => {
+        fetchData();
+        message.success("Client is Approved");
+      })
+      .catch((error) => {
+        console.error("Approval error:", error);
+        message.error("Approval failed");
+      });
+  };
+
+  // Define a function to handle the rejection API call
+  const handleRejection = () => {
+    axios
+      .delete("/api/deleteSelectedFields", { data: [id] }) // Send ID as an array
+      .then((response) => {
+        const currentPage = tableParams.pagination.current;
+        const pageSize = tableParams.pagination.pageSize;
+        const newTotal = tableParams.pagination.total - 1; // Only one row is deleted
+        const newCurrentPage = Math.min(
+          currentPage,
+          Math.ceil(newTotal / pageSize)
+        );
+
+        setTableParams((prevState) => ({
+          ...prevState,
+          pagination: {
+            total: newTotal,
+            current: newCurrentPage,
+          },
+        }));
+
+        setShouldFetch(true); // Trigger data fetch
+        message.success("Client is Rejected");
+      })
+      .catch((error) => {
+        console.error("Error deleting row:", error);
+        message.error("Rejection failed");
+      });
+  };
+
+  // Show the confirmation modal
   Modal.confirm({
     title: "Approve or Reject?",
     icon: <ExclamationCircleFilled />,
@@ -216,49 +255,16 @@ const confirmApproval = (id) => {
     okType: "primary",
     cancelText: "Reject",
     cancelType: "danger",
-    closable: true, // This line adds the close button
+    closable: true,
     onOk() {
-      // Handle approval
-      axios
-        .put(`/api/updateBusinessStatus/${id}`)
-        .then((response) => {
-          fetchData();
-          message.success("Client is Approved");
-        })
-        .catch((error) => {
-          console.error("Approval error:", error);
-          // Handle error
-        });
+      handleApproval(); // Only called when "Approve" is clicked
     },
     onCancel() {
-      axios
-        .delete("deleteSelectedFields", { data: [id] }) // Send ID as an array
-        .then((response) => {
-          const currentPage = tableParams.pagination.current;
-          const pageSize = tableParams.pagination.pageSize;
-          const newTotal = tableParams.pagination.total - 1; // Only one row is deleted
-          const newCurrentPage = Math.min(
-            currentPage,
-            Math.ceil(newTotal / pageSize)
-          );
-
-          setTableParams((prevState) => ({
-            ...prevState,
-            pagination: {
-              total: newTotal,
-              current: newCurrentPage,
-            },
-          }));
-
-          setShouldFetch(true); // Trigger data fetch
-          message.success("Client is Rejected");
-        })
-        .catch((error) => {
-          console.error("Error deleting row:", error);
-        });
+      handleRejection(); // Only called when "Reject" is clicked
     },
   });
 };
+
 
 
 
@@ -269,8 +275,7 @@ const confirmApproval = (id) => {
        navigate(`/client-profile/update-client/id/${record._id}`);
        break;
      case "approve":
-       confirmApproval(record._id); // No need for template string
-       break;
+       confirmApproval(record._id);
      default:
        break;
    }
@@ -308,8 +313,6 @@ const confirmApproval = (id) => {
     if (searchKeyword.trim()) {
       fetchDataWithDebounce();
     } else {
-      // Reset fields to normal state
-      // Your code to reset fields here
       console.log("Resetting fields to normal state");
     }
   }, [searchKeyword, fetchDataWithDebounce]);
@@ -351,7 +354,7 @@ const confirmApproval = (id) => {
         } else if (addedBy === "Web Enquiry") {
           color = "green";
         } else {
-          color = "geekblue"; // Default color
+          color = "geekblue"; 
         }
         return <Tag color={color}>{addedBy.toUpperCase()}</Tag>;
       },
@@ -402,7 +405,7 @@ const confirmApproval = (id) => {
             theme={{
               components: {
                 Radio: {
-                  buttonBorderWidth: 0, // Remove border
+                  buttonBorderWidth: 0, 
                 },
               },
             }}
@@ -460,14 +463,14 @@ const confirmApproval = (id) => {
           <ConfigProvider
             theme={{
               token: {
-                colorTextHeading: "#4A5568", // Darker grey color for titles
-                colorText: "#4A5568", // Darker grey color for general text
-                fontWeight: "bold", // Make text bold
+                colorTextHeading: "#4A5568", 
+                colorText: "#4A5568",
+                fontWeight: "bold", 
               },
               components: {
                 Table: {
-                  colorText: "#4A5568", // Darker grey color for table text
-                  fontWeight: "bold", // Make table text bold
+                  colorText: "#4A5568", 
+                  fontWeight: "bold", 
                 },
               },
             }}

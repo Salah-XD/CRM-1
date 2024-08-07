@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef,useEffect} from "react";
 import { Button, message, Steps, theme } from "antd";
 import BusinessDetail from "./BussinessDetail";
 import OutletDetail from "./OutletDetail";
@@ -8,7 +8,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
 const AddClientForm = ({ newClientTitle }) => {
-  const { token } = theme.useToken();
   const [current, setCurrent] = useState(0);
   const [formData, setFormData] = useState({
     businessDetail: {},
@@ -16,11 +15,22 @@ const AddClientForm = ({ newClientTitle }) => {
     questionnairesDetail: {},
   });
 
+
+
   const businessDetailRef = useRef();
   const outletDetailRef = useRef();
   const questionnairesFormRef = useRef();
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const scrollableContainer = document.querySelector(".scrollable-container");
+    if (scrollableContainer) {
+      scrollableContainer.scrollTo(0, 0);
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [current]);
 
 
   const next = () => {
@@ -31,8 +41,8 @@ const AddClientForm = ({ newClientTitle }) => {
           setCurrent(current + 1);
         })
         .catch((error) => {
-          console.error("Error submitting Business Detail:", error);
-          message.error("Failed to submit Business Detail. Please try again.");
+          // console.error("Error submitting Business Detail:", error);
+          // message.error("Failed to submit Business Detail. Please try again.");
         });
     } else if (current === 1) {
       if (formData.outletDetail.items.length > 0) {
@@ -50,8 +60,8 @@ const AddClientForm = ({ newClientTitle }) => {
           });
         })
         .catch((error) => {
-          console.error("Error submitting Questionnaires:", error);
-          message.error("Failed to submit Questionnaires. Please try again.");
+          // console.error("Error submitting Questionnaires:", error);
+          // message.error("Failed to submit Questionnaires. Please try again.");
         });
     } else {
       setCurrent(current + 1);
@@ -96,7 +106,7 @@ const AddClientForm = ({ newClientTitle }) => {
         business: businessId,
       });
 
-      message.success("Data submitted successfully!");
+      message.success("Client Added Successfully!");
       if (location.pathname === "/client-onboarding") {
         navigate("/client-success");
       } else {
@@ -107,6 +117,10 @@ const AddClientForm = ({ newClientTitle }) => {
       message.error("An error occurred during the submission.");
     }
   };
+
+    const baseDivStyle =
+      location.pathname === "/client-onboarding" ? { marginLeft: 220 } : {};
+
 
   const steps = [
     {
@@ -167,23 +181,25 @@ const AddClientForm = ({ newClientTitle }) => {
         <Steps current={current} items={items} />
       </div>
       <div style={contentStyle}>{steps[current].content}</div>
-      <div className="sticky bottom-0 z-50 bg-white w-full p-8 flex justify-start shadow-top">
-        <div>
-          {current < steps.length - 1 && (
-            <Button type="primary" onClick={next}>
-              Next
-            </Button>
-          )}
-          {current === steps.length - 1 && (
-            <Button type="primary" onClick={next}>
-              Submit
-            </Button>
-          )}
-          {current > 0 && (
-            <Button style={{ margin: "0 8px" }} onClick={prev}>
-              Previous
-            </Button>
-          )}
+      <div className="sticky bottom-0  z-50 bg-white w-full p-8 flex justify-start shadow-top">
+        <div style={baseDivStyle}>
+          <div>
+            {current < steps.length - 1 && (
+              <Button type="primary" onClick={next}>
+                Next
+              </Button>
+            )}
+            {current === steps.length - 1 && (
+              <Button type="primary" onClick={next}>
+                Submit
+              </Button>
+            )}
+            {current > 0 && (
+              <Button style={{ margin: "0 8px" }} onClick={prev}>
+                Previous
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </>

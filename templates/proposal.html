@@ -109,38 +109,39 @@
 
 
         <tr>
-          <th class="border text-sm">Outlet Name</th>
-          <th class="border text-sm">No. of Food handlers</th>
-          <th class="border text-sm">Man Days</th>
-          <th class="border text-sm">Unit Cost</th>
-          <th class="border text-sm">Discount</th>
-          <th class="border text-sm">Amount</th>
+          <th class="px-2 py-1">Outlet Name</th>
+            <th class="px-2 py-1">Description</th>
+            <th class="px-2 py-1">Service</th>
+            <th class="px-2 py-1">Man Days</th>
+            <th class="px-2 py-1">Qty</th>
+            <th class="px-2 py-1">Unit Cost</th>
+            <th class="px-2 py-1">Amount</th>
         </tr>
         {{outletRows}}
         <!-- Additional rows can be added dynamically -->
         <tr>
-          <td colspan="5" class="selected-cell border text-right w-3/4 small-cell">
+          <td colspan="6" class="selected-cell border text-right w-3/4 small-cell">
             <strong>Sub Total</strong>
           </td>
-          <td class="border w-1/4 selected-cell small-cell">{{total}}</td>
+          <td class="border w-1/4 selected-cell small-cell text-center">{{total}}</td>
         </tr>
         <tr>
-          <td colspan="5" class="border text-right w-3/4 small-cell">
+          <td colspan="6" class="border text-right w-3/4 small-cell">
             <strong>CGST9 [9%]</strong>
           </td>
-          <td class="border w-1/4 small-cell">{{cgst}}</td>
+          <td class="border w-1/4 small-cell text-center">{{cgst}}</td>
         </tr>
         <tr>
-          <td colspan="5" class="border text-right w-3/4 small-cell">
+          <td colspan="6" class="border text-right w-3/4 small-cell">
             <strong>SGST9 [9%]</strong>
           </td>
-          <td class="border w-1/4 small-cell">{{sgst}}</td>
+          <td class="border w-1/4 small-cell text-center">{{sgst}}</td>
         </tr>
         <tr>
-          <td colspan="5" class="border selected-cell text-right w-3/4 small-cell">
+          <td colspan="6" class="border selected-cell text-right w-3/4 small-cell">
             <strong>Total</strong>
           </td>
-          <td class="border w-1/4 selected-cell small-cell"><strong>{{overallTotal}}</strong></td>
+          <td class="border w-1/4 selected-cell small-cell text-center"><strong>{{overallTotal}}</strong></td>
         </tr>
       </table>
     </div>

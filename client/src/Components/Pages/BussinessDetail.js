@@ -211,7 +211,7 @@ const handleFinish = (values) => {
             </Checkbox.Group>
           </Form.Item>
           <Form.Item
-            name="Vertical_of_industry"
+            name="vertical_of_industry"
             className="w-1/4"
             label={
               <span className="text-gray-600 font-semibold">

@@ -135,6 +135,55 @@ const UpdateOutletForm = ({
           <Form.Item
             label={
               <span className="text-gray-600 font-semibold">
+                FSSAI License Number
+              </span>
+            }
+            name="fssai_license_number"
+            rules={[
+              {
+                required: true,
+                message: "Please enter the FSSAI License Number",
+              },
+              {
+                len: 14,
+                message:
+                  "FSSAI License Number must be exactly 14 characters long",
+              },
+              {
+                pattern: /^[0-9]+$/,
+                message: "FSSAI License Number must be numeric only",
+              },
+            ]}
+          >
+            <Input
+              placeholder="Enter FSSAI License"
+              className="placeholder-gray-400 p-3 rounded-lg w-full"
+              disabled={!isEditMode}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label={
+              <span className="text-gray-600 font-semibold">GST Number</span>
+            }
+            name="gst_number"
+            rules={[
+              {
+                pattern: /^[A-Za-z0-9]{14}$/,
+                message: "GST number must be 14 alphanumeric characters",
+              },
+            ]}
+          >
+            <Input
+              placeholder="Enter GST number"
+              className="placeholder-gray-400 p-3 rounded-lg w-full"
+              disabled={!isEditMode}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label={
+              <span className="text-gray-600 font-semibold">
                 Contact Number
               </span>
             }
@@ -172,34 +221,6 @@ const UpdateOutletForm = ({
           >
             <Input
               placeholder="Enter number of food handlers"
-              className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={!isEditMode}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label={
-              <span className="text-gray-600 font-semibold">
-                FSSAI License Number
-              </span>
-            }
-            name="fssai_license_number"
-          >
-            <Input
-              placeholder="Enter FSSAI License"
-              className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={!isEditMode}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label={
-              <span className="text-gray-600 font-semibold">GST Number</span>
-            }
-            name="gst_number"
-          >
-            <Input
-              placeholder="Enter GST number"
               className="placeholder-gray-400 p-3 rounded-lg w-full"
               disabled={!isEditMode}
             />
