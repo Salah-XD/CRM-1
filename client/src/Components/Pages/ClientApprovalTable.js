@@ -62,6 +62,8 @@ const ClientApprovalTable = () => {
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [shouldFetch, setShouldFetch] = useState(false);
+  const [approvalModalVisible, setApprovalModalVisible] = useState(false);
+  const [currentClientId, setCurrentClientId] = useState(null);
   const navigate = useNavigate();
 
   // Toggling
@@ -69,6 +71,21 @@ const ClientApprovalTable = () => {
     setIsModalVisible(!isModalVisible);
     setIsModalOpen(!isModalOpen);
   };
+
+
+  const showApprovalModal = (id) => {
+    setCurrentClientId(id);
+    setApprovalModalVisible(true);
+  };
+
+  const handleModalOk = () => {
+    handleApproval();
+  };
+
+  const handleModalCancel = () => {
+    handleRejection();
+  };
+
 
   // Fetch data function
   const fetchData = useCallback(() => {
@@ -201,70 +218,49 @@ const ClientApprovalTable = () => {
     });
   };
 
-  //Confimr Approval of client list
-const confirmApproval = (id) => {
-  // Define a function to handle the approval API call
-  const handleApproval = () => {
-    axios
-      .put(`/api/updateBusinessStatus/${id}`)
-      .then((response) => {
-        fetchData();
-        message.success("Client is Approved");
-      })
-      .catch((error) => {
-        console.error("Approval error:", error);
-        message.error("Approval failed");
-      });
-  };
-
-  // Define a function to handle the rejection API call
-  const handleRejection = () => {
-    axios
-      .delete("/api/deleteSelectedFields", { data: [id] }) // Send ID as an array
-      .then((response) => {
-        const currentPage = tableParams.pagination.current;
-        const pageSize = tableParams.pagination.pageSize;
-        const newTotal = tableParams.pagination.total - 1; // Only one row is deleted
-        const newCurrentPage = Math.min(
-          currentPage,
-          Math.ceil(newTotal / pageSize)
-        );
-
-        setTableParams((prevState) => ({
-          ...prevState,
-          pagination: {
-            total: newTotal,
-            current: newCurrentPage,
-          },
-        }));
-
-        setShouldFetch(true); // Trigger data fetch
-        message.success("Client is Rejected");
-      })
-      .catch((error) => {
-        console.error("Error deleting row:", error);
-        message.error("Rejection failed");
-      });
-  };
-
-  // Show the confirmation modal
-  Modal.confirm({
-    title: "Approve or Reject?",
-    icon: <ExclamationCircleFilled />,
-    okText: "Approve",
-    okType: "primary",
-    cancelText: "Reject",
-    cancelType: "danger",
-    closable: true,
-    onOk() {
-      handleApproval(); // Only called when "Approve" is clicked
-    },
-    onCancel() {
-      handleRejection(); // Only called when "Reject" is clicked
-    },
-  });
+const handleApproval = () => {
+  axios
+    .put(`/api/updateBusinessStatus/${currentClientId}`)
+    .then((response) => {
+      fetchData();
+      message.success("Client is Approved");
+      setApprovalModalVisible(false);
+    })
+    .catch((error) => {
+      console.error("Approval error:", error);
+      message.error("Approval failed");
+    });
 };
 
+const handleRejection = () => {
+  axios
+    .delete("/api/deleteSelectedFields", { data: [currentClientId] })
+    .then((response) => {
+      const currentPage = tableParams.pagination.current;
+      const pageSize = tableParams.pagination.pageSize;
+      const newTotal = tableParams.pagination.total - 1;
+      const newCurrentPage = Math.min(
+        currentPage,
+        Math.ceil(newTotal / pageSize)
+      );
+
+      setTableParams((prevState) => ({
+        ...prevState,
+        pagination: {
+          total: newTotal,
+          current: newCurrentPage,
+        },
+      }));
+
+      setShouldFetch(true);
+      message.success("Client is Rejected");
+      setApprovalModalVisible(false);
+    })
+    .catch((error) => {
+      console.error("Error deleting row:", error);
+      message.error("Rejection failed");
+    });
+};
 
 
 
@@ -275,7 +271,7 @@ const confirmApproval = (id) => {
        navigate(`/client-profile/update-client/id/${record._id}`);
        break;
      case "approve":
-       confirmApproval(record._id);
+   showApprovalModal(record._id);
      default:
        break;
    }
@@ -405,7 +401,7 @@ const confirmApproval = (id) => {
             theme={{
               components: {
                 Radio: {
-                  buttonBorderWidth: 0, 
+                  buttonBorderWidth: 0,
                 },
               },
             }}
@@ -463,14 +459,14 @@ const confirmApproval = (id) => {
           <ConfigProvider
             theme={{
               token: {
-                colorTextHeading: "#4A5568", 
+                colorTextHeading: "#4A5568",
                 colorText: "#4A5568",
-                fontWeight: "bold", 
+                fontWeight: "bold",
               },
               components: {
                 Table: {
-                  colorText: "#4A5568", 
-                  fontWeight: "bold", 
+                  colorText: "#4A5568",
+                  fontWeight: "bold",
                 },
               },
             }}
@@ -491,6 +487,35 @@ const confirmApproval = (id) => {
         </div>
       </div>
       <SendMailModal visible={isModalVisible} onCancel={toggleModal} />
+      <Modal
+
+        visible={approvalModalVisible}
+        footer={null} // Disable default footer
+        onCancel={() => setApprovalModalVisible(false)}
+      >
+        <div className="flex items-center mb-4">
+          <ExclamationCircleFilled className="text-yellow-500 text-3xl mr-2" />
+          <p className="text-lg font-semibold text-gray-800">
+            Approve or Reject this client?
+          </p>
+        </div>
+        <div className="flex justify-end space-x-2">
+          <Button
+            type="primary"
+            onClick={handleModalOk}
+            className="bg-blue-500 hover:bg-blue-600 text-white"
+          >
+            Approve
+          </Button>
+          <Button
+            type="default"
+            onClick={handleModalCancel}
+            className="bg-red-500 hover:bg-red-600 text-white"
+          >
+            Reject
+          </Button>
+        </div>
+      </Modal>
     </AdminDashboard>
   );
 };

@@ -20,7 +20,10 @@ import {
   SearchOutlined,
   MailOutlined,
   EditOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
+
 import AdminDashboard from "../Layout/AdminDashboard";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -29,6 +32,7 @@ import GenerateProposalSendMail from "./GenerateProposalSendMail";
 import GenerateAgreementModal from "./GenrateAgreementModal";
 import GenrateInvoiceModal from "./GenrateInvoiceModal";
 import UpdateGenerateProposalModal from "./UpdateGenrateProposalModal";
+import ViewProposal from "./ViewProposal";
 
 const { confirm } = Modal;
 
@@ -75,7 +79,7 @@ const ProposalTable = () => {
   const [proposalId, setProposalId] = useState(null);
   const [showSendMailModal, setShowSendMailModal] = useState(false);
   const [UpdateProposal, setUpdateProposal] = useState(false);
-
+  const navigate = useNavigate();
 
   // Toggling
 
@@ -308,7 +312,7 @@ const ProposalTable = () => {
         break;
 
         case "edit":
-          showUpdateProposal(record._id);
+           navigate(`/proposal/view-proposal/${record._id}`);
           break;
 
       default:
@@ -342,6 +346,16 @@ const ProposalTable = () => {
         </span>
       </Menu.Item>
       <Menu.Item
+        key="edit"
+        style={{ margin: "8px 0", backgroundColor: "#E1BEE7" }}
+      >
+        <span
+          style={{ color: "#4A148C", fontWeight: "bold", fontSize: "12px" }}
+        >
+          <EyeOutlined /> View
+        </span>
+      </Menu.Item>
+      <Menu.Item
         key="send_mail"
         style={{ margin: "8px 0", backgroundColor: "#FFE0B2" }}
       >
@@ -359,16 +373,6 @@ const ProposalTable = () => {
           style={{ color: "#B71C1C", fontWeight: "bold", fontSize: "12px" }}
         >
           <DeleteOutlined /> Delete
-        </span>
-      </Menu.Item>
-      <Menu.Item
-        key="edit"
-        style={{ margin: "8px 0", backgroundColor: "#E1BEE7" }}
-      >
-        <span
-          style={{ color: "#4A148C", fontWeight: "bold", fontSize: "12px" }}
-        >
-          <EditOutlined /> Edit
         </span>
       </Menu.Item>
     </Menu>

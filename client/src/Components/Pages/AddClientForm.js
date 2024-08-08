@@ -172,7 +172,15 @@ const AddClientForm = ({ newClientTitle }) => {
   return (
     <>
       <div className="top-0 z-50 bg-white">
-        <div className="mb-10 border shadow-bottom px-4 py-4">
+        <div className="mb-10 border shadow-bottom px-4 py-4 flex items-center">
+          {location.pathname !== "/client-onboarding" && (
+            <span
+              onClick={() => navigate("/client-profile")}
+              className="cursor-pointer text-3xl mr-4"
+            >
+              ←
+            </span>
+          )}
           <h2 className="text-2xl font-semibold">{newClientTitle}</h2>
         </div>
       </div>
