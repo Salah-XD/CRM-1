@@ -183,6 +183,8 @@ export const saveOutlet = async (req, res) => {
       fssai_license_number,
       gst_number,
       business,
+      type_of_industry,
+      unit
     } = req.body;
 
     // Create a new outlet instance with the provided data
@@ -194,6 +196,8 @@ export const saveOutlet = async (req, res) => {
       fssai_license_number,
       gst_number,
       business,
+      type_of_industry,
+      unit
     });
 
     // Save the outlet to the database

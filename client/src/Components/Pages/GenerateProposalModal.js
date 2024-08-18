@@ -27,7 +27,9 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
       outlet_name: "",
       no_of_food_handlers: 0,
       man_days: 0,
-      unit_cost: 0,
+      type_of_industry: "",
+      unit: 0,
+ 
       discount: 0,
       amount: 0,
     },
@@ -43,8 +45,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
   const [total, setTotal] = useState(0);
   const [email, setEmail] = useState(0);
   const [prosposalId, setPropsalId] = useState();
-const [auditors, setAuditors] = useState([]);
-
+  const [auditors, setAuditors] = useState([]);
 
   const handleCancel = () => {
     setItems([]);
@@ -54,7 +55,7 @@ const [auditors, setAuditors] = useState([]);
         outlet_name: "",
         no_of_food_handlers: 0,
         man_days: 0,
-        unit_cost: 0,
+
         discount: 0,
         amount: 0,
       },
@@ -94,16 +95,34 @@ const [auditors, setAuditors] = useState([]);
 
           // Set items state with fetched data
           setItems(
-            outletData.map((outlet) => ({
-              outletId: outlet._id || "",
-              outlet_name: outlet.branch_name || "",
-              no_of_food_handlers: outlet.no_of_food_handlers || 0,
-              man_days: 0,
-              unit_cost: outlet.unit_cost || 0,
-              discount: 0,
-              amount: 0,
-            }))
+            outletData.map((outlet) => {
+              const type_of_industry = outlet.type_of_industry || "";
+              const unit = outlet.unit || 0;
+              let man_days = 0;
+
+              if (type_of_industry === "Catering") {
+                man_days = calculateManDays(unit);
+              } else if (type_of_industry === "Transportation") {
+                man_days = calculateVehicleManDays(unit);
+              } else if (type_of_industry === "Trade and Retail") {
+                man_days = calculateStorageManDays(unit);
+              } else {
+                man_days = calculateManufacturingManDays(unit);
+              }
+
+              return {
+                outletId: outlet._id || "",
+                outlet_name: outlet.branch_name || "",
+                type_of_industry: type_of_industry,
+                unit: unit,
+                man_days: man_days,
+           
+                discount: 0,
+                amount: 0,
+              };
+            })
           );
+
         } catch (error) {
           console.error("Error fetching outlets", error);
         }
@@ -204,7 +223,7 @@ const [auditors, setAuditors] = useState([]);
           outlet_name: "",
           no_of_food_handlers: 0,
           man_days: 0,
-          unit_cost: 0,
+
           discount: 0,
           amount: 0,
         },
@@ -220,7 +239,6 @@ const [auditors, setAuditors] = useState([]);
   };
 
   const calculateManDays = (foodHandlers) => {
-    // console.log("i executed with f", foodHandlers);
     if (foodHandlers <= 50) return 0.5;
     if (foodHandlers <= 100) return 1;
     if (foodHandlers <= 300) return 1.5;
@@ -230,7 +248,6 @@ const [auditors, setAuditors] = useState([]);
   };
 
   const calculateStorageManDays = (area) => {
-    //  console.log("i executed with A", area);
     if (area < 15000) return 0.5;
     if (area >= 15000 && area <= 50000) return 1;
     if (area > 50000) return 1.5;
@@ -238,7 +255,6 @@ const [auditors, setAuditors] = useState([]);
   };
 
   const calculateVehicleManDays = (noOfVehicles) => {
-    //  console.log("i executed with v", noOfVehicles);
     if (noOfVehicles <= 2) return 0.5;
     if (noOfVehicles >= 3 && noOfVehicles <= 5) return 1;
     if (noOfVehicles >= 6 && noOfVehicles <= 7) return 1.5;
@@ -246,115 +262,105 @@ const [auditors, setAuditors] = useState([]);
     return 2;
   };
 
+  const calculateManufacturingManDays = (unit) => {
+    return;
+  };
+
+
   const handleInputChange = (index, field, value) => {
     setItems((prevItems) => {
       const newItems = [...prevItems];
       const currentItem = newItems[index];
-
+  
       if (field === "outletId") {
         if (value === "others") {
           newItems[index] = {
             ...currentItem,
             outletId: value,
             outlet_name: "Others",
-            no_of_food_handlers: 0,
+            unit: 0,
             man_days: 0,
-            unit_cost: 0,
             discount: 0,
             amount: 0,
           };
         } else {
           const selectedOutlet = outlets.find((outlet) => outlet._id === value);
+  
+          const type_of_industry = selectedOutlet?.type_of_industry || "";
+          const unit = selectedOutlet?.unit || 0;
+          let man_days = 0;
+  
+          if (type_of_industry === "Catering") {
+            man_days = calculateManDays(unit);
+          } else if (type_of_industry === "Transportation") {
+            man_days = calculateVehicleManDays(unit);
+          } else if (type_of_industry === "Trade and Retail") {
+            man_days = calculateStorageManDays(unit);
+          } else {
+            man_days = calculateManufacturingManDays(unit);
+          }
+  
           newItems[index] = {
             ...currentItem,
             outletId: value,
-            outlet_name: selectedOutlet ? selectedOutlet.branch_name : "",
-            no_of_food_handlers: selectedOutlet
-              ? selectedOutlet.no_of_food_handlers
-              : 0,
-            man_days: 0,
-            unit_cost: 0,
+            type_of_industry: selectedOutlet?.type_of_industry || 0,
+            outlet_name: selectedOutlet?.branch_name || "",
+            unit: selectedOutlet?.unit || 0,
+            service: selectedOutlet?.service || 0,
             discount: 0,
             amount: 0,
+            man_days,
           };
         }
-      } else if (field === "service") {
-        newItems[index] = {
-          ...currentItem,
-          service: value,
-        };
-
-        // Recalculate man_days based on selected service type
-        if (value === "no_of_food_handlers") {
-          newItems[index].man_days = calculateManDays(
-            newItems[index].no_of_food_handlers
-          );
-        } else if (value === "vehicle") {
-          newItems[index].man_days = calculateVehicleManDays(
-            newItems[index].no_of_food_handlers
-          );
-        } else if (value === "area") {
-          newItems[index].man_days = calculateStorageManDays(
-            newItems[index].no_of_food_handlers
-          );
-        }
-      } else {
-        newItems[index] = {
-          ...currentItem,
-          [field]: value,
-        };
-
-        // Recalculate man_days if relevant field changes
-        if (field === "no_of_food_handlers") {
-          const service = newItems[index].service || "No of Food Handlers";
-          if (service === "no_of_food_handlers") {
-            newItems[index].man_days = calculateManDays(value);
-          } else if (service === "vehicle") {
-            newItems[index].man_days = calculateVehicleManDays(value);
-          } else if (service === "area") {
-            newItems[index].man_days = calculateStorageManDays(value);
-          }
-        }
       }
-
-      // Recalculate amount
-      if (field === "quantity" || field === "unit_cost") {
+  
+      // Calculation logic directly in the conditions
+      if (field === "unit_cost") {
+        newItems[index].unit_cost = value;
         newItems[index].amount =
-          newItems[index].quantity * newItems[index].unit_cost;
+          (newItems[index].quantity || 0) * (newItems[index].unit_cost || 0);
       }
-
+  
+      if (field === "quantity") {
+        newItems[index].quantity = value;
+        newItems[index].amount =
+          (newItems[index].quantity || 0) * (newItems[index].unit_cost || 0);
+      }
+  
       // Recalculate totals
       calculateTotals(newItems);
-
+  
       return newItems;
     });
   };
+  
 
-  const calculateTotals = (items) => {
-    if (!Array.isArray(items) || items.length === 0) {
-      setSubTotal(0);
-      setSgst(0);
-      setCgst(0);
-      setTotal(0);
-      return;
-    }
 
-    // Calculate subtotal by summing up all amounts
-    const calculatedSubTotal = items.reduce(
-      (sum, item) => sum + (parseFloat(item.amount) || 0),
-      0
-    );
+const calculateTotals = (items) => {
+  console.log("i also triggerd");
+  if (!Array.isArray(items) || items.length === 0) {
+    setSubTotal(0);
+    setSgst(0);
+    setCgst(0);
+    setTotal(0);
+    return;
+  }
 
-    const calculatedIgst = calculatedSubTotal * 0.09;
-    const calculatedCgst = calculatedSubTotal * 0.09;
-    const calculatedTotal =
-      calculatedSubTotal + calculatedIgst + calculatedCgst;
+  const calculatedSubTotal = items.reduce(
+    (sum, item) => sum + (parseFloat(item.amount) || 0),
+    0
+  );
 
-    setSubTotal(calculatedSubTotal);
-    setSgst(calculatedIgst);
-    setCgst(calculatedCgst);
-    setTotal(calculatedTotal);
-  };
+  const calculatedIgst = calculatedSubTotal * 0.09;
+  const calculatedCgst = calculatedSubTotal * 0.09;
+  const calculatedTotal = calculatedSubTotal + calculatedIgst + calculatedCgst;
+
+  setSubTotal(calculatedSubTotal);
+  setSgst(calculatedIgst);
+  setCgst(calculatedCgst);
+  setTotal(calculatedTotal);
+};
+
 
   const columns = [
     {
@@ -410,43 +416,67 @@ const [auditors, setAuditors] = useState([]);
       },
     },
     {
-      title: "Service",
-      dataIndex: "service",
+      title: "Services",
+      dataIndex: "unit",
       render: (text, record, index) => {
         const isOthers = record.outletId === "others";
+        let postfix = "none";
+
+        switch (record.type_of_industry) {
+      
+          case "Transportation":
+            postfix = "VH";
+            break;
+          case "Catering":
+            postfix = "FH";
+            break;
+          case "Trade and Retail":
+            postfix = "Sq ft";
+            break;
+          case "Manufacturing":
+            postfix = "PD";
+            break;
+          default:
+            postfix = ""; // or any default value
+        }
+
+            console.log("Swith ch triggered",postfix);
+
         return isOthers ? (
-          <Input
-            value={text}
-            onChange={(e) =>
-              handleInputChange(index, "service", e.target.value)
-            }
-            className="w-full"
-          />
+          <Input disabled className="w-full" />
         ) : (
-          <Select
-            value={text}
-            className="w-full"
-            style={{ width: 120 }}
-            onChange={(value) => handleInputChange(index, "service", value)}
-          >
-            <Option value="no_of_food_handlers">Food Handlers</Option>
-            <Option value="vehicle">Vehicle</Option>
-            <Option value="area">Area</Option>
-          </Select>
+          <div className="flex items-center">
+            <InputNumber
+              min={0}
+              value={text}
+              onChange={(value) => handleInputChange(index, "unit", value)}
+              className="w-full"
+            />
+            <span className="ml-2" style={{ width: 50 }}>
+              {postfix}
+            </span>
+          </div>
         );
       },
     },
+
     {
       title: "Man Days",
       dataIndex: "man_days",
-      render: (text, record, index) => (
-        <InputNumber
-          min={0}
-          value={text}
-          onChange={(value) => handleInputChange(index, "man_days", value)}
-          className="w-full"
-        />
-      ),
+      render: (text, record, index) => {
+        const isOthers = record.outletId === "others";
+        return isOthers ? (
+          <Input disabled className="w-full" />
+        ) : (
+          <InputNumber
+            disa
+            min={0}
+            value={text}
+            onChange={(value) => handleInputChange(index, "man_days", value)}
+            className="w-full"
+          />
+        );
+      },
     },
     {
       title: "QTY",
@@ -481,6 +511,7 @@ const [auditors, setAuditors] = useState([]);
           currency: "INR",
         }),
     },
+
     {
       title: "Action",
       dataIndex: "action",
@@ -655,14 +686,14 @@ const [auditors, setAuditors] = useState([]);
               </Select>
             </Form.Item>
 
-            <div>
+            {/* <div>
               <Form.Item label="Note" name="note" className="flex-1">
                 <TextArea
                   className="w-full p-2 border border-gray-300 rounded"
                   defaultValue="This is note"
                 />
               </Form.Item>
-            </div>
+            </div> */}
 
             <div className="my-4">
               <h3 className="text-lg font-semibold mb-2">Items table</h3>

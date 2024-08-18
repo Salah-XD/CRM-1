@@ -28,6 +28,14 @@ const outletSchema = new Schema(
     gst_number: {
       type: String,
     },
+    type_of_industry: {
+      type: String,
+      enum: ["Catering", "Manufacturing", "Trade and Retail", "Transportation"],
+    },
+    unit:{
+      type:Number,
+      
+    }
   },
   { timestamps: true }
 );

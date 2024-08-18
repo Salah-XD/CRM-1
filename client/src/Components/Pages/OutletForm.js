@@ -1,7 +1,9 @@
-import React, { useEffect } from "react";
-import { Modal, Form, Input, Button } from "antd";
+import React, { useEffect, useState } from "react";
+import { Modal, Form, Input, Button, Select } from "antd";
 import axios from "axios";
-import "../css/outletForm.css"; 
+import "../css/outletForm.css";
+
+const { Option } = Select;
 
 const OutletForm = ({
   isModalVisible,
@@ -11,33 +13,51 @@ const OutletForm = ({
   businessId,
 }) => {
   const [form] = Form.useForm();
+  const [industryType, setIndustryType] = useState(null);
 
   useEffect(() => {
     if (item) {
       form.setFieldsValue(item);
+      setIndustryType(item.services);
     }
   }, [item, form]);
+
+  const handleIndustryChange = (value) => {
+    setIndustryType(value);
+  };
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      const formData = { ...values, business:businessId };
+      const formData = { ...values, business: businessId };
 
       if (businessId) {
         // Specific dynamic route - Make axios POST request
         await axios.post("/api/saveOutlet", formData);
-           handleOk();
-        formData.resetFields();
-     
+        handleOk();
+        form.resetFields();
       } else {
         // Other routes - Use handleOk
         handleOk(formData);
-        formData.resetFields();
+        form.resetFields();
       }
-
-      form.resetFields();
     } catch (error) {
       console.error("Error saving outlet data:", error);
+    }
+  };
+
+  const getUnitLabel = () => {
+    switch (industryType) {
+      case "Transportation":
+        return "No of Vehicle";
+      case "Manufacturing":
+        return "No of Production";
+      case "Trade and retail":
+        return "Area (Sq. ft)";
+      case "Catering":
+        return "No of Food Handlers";
+      default:
+        return "Enter the Unit";
     }
   };
 
@@ -91,16 +111,48 @@ const OutletForm = ({
           />
         </Form.Item>
         <Form.Item
+          label={
+            <span className="text-gray-600 font-semibold">
+              Type Of Industry
+            </span>
+          }
+          name="type_of_industry"
+          rules={[{ required: true, message: "Please select an industry Type" }]}
+        >
+          <Select
+            placeholder="Select industry Type"
+            className="w-full"
+            size="large"
+            onChange={handleIndustryChange}
+          >
+            <Option value="Catering">Catering</Option>
+            <Option value="Manufacturing">Manufacturing</Option>
+            <Option value="Trade and retail">Trade and Retail</Option>
+            <Option value="Transportation">Transportation</Option>
+          </Select>
+        </Form.Item>
+        {industryType && (
+          <Form.Item
+            label={
+              <span className="text-gray-600 font-semibold">
+                {getUnitLabel()}
+              </span>
+            }
+            name="unit"
+            rules={[{ required: true, message: "Please enter the unit" }]}
+          >
+            <Input
+              placeholder="Enter the unit"
+              className="placeholder-gray-400 p-3 rounded-lg w-full"
+            />
+          </Form.Item>
+        )}
+        <Form.Item
           name="gst_number"
           label={
             <span className="text-gray-600 font-semibold">GST Number</span>
           }
-          rules={[
-            {
-              pattern: /^[A-Za-z0-9]{14}$/,
-              message: "GST number must be 14 alphanumeric characters",
-            },
-          ]}
+        
         >
           <Input
             placeholder="Enter your GST number"
@@ -112,6 +164,7 @@ const OutletForm = ({
             <span className="text-gray-600 font-semibold">Contact Number</span>
           }
           name="contact_number"
+
         >
           <Input
             placeholder="Enter primary contact number"
@@ -123,25 +176,14 @@ const OutletForm = ({
             <span className="text-gray-600 font-semibold">Contact Person</span>
           }
           name="contact_person"
+
         >
           <Input
             placeholder="Enter contact person name"
             className="placeholder-gray-400 p-3 rounded-lg w-full"
           />
         </Form.Item>
-        <Form.Item
-          label={
-            <span className="text-gray-600 font-semibold">
-              No. of food handlers
-            </span>
-          }
-          name="no_of_food_handlers"
-        >
-          <Input
-            placeholder="Number of food handlers"
-            className="placeholder-gray-400 p-3 rounded-lg w-full"
-          />
-        </Form.Item>
+
         <div className="flex justify-center">
           <div className="flex justify-between space-x-2">
             <Button className="mr-5" onClick={handleCancel}>

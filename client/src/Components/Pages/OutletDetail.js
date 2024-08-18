@@ -64,9 +64,14 @@ const OutletDetail = ({ data, onChange }) => {
       key: "fssai_license_number",
     },
     {
-      title: "No of Food Handlers",
-      dataIndex: "no_of_food_handlers",
-      key: "no_of_food_handlers",
+      title: "Type of Industry",
+      dataIndex: "type_of_industry",
+      key: "type_of_industry",
+    },
+    {
+      title: "Unit",
+      dataIndex: "unit",
+      key: "unit",
     },
     {
       title: "Contact Number",
