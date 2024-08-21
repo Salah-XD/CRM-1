@@ -427,22 +427,20 @@ export const sendEmail = async (req, res) => {
 
     // Debugging environment variables
     console.log("Checking environment variables...");
-   
-   console.log("EMAIL_PASSWORD:", process.env.EMAIL_PASSWORD);
-   console.log("EMAIL_USERNAME:", process.env.EMAIL_USERNAME);
+
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
       host: "smtp.gmail.com",
       port: 587,
       auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
+        user:"unavar.steamtroops@gmail.com",
+        pass:"nwgg jdxf emoq enmo",
       },
     });
 
     const mailOptions = {
-      from: `<${process.env.EMAIL_USERNAME}>`,
+      from: "unavar.steamtroops@gmail.com",
       to,
       subject: "Client Onboarding Form",
       text: `${message}\n\nClient Onboarding Form: ${formLink}`,

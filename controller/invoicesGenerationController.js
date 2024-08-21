@@ -126,13 +126,13 @@ export const generateInvoice = async (req, res) => {
       host: "smtp.gmail.com",
       port: 587,
       auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
+        user: "unavar.steamtroops@gmail.com",
+        pass: "nwgg jdxf emoq enmo",
       },
     });
 
     const mailOptions = {
-      from: `<${process.env.EMAIL_USERNAME}>`,
+      from: "unavar.steamtroops@gmail.com",
       to,
       subject: "Invoice Document",
       text: message,

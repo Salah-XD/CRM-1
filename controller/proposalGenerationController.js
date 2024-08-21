@@ -11,6 +11,9 @@ export const generateProposal = async (req, res) => {
     const { proposalId } = req.params; // Access proposalId from route parameters
     const { to, message } = req.body; // Email details
 
+
+    console.log("hello",process.env.EMAIL_PASSWORD);
+
     // Fetch proposal details based on proposalId
     const proposalDetails = await Proposal.findById(proposalId).exec();
 
@@ -109,19 +112,24 @@ export const generateProposal = async (req, res) => {
     const pdfBuffer = await page.pdf({ format: "A4", printBackground: true }); // Generate PDF in A4 format
     await browser.close();
 
+
+    console.log("arun")
+
     // Set up Nodemailer
     const transporter = nodemailer.createTransport({
       service: "gmail",
       host: "smtp.gmail.com",
       port: 587,
       auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
+        user: "unavar.steamtroops@gmail.com",
+        pass: "nwgg jdxf emoq enmo",
       },
     });
 
+   
+
     const mailOptions = {
-      from: `<${process.env.EMAIL_USERNAME}>`,
+      from: "Arun",
       to, // Email recipient from request body
       subject: "Proposal Document",
       text: message, // Message body from request body

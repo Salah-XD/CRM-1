@@ -10,6 +10,7 @@ const ViewProposal = () => {
   const { proposalId } = useParams(); // Extract proposalId from the route
   const [proposalData, setProposalData] = useState(null);
   const [zoom, setZoom] = useState(1); // State to manage zoom level
+  const [noteContent, setNoteContent] = useState([]);
  const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,7 +25,20 @@ const ViewProposal = () => {
       }
     };
 
+    const fetchNoteContent = async () => {
+      try {
+        const response = await axios.get(
+          `/api/setting/getSetting/66c41b85dedfff785c08df21`
+        );
+        const formattedNote = response.data.proposal_note.split("\n");
+        setNoteContent(formattedNote);
+      } catch (error) {
+        console.error("Error fetching note content:", error);
+      }
+    };
+
     fetchProposalData();
+    fetchNoteContent(); 
   }, [proposalId]);
 
   if (!proposalData) {
@@ -258,13 +272,12 @@ const ViewProposal = () => {
             </table>
           </div>
         </div>
-        <div class="mt-1">
+         <div class="mt-5">
           <strong>Note:</strong>
-          <ol class="list-decimal list-inside text-xs">
-            <li>This proposal is valid for 30 days from the date of receipt.</li>
-            <li>100% advance payment to be done for the project.</li>
-            <li>18% Taxes as applicable in state.</li>
-            <li>Travel and accommodation of the auditor is under the scope of the client.</li>
+          <ol class="list-inside">
+            ${noteContent
+              .map((line) => `<li>${line}</li>`)
+              .join("")}
           </ol>
         </div>
         <div class="mt-10">
@@ -291,11 +304,7 @@ const ViewProposal = () => {
             </table>
           </div>
         </div>
-        <div class="mt-10">
-          <strong>Authorised Signatory:</strong><br />
-          <div class="text-center mt-10">Authorized Signature</div>
-        </div>
-      </div>
+        
     </body>
     </html>
   `;

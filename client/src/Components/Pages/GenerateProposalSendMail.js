@@ -1,14 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, Button, Input, message, Form } from "antd";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import SuccessMail from "./SuccessMail";
 
-const GenerateProposalSendMail = ({ visible, onClose, id,name,route,title}) => {
+const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title }) => {
   const [mailSent, setMailSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (visible) {
+      // Fetch the setting data when the modal is visible
+      axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
+        .then((response) => {
+          // Initialize the message field with the fetched data
+          form.setFieldsValue({ message: response.data.proposal_email });
+        })
+        .catch((error) => {
+          console.error("Failed to fetch setting data:", error);
+        });
+    }
+  }, [visible]);
 
   const handleSendMail = () => {
     form
@@ -24,7 +38,7 @@ const GenerateProposalSendMail = ({ visible, onClose, id,name,route,title}) => {
             setLoading(false);
             setMailSent(true);
             message.success("Mail sent successfully");
-            onClose(); 
+            onClose();
           })
           .catch((error) => {
             setLoading(false);
@@ -70,10 +84,6 @@ const GenerateProposalSendMail = ({ visible, onClose, id,name,route,title}) => {
             <p className="text-green-50 font-bold mb-4">
               Document generated successfully
             </p>
-            <p className="text-gray-600 mb-4">
-              Generated document can be accessed through the client link that
-              will be sent to the client.
-            </p>
 
             <Form form={form} layout="vertical">
               <Form.Item
@@ -106,16 +116,16 @@ const GenerateProposalSendMail = ({ visible, onClose, id,name,route,title}) => {
                   type="primary"
                   onClick={handleSendMail}
                   loading={loading}
-                  className="mr-4 p-2"
+                  className="mr-2 "
                 >
                   Send Mail
                 </Button>
-                <button
+                <Button
                   onClick={handleGoToAgreement}
-                  className="border border-buttonModalColor text-buttonModalColor bg-none p-2 rounded"
+                  className="border border-buttonModalColor text-buttonModalColor bg-none  rounded"
                 >
                   Go to Proposal
-                </button>
+                </Button>
               </div>
             </Form>
           </div>

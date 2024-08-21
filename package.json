@@ -37,7 +37,7 @@
     "number-to-words": "^1.2.4",
     "pdfkit": "^0.15.0",
     "pdfkit-table": "^0.1.99",
-    "puppeteer": "^22.10.0",
+    "puppeteer": "^22.15.0",
     "react-frame-component": "^5.2.7",
     "react-image-viewer-zoom": "^1.0.36",
     "react-viewer": "^3.2.2",

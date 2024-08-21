@@ -140,13 +140,13 @@ export const forgotPassword = async (req, res) => {
       port: 587,
       secure: false,
       auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
+        user: "unavar.steamtroops@gmail.com",
+        pass:"nwgg jdxf emoq enmo",
       },
     });
 
     const mailOptions = {
-      from: `"Your Name" <${process.env.EMAIL_USERNAME}>`,
+      from: "unavar.steamtroops@gmail.com",
       to: userId,
       subject: "Password Reset OTP",
       text: `Your OTP for password reset is: ${OTP}.`,

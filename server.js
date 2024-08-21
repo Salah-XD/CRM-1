@@ -10,6 +10,7 @@ import proposalRoutes from "./routes/proposalRoutes.js";
 import invoiceRoutes from "./routes/invoiceRoutes.js";
 import agreementRoutes from "./routes/agreementRoutes.js"
 import auditorRoutes from "./routes/auditorRoutes.js"
+import settingRoutes from "./routes/settingRoutes.js"
 
 //import path from "path";
  //import { fileURLToPath } from "url";
@@ -55,6 +56,7 @@ app.use("/api/invoice", invoiceRoutes);
 app.use("/api/agreement", agreementRoutes);
 app.use("/api/auth", authenticatinRoutes);
 app.use("/api/auditor", auditorRoutes);
+app.use("/api/setting", settingRoutes);
 
 // All other routes (non-API routes) go to React app
  //app.use("*", function (req, res) {

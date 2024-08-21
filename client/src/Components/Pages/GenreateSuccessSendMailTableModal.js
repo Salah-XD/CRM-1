@@ -1,14 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, Button, Input, message, Form } from "antd";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import SuccessTableMail from "./SuccessTableMail";
 
-const GenreateSuccessSendMailTableModal = ({ visible, onClose, id,onOk,title,route,name}) => {
+const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, route, name }) => {
   const [mailSent, setMailSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (visible) {
+      // Fetch the setting data when the modal is visible
+      axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
+        .then((response) => {
+          // Initialize the message field with the fetched data
+          form.setFieldsValue({ message: response.data.proposal_email });
+        })
+        .catch((error) => {
+          console.error("Failed to fetch setting data:", error);
+        });
+    }
+  }, [visible]);
 
   const handleSendMail = () => {
     form
@@ -25,8 +39,6 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id,onOk,title,rou
             onOk();
             message.success("Mail sent successfully");
             setMailSent(true);
-
-            
           })
           .catch((error) => {
             setLoading(false);
@@ -86,10 +98,6 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id,onOk,title,rou
                   className="w-full p-2 border rounded mb-4"
                 />
               </Form.Item>
-              <p className="text-gray-500 mb-4">
-                Note: This mail will be sent to CCs also. You can edit it in
-                Settings.
-              </p>
               <Form.Item
                 name="message"
                 rules={[

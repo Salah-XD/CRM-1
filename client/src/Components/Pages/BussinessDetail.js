@@ -79,8 +79,8 @@ const handleFinish = (values) => {
       ? "m-6 p-4 w-3/4 mx-auto"
       : "ml-6";
 
-  const baseDivClass =
-    location.pathname === "/client-onboarding" ? "ml-16" : "margin";
+  // const baseDivClass =
+  //   location.pathname === "/client-onboarding" ? "ml-16" : "margin";
 
   return (
     <div className="w-full">
