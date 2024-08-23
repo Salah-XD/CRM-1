@@ -19,6 +19,10 @@ const settingSchema = new Schema({
     type: String,
   
   },
+  agreement: {
+    type: String,
+  
+  },
 });
 
 const Setting = model("Setting", settingSchema);

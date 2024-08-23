@@ -51,7 +51,7 @@ const OutletForm = ({
       case "Transportation":
         return "No of Vehicle";
       case "Manufacturing":
-        return "No of Production";
+        return "No of Food Handlers";
       case "Trade and retail":
         return "Area (Sq. ft)";
       case "Catering":
@@ -127,7 +127,7 @@ const OutletForm = ({
           >
             <Option value="Catering">Catering</Option>
             <Option value="Manufacturing">Manufacturing</Option>
-            <Option value="Trade and retail">Trade and Retail</Option>
+            <Option value="Trade and Retail">Trade and Retail</Option>
             <Option value="Transportation">Transportation</Option>
           </Select>
         </Form.Item>
@@ -139,6 +139,22 @@ const OutletForm = ({
               </span>
             }
             name="unit"
+            rules={[{ required: true, message: "Please enter the unit" }]}
+          >
+            <Input
+              placeholder="Enter the unit"
+              className="placeholder-gray-400 p-3 rounded-lg w-full"
+            />
+          </Form.Item>
+        )}
+           {industryType==="Manufacturing" && (
+          <Form.Item
+            label={
+              <span className="text-gray-600 font-semibold">
+                No. Of Production Line
+              </span>
+            }
+            name="no_of_production_line"
             rules={[{ required: true, message: "Please enter the unit" }]}
           >
             <Input

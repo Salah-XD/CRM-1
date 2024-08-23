@@ -10,6 +10,7 @@ import {
   Spin,
 } from "antd";
 import axios from "axios";
+import GenreateSuccessSendMailTableModal from "./GenreateSuccessSendMailTableModal";
 
 const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
   const [selectedOutlets, setSelectedOutlets] = useState([]);

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agreement</title>
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        html {
+            -webkit-print-color-adjust: exact;
+        }
+
+        .container {
+            width: 793px;
+            /* A4 width in pixels */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .a4 {
+            border: 2px solid black;
+            /* Add border to a4 class */
+        }
+
+        .a4 img {
+            width: 100%;
+            height: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 4px;
+            /* Reduce padding for smaller cell height */
+            text-align: left;
+            font-size: 10px;
+            /* Smaller font size */
+        }
+
+        .selected-cell {
+            background-color: #f2f2f2 !important;
+        }
+
+        .small-cell {
+            padding: 2px;
+            /* Further reduce padding */
+        }
+
+        .content-box {
+            position: relative;
+          
+            background-image:
+        linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)),
+        url("data:image/png;base64,{{imageData}}");
+            background-repeat: no-repeat;
+            background-size: contain;
+            background-position: center center;
+        }
+
+        .page-break-before {
+            page-break-before: always;
+        }
+
+        .text-transparent-bg {
+            background-color: rgba(255, 255, 255, 0.6);
+            /* Semi-transparent background */
+            color: rgba(0, 0, 0, 0.8);
+            /* Slightly transparent text color */
+        }
+    </style>
+</head>
+
+<body class="bg-white text-xs">
+    <div class="container bg-white rounded-lg p-4 text-transparent-bg content-box">
+        <div class="flex p-2 header items-center border mb-4 ">
+            <div class="w-1/5">
+                <img src="data:image/png;base64,{{imageData}}" alt="Your Image Alt Text" width="80" height="80" />
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-gray-800">
+                    Unavar Food Inspection and Certification Private Limited
+                </h1>
+            </div>
+        </div>
+
+        <div class="agreement-document w-full mb-4">
+            <h1 class="text-xl font-bold mb-6 text-center"> Agreement</h1>
+
+            <div class="agreement-terms px-4 ">
+                <ol class="list-decimal list-inside">
+                    <p class="ml-4 my-4">
+                        This Services Agreement (“Agreement”) is made on this day of <strong>[Date]</strong> by and between:
+                        <strong>M/s. UNAVAR FOOD INSPECTION AND CERTIFICATION PRIVATE LIMITED</strong> (“Hygiene Rating Audit Agency”), with its principal place of business at <strong>Flat No. F1, First Floor, Door No. 519, MMIlla, MKN Road, Adambakkam Village, Alandur, Chennai – 600016</strong>.<br>
+                        And:<br>
+                        <strong>[FBO Name]</strong>, with respect to the <strong>Food Safety Services at the following address: [Address]</strong>, hereinafter referred to as <strong>COMPANY</strong>.<br>
+                        WHEREBY IT IS AGREED AS FOLLOWS:
+                    </p>
+                </ol>
+            </div>
+
+            <!-- Additional content can be wrapped with content-box divs to apply the same background styling -->
+            <div class="page-break-before content-box mt-12">
+                <h1 class="text-lg font-bold my-4 underline">GENERAL INSTRUCTIONS</h1>
+                <p class="ml-6 mb-4">On Signing the Above, the Company Ensures the Following in Terms of the Audit Execution:</p>
+                <ol class="ml-6">
+                    <li class="mb-4">
+                        <strong>a)</strong> The FE’s have to fulfill the audit requirements...
+                    </li>
+                    <!-- Other instructions -->
+                </ol>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

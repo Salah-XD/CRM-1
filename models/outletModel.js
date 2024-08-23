@@ -35,7 +35,10 @@ const outletSchema = new Schema(
     unit:{
       type:Number,
       
-    }
+    },
+    no_of_production_line:{
+      type:Number,
+    },
   },
   { timestamps: true }
 );

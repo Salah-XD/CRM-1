@@ -30,6 +30,7 @@ export const generateProposal = async (req, res) => {
       outlets,
       proposal_number,
       proposal_date,
+      pincode
     } = proposalDetails;
 
     // Calculate total, cgst, sgst, and total
@@ -38,8 +39,8 @@ export const generateProposal = async (req, res) => {
       total += parseFloat(outlet.amount.$numberInt || outlet.amount);
     });
 
-    const cgst = total * 0.09; // 9% CGST
-    const sgst = total * 0.09; // 9% SGST
+    const cgst = parseFloat((total * 0.09).toFixed(2)); // 9% CGST
+    const sgst = parseFloat((total * 0.09).toFixed(2)); // 9% SGST
     const overallTotal = total + cgst + sgst;
 
     // Convert MongoDB date format
@@ -54,33 +55,54 @@ export const generateProposal = async (req, res) => {
     );
 
     // Read the image file and convert it to base64 encoding
-    const imagePath = path.join(__dirname, "templates", "logo.png");
+    const imagePath = path.join(__dirname, "templates", "logo2.png");
     const imageData = await fs.readFile(imagePath, { encoding: "base64" });
+
+
 
     // Generate the outlet content dynamically
     const outletRows = outlets
-      .map((outlet) => {
-        const outletName = outlet.outlet_name || "";
-        const description = outlet.description || "";
-        const service = outlet.service || "";
-        const manDays = outlet.man_days?.$numberDouble || outlet.man_days || 0;
-        const quantity = outlet.quantity?.$numberInt || outlet.quantity || 0;
-        const unitCost = outlet.unit_cost?.$numberInt || outlet.unit_cost || 0;
-        const amount = outlet.amount?.$numberInt || outlet.amount || 0;
-
-        return `
-      <tr>
-        <td class="px-2 py-1 text-center">${outletName}</td>
-        <td class="px-2 py-1 text-center">${description}</td>
-        <td class="px-2 py-1 text-center">${service}</td>
-        <td class="px-2 py-1 text-center">${manDays}</td>
-        <td class="px-2 py-1 text-center">${quantity}</td>
-        <td class="px-2 py-1 text-center">${unitCost}</td>
-        <td class="px-2 py-1 text-center">${amount}</td>
-      </tr>
-    `;
-      })
-      .join("");
+    .map((outlet) => {
+      let postfix = "";
+      switch (outlet.type_of_industry) {
+        case "Transportation":
+          postfix = "VH";
+          break;
+        case "Catering":
+          postfix = "FH";
+          break;
+        case "Trade and Retail":
+          postfix = "Sq ft";
+          break;
+        case "Manufacturing":
+          postfix = "PD/Line";
+          break;
+        default:
+          postfix = ""; // or any default value
+      }
+  
+      const outletName = outlet.outlet_name || "";
+      const description = outlet.description || "";
+      const service = outlet.unit ? `${outlet.unit} ${postfix}` : "";
+      const manDays = outlet.man_days?.$numberDouble || outlet.man_days || 0;
+      const quantity = outlet.quantity?.$numberInt || outlet.quantity || 0;
+      const unitCost = outlet.unit_cost?.$numberInt || outlet.unit_cost || 0;
+      const amount = outlet.amount?.$numberInt || outlet.amount || 0;
+  
+      return `
+        <tr>
+          <td class="px-2 py-1 text-center">${outletName}</td>
+          <td class="px-2 py-1 text-center">${description}</td>
+          <td class="px-2 py-1 text-center">${service}</td>
+          <td class="px-2 py-1 text-center">${manDays}</td>
+          <td class="px-2 py-1 text-center">${quantity}</td>
+          <td class="px-2 py-1 text-center">${unitCost}</td>
+          <td class="px-2 py-1 text-center">${amount}</td>
+        </tr>
+      `;
+    })
+    .join("");
+  
 
     // Inject dynamic data into HTML template
     const dynamicContent = htmlTemplate
@@ -96,6 +118,7 @@ export const generateProposal = async (req, res) => {
       .replace(/{{total}}/g, total)
       .replace(/{{cgst}}/g, cgst)
       .replace(/{{sgst}}/g, sgst)
+      .replace(/{{pincode}}/g, pincode)
       .replace(/{{overallTotal}}/g, overallTotal);
 
     const browser = await puppeteer.launch();

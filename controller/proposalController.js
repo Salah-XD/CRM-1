@@ -23,7 +23,7 @@ export const getOutletDetailsById = async (req, res) => {
     // Find outlets that match the business ID and select only branch name and outlet ID
     const outlets = await Outlet.find(
       { business },
-      "branch_name _id  no_of_food_handlers type_of_industry unit"
+      "branch_name _id  no_of_food_handlers type_of_industry unit no_of_production_line  "
     );
 
     // Respond with the outlet details for the specified business

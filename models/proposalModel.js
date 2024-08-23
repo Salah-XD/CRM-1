@@ -16,10 +16,10 @@ const outletSchema = new Schema({
     default: 0,
   },
   description: {
-    type: "String",
-  },
-  service: {
     type: String,
+  },
+  unit: {
+    type: Number,
   },
   quantity: {
     type: Number,
@@ -32,6 +32,10 @@ const outletSchema = new Schema({
   amount: {
     type: Number,
     default: 0,
+  },
+  type_of_industry: {
+    type: String,
+    enum: ["Catering", "Manufacturing", "Trade and Retail", "Transportation"],
   },
   is_invoiced: {
     type: Boolean,

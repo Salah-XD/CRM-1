@@ -32,6 +32,10 @@ const agreementSchema = new Schema({
     type: Date,
     required: true,
   },
+  period:{
+    type:String,
+    required:true
+  }
 });
 
 const Agreement = model("Agreement", agreementSchema); 

@@ -45,8 +45,9 @@
       font-size: 10px; /* Smaller font size */
     }
     .selected-cell {
-      background-color: #f2f2f2 !important;
-    }
+  background-color: rgba(242, 242, 242, 0.5) !important;
+}
+
     .small-cell {
       padding: 2px; /* Further reduce padding */
     }
@@ -60,6 +61,16 @@
     .page-break-before {
       page-break-before: always;
     }
+    .content-box {
+            position: relative;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)),
+                url("data:image/png;base64,{{imageData}}");
+          
+            background-repeat: no-repeat;
+            background-size: contain;
+            background-position: center center;
+        }
   </style>
 </head>
 <body class="bg-white text-xs"> <!-- Change font size for body -->
@@ -80,13 +91,13 @@
           </h1>
         </div>
     </div>
-
+<div class="content-box">
     <div class="mt-5">
       <table id="clientProposalTable" class="w-full">
         <tr>
           <td colspan="2">
             <strong>To</strong><br />
-            <span class="font-medium">FBO Bussiness Name: </span>{{fbo_name}}<br />
+            <span class="font-medium ">FBO Bussiness Name: </span>{{fbo_name}}<br />
             <span class="font-medium">Contact Person Name: </span>{{contact_person}}<br />
             <span class="font-medium">Contact Person Number: </span>{{contactPersonNumber}}<br />
             <span class="font-medium">FBO Address: </span>{{address}}<br />
@@ -109,13 +120,13 @@
 
 
         <tr>
-          <th class="px-2 py-1">Outlet Name</th>
-            <th class="px-2 py-1">Description</th>
-            <th class="px-2 py-1">Service</th>
-            <th class="px-2 py-1">Man Days</th>
-            <th class="px-2 py-1">Qty</th>
-            <th class="px-2 py-1">Unit Cost</th>
-            <th class="px-2 py-1">Amount</th>
+          <th class="px-2 py-1 text-center">Outlet Name</th>
+            <th class="px-2 py-1 text-center">Description</th>
+            <th class="px-2 py-1 text-center">Service</th>
+            <th class="px-2 py-1 text-center">Man Days</th>
+            <th class="px-2 py-1 text-center">Qty</th>
+            <th class="px-2 py-1 text-center">Unit Cost</th>
+            <th class="px-2 py-1 text-center">Amount</th>
         </tr>
         {{outletRows}}
         <!-- Additional rows can be added dynamically -->
@@ -123,13 +134,13 @@
           <td colspan="6" class="selected-cell border text-right w-3/4 small-cell">
             <strong>Sub Total</strong>
           </td>
-          <td class="border w-1/4 selected-cell small-cell text-center">{{total}}</td>
+          <td class="border w-1/4 selected-cell small-cell text-center"><strong>{{total}}</strong></td>
         </tr>
         <tr>
           <td colspan="6" class="border text-right w-3/4 small-cell">
             <strong>CGST9 [9%]</strong>
           </td>
-          <td class="border w-1/4 small-cell text-center">{{cgst}}</td>
+          <td class="border w-1/4 small-cell text-center ">{{cgst}}</td>
         </tr>
         <tr>
           <td colspan="6" class="border text-right w-3/4 small-cell">
@@ -151,8 +162,8 @@
       <div class="w-full flex justify-center">
         <table class="border-collapse w-3/4">
           <tr>
-            <td class="w-1/2 border px-4 py-1">Total Amount (without tax)</td>
-            <td class="w-1/2 border px-4 py-1">{{total}}</td>
+            <td class="w-1/2 border px-4 py-1"><strong> Amount (without tax)</strong></td>
+            <td class="w-1/2 border px-4 py-1"><strong>{{total}}</strong></td>
           </tr>
           <tr>
             <td class="w-1/2 border px-4 py-1">CGST9 [9%]</td>
@@ -215,6 +226,7 @@
         </table>
       </div>
     </div>
+  </div>
 
     <div class="container my-5 bg-white rounded-lg p-5 page-break-before">
       <div class="text-center">

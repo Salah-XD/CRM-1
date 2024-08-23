@@ -9,6 +9,7 @@ import {
   Table,
   Button,
   message,
+  Descriptions,
 } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 import moment from "moment";
@@ -29,9 +30,10 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
       man_days: 0,
       type_of_industry: "",
       unit: 0,
- 
-      discount: 0,
+      description: "",
       amount: 0,
+      
+no_of_production_line:0
     },
   ]);
   const [proposal_date, setProposalDate] = useState(moment());
@@ -46,7 +48,6 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
   const [email, setEmail] = useState(0);
   const [prosposalId, setPropsalId] = useState();
   const [auditors, setAuditors] = useState([]);
-
   const handleCancel = () => {
     setItems([]);
     setItems([
@@ -55,9 +56,10 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
         outlet_name: "",
         no_of_food_handlers: 0,
         man_days: 0,
-
-        discount: 0,
+        description: "",
         amount: 0,
+        
+no_of_production_line:0
       },
     ]);
     setSubTotal(0);
@@ -98,6 +100,10 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
             outletData.map((outlet) => {
               const type_of_industry = outlet.type_of_industry || "";
               const unit = outlet.unit || 0;
+              const
+                no_of_production_line = outlet?.
+                  no_of_production_line || 0;
+
               let man_days = 0;
 
               if (type_of_industry === "Catering") {
@@ -107,7 +113,8 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
               } else if (type_of_industry === "Trade and Retail") {
                 man_days = calculateStorageManDays(unit);
               } else {
-                man_days = calculateManufacturingManDays(unit);
+                man_days = calculateManufacturingManDays(unit,
+                  no_of_production_line);
               }
 
               return {
@@ -116,8 +123,6 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
                 type_of_industry: type_of_industry,
                 unit: unit,
                 man_days: man_days,
-           
-                discount: 0,
                 amount: 0,
               };
             })
@@ -223,8 +228,6 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
           outlet_name: "",
           no_of_food_handlers: 0,
           man_days: 0,
-
-          discount: 0,
           amount: 0,
         },
       ];
@@ -239,12 +242,10 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
   };
 
   const calculateManDays = (foodHandlers) => {
-    if (foodHandlers <= 50) return 0.5;
-    if (foodHandlers <= 100) return 1;
-    if (foodHandlers <= 300) return 1.5;
-    if (foodHandlers <= 600) return 2.5;
-    if (foodHandlers <= 1000) return 3;
-    return 3;
+    if (foodHandlers <= 25) return 0.5;
+    if (foodHandlers >= 26 && foodHandlers <= 50) return 1;
+    if (foodHandlers >= 51 && foodHandlers <= 100) return 1.5;
+    return 2;
   };
 
   const calculateStorageManDays = (area) => {
@@ -262,16 +263,51 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
     return 2;
   };
 
-  const calculateManufacturingManDays = (unit) => {
-    return;
+  const calculateManufacturingManDays = (foodHandlers, productionLine) => {
+    let manDaysFoodHandlers = 0;
+    let manDaysProductionLine = 0;
+
+    // Calculate man-days based on food handlers
+    if (foodHandlers <= 50) {
+      manDaysFoodHandlers = 0.5;
+    } else if (foodHandlers <= 100) {
+      manDaysFoodHandlers = 1;
+    } else if (foodHandlers <= 300) {
+      manDaysFoodHandlers = 1.5;
+    } else if (foodHandlers <= 600) {
+      manDaysFoodHandlers = 2;
+    } else if (foodHandlers <= 1000) {
+      manDaysFoodHandlers = 2.5;
+    } else if (foodHandlers > 1000) {
+      manDaysFoodHandlers = 3;
+    }
+
+    // Calculate man-days based on production lines
+    if (productionLine == 1) {
+      manDaysProductionLine = 0.5;
+    } else if (productionLine <= 2) {
+      manDaysProductionLine = 1;
+    } else if (productionLine <= 4) {
+      manDaysProductionLine = 1.5;
+    } else if (productionLine == 6) {
+      manDaysProductionLine = 2;
+    } else if (productionLine == 8) {
+      manDaysProductionLine = 2.5;
+    } else if (productionLine >= 10) {
+      manDaysProductionLine = 3;
+    }
+
+    // Return the maximum of the two values
+    return Math.max(manDaysFoodHandlers, manDaysProductionLine);
   };
+
 
 
   const handleInputChange = (index, field, value) => {
     setItems((prevItems) => {
       const newItems = [...prevItems];
       const currentItem = newItems[index];
-  
+
       if (field === "outletId") {
         if (value === "others") {
           newItems[index] = {
@@ -280,16 +316,20 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
             outlet_name: "Others",
             unit: 0,
             man_days: 0,
-            discount: 0,
             amount: 0,
           };
         } else {
           const selectedOutlet = outlets.find((outlet) => outlet._id === value);
-  
+
           const type_of_industry = selectedOutlet?.type_of_industry || "";
           const unit = selectedOutlet?.unit || 0;
+          const
+            no_of_production_line = selectedOutlet?.
+              no_of_production_line || 0;
           let man_days = 0;
-  
+          console.log(unit,
+            no_of_production_line);
+
           if (type_of_industry === "Catering") {
             man_days = calculateManDays(unit);
           } else if (type_of_industry === "Transportation") {
@@ -297,9 +337,10 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
           } else if (type_of_industry === "Trade and Retail") {
             man_days = calculateStorageManDays(unit);
           } else {
-            man_days = calculateManufacturingManDays(unit);
+            man_days = calculateManufacturingManDays(unit,
+              no_of_production_line);
           }
-  
+
           newItems[index] = {
             ...currentItem,
             outletId: value,
@@ -307,59 +348,62 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
             outlet_name: selectedOutlet?.branch_name || "",
             unit: selectedOutlet?.unit || 0,
             service: selectedOutlet?.service || 0,
-            discount: 0,
             amount: 0,
             man_days,
           };
         }
       }
-  
+
       // Calculation logic directly in the conditions
       if (field === "unit_cost") {
         newItems[index].unit_cost = value;
         newItems[index].amount =
           (newItems[index].quantity || 0) * (newItems[index].unit_cost || 0);
       }
-  
+
       if (field === "quantity") {
         newItems[index].quantity = value;
         newItems[index].amount =
           (newItems[index].quantity || 0) * (newItems[index].unit_cost || 0);
       }
-  
+
+      if (field === "description") {
+        newItems[index].description = value;
+      }
+
       // Recalculate totals
       calculateTotals(newItems);
-  
+
       return newItems;
     });
   };
-  
 
 
-const calculateTotals = (items) => {
-  console.log("i also triggerd");
-  if (!Array.isArray(items) || items.length === 0) {
-    setSubTotal(0);
-    setSgst(0);
-    setCgst(0);
-    setTotal(0);
-    return;
-  }
 
-  const calculatedSubTotal = items.reduce(
-    (sum, item) => sum + (parseFloat(item.amount) || 0),
-    0
-  );
+  const calculateTotals = (items) => {
+    console.log("i also triggerd");
+    if (!Array.isArray(items) || items.length === 0) {
+      setSubTotal(0);
+      setSgst(0);
+      setCgst(0);
+      setTotal(0);
+      return;
+    }
 
-  const calculatedIgst = calculatedSubTotal * 0.09;
-  const calculatedCgst = calculatedSubTotal * 0.09;
-  const calculatedTotal = calculatedSubTotal + calculatedIgst + calculatedCgst;
+    const calculatedSubTotal = items.reduce(
+      (sum, item) => sum + (parseFloat(item.amount) || 0),
+      0
+    );
 
-  setSubTotal(calculatedSubTotal);
-  setSgst(calculatedIgst);
-  setCgst(calculatedCgst);
-  setTotal(calculatedTotal);
-};
+    const calculatedIgst = calculatedSubTotal * 0.09;
+    const calculatedCgst = calculatedSubTotal * 0.09;
+    const calculatedTotal = calculatedSubTotal + calculatedIgst + calculatedCgst;
+
+    setSubTotal(calculatedSubTotal);
+    setSgst(calculatedIgst);
+    setCgst(calculatedCgst);
+    setTotal(calculatedTotal);
+  };
 
 
   const columns = [
@@ -423,7 +467,7 @@ const calculateTotals = (items) => {
         let postfix = "none";
 
         switch (record.type_of_industry) {
-      
+
           case "Transportation":
             postfix = "VH";
             break;
@@ -434,13 +478,13 @@ const calculateTotals = (items) => {
             postfix = "Sq ft";
             break;
           case "Manufacturing":
-            postfix = "PD";
+            postfix = "PD/Line";
             break;
           default:
             postfix = ""; // or any default value
         }
 
-            console.log("Swith ch triggered",postfix);
+        console.log("Swith ch triggered", postfix);
 
         return isOthers ? (
           <Input disabled className="w-full" />
