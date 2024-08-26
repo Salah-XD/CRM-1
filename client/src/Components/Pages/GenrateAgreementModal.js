@@ -9,6 +9,7 @@ import {
   message,
   Spin,
 } from "antd";
+import moment from "moment";
 import axios from "axios";
 import GenreateSuccessSendMailTableModal from "./GenreateSuccessSendMailTableModal";
 
@@ -18,6 +19,8 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [outlets, setOutlets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [agreementId, setAgreementId] = useState(null); // Initialize as null
+  const [showSendMailModal, setShowSendMailModal] = useState(false);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -41,6 +44,7 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
           form.setFieldsValue({
             fbo_name,
             address: `${address.line1} ${address.line2}`,
+            from_date: moment(), // Set today's date as default
           });
         })
         .catch((error) => {
@@ -108,20 +112,28 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
     setTotalAmount(total);
   };
 
+  const handlePeriodChange = (value) => {
+    const fromDate = form.getFieldValue("from_date");
+    if (fromDate && value) {
+      const toDate = moment(fromDate).add(value, "months");
+      form.setFieldsValue({ to_date: toDate });
+    }
+  };
+
   const handleSubmit = async () => {
     try {
       await form.validateFields();
 
-      // Collect form values
       const formData = form.getFieldsValue();
       formData.total_cost = totalAmount;
       formData.no_of_outlets = selectedOutlets.length;
-
-      await axios.post("/api/agreement/createAgreement", formData);
-      form.resetFields();
+      onOk();
+      const response = await axios.post("/api/agreement/createAgreement", formData);
+      setAgreementId(response.data.data._id);
+      console.log(response.data.data._id);
+      setShowSendMailModal(true);
+   
       message.success("Agreement generated successfully");
-      setShowForm(false);
-      onCancel();
     } catch (error) {
       console.error("Error saving agreement:", error);
       message.error("Error generating agreement");
@@ -140,7 +152,12 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
     onCancel();
   };
 
+  const handleOk = () => {
+    setShowSendMailModal(false);
+  };
+
   return (
+    <>
     <Modal
       visible={visible}
       onCancel={handleCancel}
@@ -197,7 +214,18 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
             >
               <Input />
             </Form.Item>
+            <Form.Item
+                label="Period (Months)"
+                name="period"
+                rules={[{ required: true, message: "Please enter period!" }]}
+              >
+                <Input
+                  type="number"
+                  onChange={(e) => handlePeriodChange(e.target.value)}
+                />
+              </Form.Item>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+           
               <Form.Item
                 label="From date"
                 name="from_date"
@@ -212,7 +240,7 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
                 name="to_date"
                 rules={[{ required: true, message: "Please select to date!" }]}
               >
-                <DatePicker className="w-full" />
+                <DatePicker className="w-full" disabled />
               </Form.Item>
             </div>
             <Form.Item
@@ -248,6 +276,17 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
         )}
       </Form>
     </Modal>
+         <GenreateSuccessSendMailTableModal
+         onClose={() => setShowSendMailModal(false)}
+         id={agreementId}
+         onOk={handleOk}
+         title="Generate Agreement"
+         name="agreement"
+         route="generateagreement"
+         visible={showSendMailModal}
+          buttonTitle="Go to Agreement"
+       />
+       </>
   );
 };
 

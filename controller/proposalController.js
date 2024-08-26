@@ -247,51 +247,57 @@ export const getAllProposalDetails = async (req, res) => {
       query = query.where("fbo_name").regex(searchRegex);
     }
 
-    // Apply sorting based on the 'sort' parameter
-    if (sort === "allist") {
-      query = query.sort({ proposal_date: -1 });
-    } else if (sort === "newproposal") {
-      query = query.sort({ proposal_date: 1 });
-    } else {
-      // Default sorting
-      query = query.sort({ proposal_date: -1 });
+    // Determine the sort query based on the 'sort' parameter
+    let sortQuery = {};
+    switch (sort) {
+      case "newproposal":
+        sortQuery = { createdAt: -1 }; // Descending order for newer proposals first
+        break;
+      case "alllist":
+        sortQuery = { createdAt: 1 }; // Ascending order for older proposals first
+        break;
+      default:
+        sortQuery = { createdAt: 1 }; // Default sorting (oldest first)
+        break;
     }
+
+    // Debugging: Log the sort query
+    console.log("Sort Query:", sortQuery);
 
     // Count total number of proposals
     const totalProposals = await Proposal.countDocuments(query.getQuery());
 
-    // Retrieve proposals with pagination
+    // Retrieve proposals with pagination and sorting
     const proposals = await query
       .skip((pageNumber - 1) * sizePerPage)
       .limit(sizePerPage)
-      .select("fbo_name outlets proposal_date status message updated_at"); // Select required fields
+      .sort(sortQuery)
+      .select("fbo_name outlets proposal_date status message createdAt updatedAt"); // Select required fields
 
     // Calculate total outlets and invoiced outlets for each proposal
     const proposalsWithCounts = proposals.map((proposal) => {
-      // Count total and invoiced outlets
       const totalOutlets = proposal.outlets.length;
       const invoicedOutlets = proposal.outlets.filter(
         (outlet) => outlet.is_invoiced
       ).length;
 
-      const formattedProposalDate = moment(proposal.proposal_date).fromNow(); // Format proposal_date using Moment.js
-      const formattedUpdatedAt = moment(proposal.updated_at).fromNow(); // Format updated_at using Moment.js
-      const dateCreated = `${proposal.message} ${formattedUpdatedAt}`; // Concatenate message and formatted updated_at
-      console.log(dateCreated);
+      const formattedProposalDate = moment(proposal.proposal_date).fromNow();
+      const formattedUpdatedAt = moment(proposal.updatedAt).fromNow();
+      const dateCreated = `${proposal.message} ${formattedUpdatedAt}`;
 
       return {
         _id: proposal._id,
         fbo_name: proposal.fbo_name,
-        totalOutlets, 
-        invoicedOutlets, 
-        proposal_date: formattedProposalDate, 
-        status: proposal.status, 
-        date_created: dateCreated, 
+        totalOutlets,
+        invoicedOutlets,
+        proposal_date: formattedProposalDate,
+        status: proposal.status,
+        date_created: dateCreated,
       };
     });
 
     res.json({
-      total: totalProposals, // Total number of proposals
+      total: totalProposals,
       currentPage: pageNumber,
       data: proposalsWithCounts,
     });
@@ -300,6 +306,8 @@ export const getAllProposalDetails = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
 
 
 

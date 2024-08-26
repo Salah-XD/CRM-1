@@ -4,7 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import SuccessTableMail from "./SuccessTableMail";
 
-const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, route, name }) => {
+const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, route, name, buttonTitle }) => {
   const [mailSent, setMailSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
@@ -12,17 +12,42 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
 
   useEffect(() => {
     if (visible) {
-      // Fetch the setting data when the modal is visible
-      axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
-        .then((response) => {
-          // Initialize the message field with the fetched data
-          form.setFieldsValue({ message: response.data.proposal_email });
-        })
-        .catch((error) => {
-          console.error("Failed to fetch setting data:", error);
-        });
+
+      if (name == "proposal") {
+        axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
+          .then((response) => {
+            // Initialize the message field with the fetched data
+            form.setFieldsValue({ message: response.data.proposal_email });
+          })
+          .catch((error) => {
+            console.error("Failed to fetch setting data:", error);
+          });
+      }
+      else if (name == "invoice") {
+        axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
+          .then((response) => {
+            // Initialize the message field with the fetched data
+            form.setFieldsValue({ message: response.data.invoice_email });
+          })
+          .catch((error) => {
+            console.error("Failed to fetch setting data:", error);
+          });
+      }
+      else {
+        axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
+          .then((response) => {
+            // Initialize the message field with the fetched data
+            form.setFieldsValue({ message: response.data.agreement_email });
+          })
+          .catch((error) => {
+            console.error("Failed to fetch setting data:", error);
+          });
+      }
+
     }
   }, [visible]);
+
+
 
   const handleSendMail = () => {
     form
@@ -50,8 +75,18 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
       });
   };
 
+
+
   const handleGoToAgreement = () => {
-    navigate("/proposal");
+    if (buttonTitle == "Go to Proposal") {
+      navigate("/proposal");
+    }
+    else if (buttonTitle == "Go to Invoice") {
+      navigate("/invoice");
+    }
+    else {
+      navigate("/agreement");
+    }
   };
 
   const handleSuccessMailClose = () => {
@@ -115,15 +150,16 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
                   type="primary"
                   onClick={handleSendMail}
                   loading={loading}
-                  className="mr-4 p-2"
+                  className="mr-4 border border-buttonModalColor text-white bg-buttonModalColor rounded px-6 py-4 flex items-center justify-center"
                 >
                   Send Mail
                 </Button>
+
                 <button
                   onClick={handleGoToAgreement}
-                  className="border border-buttonModalColor text-buttonModalColor bg-none p-2 rounded"
+                  className="border border-buttonModalColor text-buttonModalColor bg-none p-1 rounded"
                 >
-                  Go to Proposal
+                  {buttonTitle}
                 </button>
               </div>
             </Form>

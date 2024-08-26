@@ -813,6 +813,7 @@ no_of_production_line:0
         name="proposal"
         route="generateProposal"
         visible={showSendMailModal}
+        buttonTitle="Go to Proposal"
       />
     </>
   );

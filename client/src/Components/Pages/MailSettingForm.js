@@ -47,7 +47,15 @@ const MailSettingForm = () => {
             label="Proposal Mail Message"
             name="proposal_email"
             className='w-1/2'
-            rules={[{ required: true, message: 'Please enter the proposal note' }]}
+            rules={[{ required: true, message: 'Please enter the proposal agreement' }]}
+          >
+            <Input.TextArea rows={6} />
+          </Form.Item>
+          <Form.Item
+            label="Agreement Mail Message"
+            name="agreement_email"
+            className='w-1/2'
+            rules={[{ required: true, message: 'Please enter the invoice agreement' }]}
           >
             <Input.TextArea rows={6} />
           </Form.Item>
@@ -55,7 +63,7 @@ const MailSettingForm = () => {
             label="Invoice Mail Message"
             name="invoice_email"
             className='w-1/2'
-            rules={[{ required: true, message: 'Please enter the invoice note' }]}
+            rules={[{ required: true, message: 'Please enter the invoice agreement' }]}
           >
             <Input.TextArea rows={6} />
           </Form.Item>

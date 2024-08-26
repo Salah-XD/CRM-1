@@ -33,7 +33,7 @@ const agreementSchema = new Schema({
     required: true,
   },
   period:{
-    type:String,
+     type:String,
     required:true
   }
 });

@@ -41,7 +41,8 @@ export const generateProposal = async (req, res) => {
 
     const cgst = parseFloat((total * 0.09).toFixed(2)); // 9% CGST
     const sgst = parseFloat((total * 0.09).toFixed(2)); // 9% SGST
-    const overallTotal = total + cgst + sgst;
+    const overallTotal = parseFloat((total + cgst + sgst).toFixed(2));
+
 
     // Convert MongoDB date format
     const proposalDate = proposal_date?.$date?.$numberLong

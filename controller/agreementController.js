@@ -112,7 +112,7 @@ export const createAgreement = async (req, res) => {
   session.startTransaction();
 
   try {
-    const { fbo_name, from_date, to_date, total_cost, no_of_outlets, address } =
+    const { fbo_name, from_date, to_date, total_cost, no_of_outlets, address,period } =
       req.body;
 
 
@@ -124,6 +124,7 @@ export const createAgreement = async (req, res) => {
       to_date,
       total_cost,
       no_of_outlets,
+      period
     });
 
     // Save the new agreement to the database

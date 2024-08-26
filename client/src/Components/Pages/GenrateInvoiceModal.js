@@ -572,10 +572,11 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
         }}
         id={InvoiceId}
         onOk={handleOk}
-        title="Generate Proposal"
+        title="Generate Invoice"
         name="invoice"
         route="generateInvoice"
         visible={showSendMailModal}
+        buttonTitle="Go to Invoice"
       />
     </>
   );

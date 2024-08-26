@@ -601,7 +601,7 @@ const ProposalTable = () => {
           <div className="space-x-2">
             <Input
               size="default"
-              placeholder="Search by FBO Name, Phone Number, etc."
+              placeholder="Search by FBO Name"
               prefix={<SearchOutlined />}
               value={searchKeyword}
               onChange={handleInputChange}

@@ -19,7 +19,7 @@ const settingSchema = new Schema({
     type: String,
   
   },
-  agreement: {
+  agreement_email: {
     type: String,
   
   },

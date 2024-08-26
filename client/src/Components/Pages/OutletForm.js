@@ -52,7 +52,7 @@ const OutletForm = ({
         return "No of Vehicle";
       case "Manufacturing":
         return "No of Food Handlers";
-      case "Trade and retail":
+      case "Trade and Retail":
         return "Area (Sq. ft)";
       case "Catering":
         return "No of Food Handlers";
