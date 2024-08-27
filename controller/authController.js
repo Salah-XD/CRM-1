@@ -237,13 +237,117 @@ export const setNewPassword = async (req, res) => {
 //Get all user 
 export const fetchAllUsers = async (req, res) => {
   try {
-    // Fetch all users
-    const users = await User.find({}, "userId role");
+    const { page = 1, pageSize = 10, sort, keyword } = req.query;
 
-    res.status(200).json(users);
+    // Convert page and pageSize to integers
+    const pageNumber = parseInt(page, 10);
+    const sizePerPage = parseInt(pageSize, 10);
+
+    // Validate page number and page size
+    if (isNaN(pageNumber) || pageNumber < 1 || isNaN(sizePerPage) || sizePerPage < 1) {
+      return res.status(400).json({ message: "Invalid page or pageSize parameter" });
+    }
+
+    // Create the base query
+    let query = User.find();
+
+    // Apply search keyword if provided
+    if (keyword) {
+      const searchRegex = new RegExp(keyword, "i"); // Case-insensitive regex
+      query = query.where("userName").regex(searchRegex);
+    }
+
+    // Determine the sort query based on the 'sort' parameter
+    const sortQuery = (() => {
+      switch (sort) {
+        case "newlyadded":
+          return { createdAt: -1 }; 
+        case "alllist":
+          return { createdAt: 1 }; 
+      
+      }
+    })();
+
+    // Count total number of users
+    const totalUsers = await User.countDocuments(query.getQuery());
+
+    // Retrieve users with pagination and sorting
+    const users = await query
+      .skip((pageNumber - 1) * sizePerPage)
+      .limit(sizePerPage)
+      .sort(sortQuery)
+      .select("userId role userName createdAt"); // Select only the needed fields
+
+    res.json({
+      total: totalUsers,
+      currentPage: pageNumber,
+      data: users,
+    });
   } catch (error) {
     console.error("Error fetching users:", error); // Log error to console
     res.status(500).json({ message: "Server error" });
   }
 };
 
+export const deleteFields = async (req, res) => {
+  console.log(req.body);
+  try {
+    const arrayOfUserIds = req.body;
+
+    // Validate arrayOfUserIds if necessary
+    if (!Array.isArray(arrayOfUserIds)) {
+      return res
+        .status(400)
+        .json({ error: "Invalid input: Expected an array of User IDs" });
+    }
+
+    // Perform deletions
+    const deletionPromises = arrayOfUserIds.map(async (userId) => {
+      // Delete User document
+      await User.deleteOne({ _id: userId });
+    });
+
+    // Wait for all deletion operations to complete
+    await Promise.all(deletionPromises);
+
+    res.status(200).json({ message: "Users deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting users:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+
+export const updateUser = async (req, res) => {
+  try {
+    const { userName, userId, password, role } = req.body;
+
+    // Check if user exists
+    const existingUser = await User.findOne({ userId });
+
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update the user details
+    existingUser.userName = userName || existingUser.userName;
+    existingUser.role = role || existingUser.role;
+
+    // If password is provided, hash it and update
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      existingUser.password = await bcrypt.hash(password, salt);
+    }
+
+    // Save the updated user to the database
+    await existingUser.save();
+
+    res
+      .status(200)
+      .json({ message: "User updated successfully", success: true });
+  } catch (error) {
+    console.error("Error updating user:", error); // Log error to console
+    res.status(500).json({ message: "Server error" });
+  }
+};

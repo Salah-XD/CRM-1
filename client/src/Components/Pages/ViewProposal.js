@@ -4,13 +4,16 @@ import { useNavigate, useParams } from "react-router-dom";
 import AdminDashboard from "../Layout/AdminDashboard";
 import moment from "moment";
 import {Spin,Button } from "antd";
+import UpdateGenerateProposalModal from "./UpdateGenrateProposalModal";
 
+import "../css/view.css"
 
 const ViewProposal = () => {
   const { proposalId } = useParams(); // Extract proposalId from the route
   const [proposalData, setProposalData] = useState(null);
   const [zoom, setZoom] = useState(1); // State to manage zoom level
   const [noteContent, setNoteContent] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
  const navigate = useNavigate();
 
   useEffect(() => {
@@ -57,37 +60,80 @@ const ViewProposal = () => {
 
   // Prepare outlet rows
   const outletRows = proposalData.outlets
-    .map((outlet) => {
-      const outletName = outlet.outlet_name || "";
-      const description = outlet.description || "";
-      const service = outlet.service || "";
-      const manDays = outlet.man_days?.$numberDouble || outlet.man_days || 0;
-      const quantity = outlet.quantity?.$numberInt || outlet.quantity || 0;
-      const unitCost = outlet.unit_cost?.$numberInt || outlet.unit_cost || 0;
-      const amount = outlet.amount?.$numberInt || outlet.amount || 0;
+  .map((outlet) => {
 
-      return `
+    let postfix = "";
+    switch (outlet.type_of_industry) {
+      case "Transportation":
+        postfix = "VH";
+        break;
+      case "Catering":
+        postfix = "FH";
+        break;
+      case "Trade and Retail":
+        postfix = "Sq ft";
+        break;
+      case "Manufacturing":
+        postfix = "PD/Line";
+        break;
+      default:
+        postfix = ""; // or any default value
+    }
+
+    const outletName = outlet.outlet_name || "";
+    let service = outlet.unit ? `${outlet.unit} ${postfix}` : "";
+    let manDays = outlet.man_days?.$numberDouble || outlet.man_days || 0;
+    const quantity = outlet.quantity?.$numberInt || outlet.quantity || 0;
+    const unitCost = outlet.unit_cost?.$numberInt || outlet.unit_cost || 0;
+    const amount = outlet.amount?.$numberInt || outlet.amount || 0;
+
+    if (outletName === "Others") {
+      service = "N/A";
+      manDays = "N/A";
+    }
+
+    return `
       <tr>
         <td class="px-2 py-1 text-center">${outletName}</td>
-        <td class="px-2 py-1 text-center">${description}</td>
+        <td class="px-2 py-1 text-center">${outlet.description || ""}</td>
         <td class="px-2 py-1 text-center">${service}</td>
         <td class="px-2 py-1 text-center">${manDays}</td>
         <td class="px-2 py-1 text-center">${quantity}</td>
         <td class="px-2 py-1 text-center">${unitCost}</td>
-        <td class="px-2 py-1 ">${amount}</td>
+        <td class="px-2 py-1 text-center">${amount}</td>
       </tr>
     `;
-    })
-    .join("");
+  })
+  .join("");
 
-  let total = 0;
-  proposalData.outlets.forEach((outlet) => {
-    total += parseFloat(outlet.amount.$numberInt || outlet.amount);
-  });
+let total = 0;
+proposalData.outlets.forEach((outlet) => {
+  total += parseFloat(outlet.amount?.$numberInt || outlet.amount || 0);
+});
 
-  const cgst = total * 0.09;
-  const sgst = total * 0.09;
-  const overallTotal = total + cgst + sgst;
+
+  const cgst = parseFloat((total * 0.09).toFixed(2)); // 9% CGST
+  const sgst = parseFloat((total * 0.09).toFixed(2)); // 9% SGST
+  const overallTotal = parseFloat((total + cgst + sgst).toFixed(2));
+
+
+
+   const showModal = () => {
+ 
+    setIsModalVisible(true);
+   };
+
+  const handleOk = () => {
+    
+    
+    setIsModalVisible(false);
+  };
+
+  const handleCancel = () => {
+  
+    setIsModalVisible(false);
+  };
+
 
   // Inject data into HTML template
   const htmlTemplate = `
@@ -119,6 +165,17 @@ const ViewProposal = () => {
           transform-origin: top left;
           position: relative; /* Allow centering with transform */
         }
+
+         .content-box {
+            position: relative;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)),
+                url('/logo2.png');
+          
+            background-repeat: no-repeat;
+            background-size: contain;
+            background-position: center center;
+        }
         .a4 {
           border: 2px solid black; /* Add border to a4 class */
         }
@@ -138,18 +195,12 @@ const ViewProposal = () => {
           font-size: 12px; /* Adjust font size */
         }
         .selected-cell {
-          background-color: #f2f2f2 !important;
+          background-color: rgba(242, 242, 242, 0.5) !important;
         }
         .small-cell {
           padding: 4px; /* Adjust padding */
         }
-        body {
-          // background-image: url("../templates/logo2.png"); /* Replace 'path_to_your_image.jpg' with the actual path to your image */
-          // background-repeat: repeat-y; /* Repeat the image vertically */
-          // background-position: center center; /* Center the background image */
-          // background-attachment: fixed; /* Ensure the background image stays fixed as the content scrolls */
-          // background-size: contain; /* Resize the background image to fit the container */
-        }
+       
         .page-break-before {
           page-break-before: always;
         }
@@ -159,7 +210,7 @@ const ViewProposal = () => {
       <div class="container bg-white rounded-lg p-4">
         <div class="flex p-2 header items-center border mb-4">
           <div class="w-1/5">
-            <img src="/logo.png" alt="Your Image Alt Text" width="80" height="80" />
+            <img src="/logo2.png" alt="Your Image Alt Text" width="80" height="80" />
           </div>
           <div>
             <h1 class="text-lg font-bold text-gray-800">
@@ -167,6 +218,7 @@ const ViewProposal = () => {
             </h1>
           </div>
         </div>
+        <div class="content-box">
         <div class="mt-5">
           <table id="clientProposalTable" class="w-full">
             <tr>
@@ -210,40 +262,40 @@ const ViewProposal = () => {
           </table>
         </div>
         <div class="mt-5 w-full flex justify-center">
-          <table class="border-collapse w-[90%]">
+          <table class="border-collapse w-full">
             <tr>
-              <th class="px-2 py-1">Outlet Name</th>
-              <th class="px-2 py-1">Description</th>
-              <th class="px-2 py-1">Service</th>
-              <th class="px-2 py-1">Man Days</th>
-              <th class="px-2 py-1">Qty</th>
-              <th class="px-2 py-1">Unit Cost</th>
-              <th class="px-2 py-1">Amount</th>
+              <th class="px-2 py-1 text-center">Outlet Name</th>
+              <th class="px-2 py-1 text-center">Description</th>
+              <th class="px-2 py-1 text-center">Service</th>
+              <th class="px-2 py-1 text-center">Man Days</th>
+              <th class="px-2 py-1 text-center">Qty</th>
+              <th class="px-2 py-1 text-center">Unit Cost</th>
+              <th class="px-2 py-1 text-center">Amount</th>
             </tr>
             ${outletRows}
             <tr>
               <td colspan="6" class="selected-cell border text-right w-3/4 small-cell">
                 <strong>Sub Total</strong>
               </td>
-              <td class="border w-1/4 selected-cell small-cell "><strong>${total}</strong></td>
+              <td class="border w-1/4 selected-cell small-cell text-center "><strong>${total}</strong></td>
             </tr>
             <tr>
               <td colspan="6" class="border text-right w-3/4 small-cell">
                 <strong>CGST9 [9%]</strong>
               </td>
-              <td class="border w-1/4 small-cell ">${cgst}</td>
+              <td class="border w-1/4 small-cell  text-center">${cgst}</td>
             </tr>
             <tr>
               <td colspan="6" class="border text-right w-3/4 small-cell">
                 <strong>SGST9 [9%]</strong>
               </td>
-              <td class="border w-1/4 small-cell ">${sgst}</td>
+              <td class="border w-1/4 small-cell text-center ">${sgst}</td>
             </tr>
             <tr>
               <td colspan="6" class="border selected-cell text-right w-3/4 small-cell">
                 <strong>Total</strong>
               </td>
-              <td class="border w-1/4 selected-cell small-cell"><strong>${overallTotal}</strong></td>
+              <td class="border w-1/4 selected-cell small-cell text-center"><strong>${overallTotal}</strong></td>
             </tr>
           </table>
         </div>
@@ -304,6 +356,7 @@ const ViewProposal = () => {
             </table>
           </div>
         </div>
+        </div>
         
     </body>
     </html>
@@ -321,7 +374,7 @@ const ViewProposal = () => {
               ←
             </span>
             <h2 className="text-xl font-semibold">View Proposal Document</h2>
-            <Button type="primary" className="ml-auto" >
+            <Button type="primary" className="ml-auto" onClick={showModal} >
               Edit
             </Button>
            
@@ -361,7 +414,14 @@ const ViewProposal = () => {
               <div dangerouslySetInnerHTML={{ __html: htmlTemplate }} />
             </div>
           </div>
+          <UpdateGenerateProposalModal
+        visible={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        proposalId={proposalId}
+      />
         </>
+
       </AdminDashboard>
     </div>
   );

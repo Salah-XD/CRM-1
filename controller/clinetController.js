@@ -429,20 +429,22 @@ export const sendEmail = async (req, res) => {
 
     // Debugging environment variables
     console.log("Checking environment variables...");
-
+   
+   console.log("EMAIL_PASSWORD:", process.env.EMAIL_PASSWORD);
+   console.log("EMAIL_USERNAME:", process.env.EMAIL_USERNAME);
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
       host: "smtp.gmail.com",
-      port: 587,
+      port: 465,
       auth: {
-        user:"unavar.steamtroops@gmail.com",
-        pass:"nwgg jdxf emoq enmo",
+        user: process.env.EMAIL_USERNAME,
+        pass: process.env.EMAIL_PASSWORD,
       },
     });
 
     const mailOptions = {
-      from: "unavar.steamtroops@gmail.com",
+      from: `<${process.env.EMAIL_USERNAME}>`,
       to,
       subject: "Client Onboarding Form",
       text: `${message}\n\nClient Onboarding Form: ${formLink}`,
@@ -456,6 +458,7 @@ export const sendEmail = async (req, res) => {
     res.status(500).json({ error: "Failed to send email" });
   }
 };
+
 
 export const getOutletDetailsById = async (req, res) => {
   try {
@@ -512,6 +515,8 @@ export const getOutletDetailsById = async (req, res) => {
       contact_person: outlet.contact_person,
       no_of_food_handlers: outlet.no_of_food_handlers,
       gst_number: outlet.gst_number,
+      type_of_industry:outlet.type_of_industry,
+      unit:outlet.unit
     }));
 
    // console.log(`Populated data: ${JSON.stringify(populatedData)}`);

@@ -11,6 +11,7 @@ import {
   deleteFields,
   updateProposalStatus,
   getProposalById,
+  updateProposalAndOutlet
 } from "../controller/proposalController.js";
 
 import { generateProposal } from "../controller/proposalGenerationController.js";
@@ -28,6 +29,8 @@ router.get(
 );
 
 router.get("/genrateProposalNumber",generateProposalNumber);
+
+router.put("/updateProposalAndOutlet/:proposalId",updateProposalAndOutlet);
 
 router.post("/generateProposal/:proposalId", generateProposal);
 

@@ -52,7 +52,7 @@ export const updateSetting = async (req, res) => {
   console.log(req.body);
   try {
     const { id } = req.params;
-    const { proposal_note, invoice_note, proposal_email, invoice_email,agreement_email} = req.body;
+    const { proposal_note, invoice_note, proposal_email, invoice_email,agreement_email,  proposal_cc,invoice_cc, agreement_cc} = req.body;
 
     const updatedSetting = await Setting.findByIdAndUpdate(
       id,
@@ -61,7 +61,10 @@ export const updateSetting = async (req, res) => {
         invoice_note,
         proposal_email,
         invoice_email,
-        agreement_email
+        agreement_email,
+        proposal_cc,
+        invoice_cc,
+        agreement_cc
       },
       { new: true }
     );

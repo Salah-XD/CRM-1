@@ -59,9 +59,10 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
       dataIndex: "outlet_name",
     },
     {
-      title: "No of Food Handlers",
-      dataIndex: "no_of_food_handlers",
+      title: "Description",
+      dataIndex: "description",
     },
+   
     {
       title: "Man Days",
       dataIndex: "man_days",

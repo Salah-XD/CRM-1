@@ -186,6 +186,91 @@ export const createProposalAndOutlet = async (req, res) => {
 
 
 
+//Controller funtion to update the data
+export const updateProposalAndOutlet = async (req, res) => {
+  console.log(req.body);
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+   // Extract proposalId from route params
+   const { proposalId } = req.params;
+
+  try {
+    // Extract data from req.body
+    const {
+
+      fbo_name,
+      proposal_date,
+      status,
+      proposal_number,
+      address,
+      gst_number,
+      contact_person,
+      phone,
+      outlets,
+      enquiryId,
+      pincode,
+      email,
+      note,
+      assigned_auditor,
+    } = req.body;
+
+    // Find and update the existing Proposal by ID
+    const updatedProposal = await Proposal.findByIdAndUpdate(
+      proposalId, // Use the proposalId to find the proposal
+      {
+        fbo_name,
+        proposal_date,
+        status,
+        proposal_number,
+        address,
+        gst_number,
+        contact_person,
+        phone,
+        outlets,
+        pincode,
+        message: "Proposal Updated", // Update the message to reflect the update
+        email,
+        note,
+        assigned_auditor,
+      },
+      { new: true, session } // Return the updated document and use the session
+    );
+
+    if (!updatedProposal) {
+      throw new Error("Proposal not found");
+    }
+
+    // Update the Enquiry model's status to "Proposal Done" if needed
+    if (enquiryId) {
+      await Enquiry.findByIdAndUpdate(
+        enquiryId,
+        { status: "Proposal Done" },
+        { new: true, session }
+      );
+    }
+
+    // Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    // Respond with the updated proposal data
+    res.status(200).json({
+      proposal: updatedProposal,
+    });
+  } catch (err) {
+    // Rollback the transaction in case of error
+    await session.abortTransaction();
+    session.endSession();
+
+    // Handle error
+    console.error(err);
+    res.status(500).json({ error: "Failed to update data" });
+  }
+};
+
+
+
 // Generate unique proposal number
 export const generateProposalNumber = async (req, res) => {
   try {

@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Modal, Form, Input, Button, message, Spin } from "antd";
+import { Modal, Form, Input, Button, message, Spin,Select } from "antd";
 import axios from "axios";
 import "../css/outletForm.css"; // Import the custom CSS
+
+const { Option } = Select;
 
 const UpdateOutletForm = ({
   isModalVisible,
@@ -13,6 +15,7 @@ const UpdateOutletForm = ({
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true); // State to handle loading
   const [isEditMode, setIsEditMode] = useState(false); // State to manage edit mode
+  const [industryType, setIndustryType] = useState(null);
 
   const fetchOutletDetails = useCallback(async () => {
     try {
@@ -85,6 +88,29 @@ const UpdateOutletForm = ({
         console.error("Error saving outlet data:", error);
         message.error("Failed to save outlet data. Please try again later.");
       }
+    }
+  };
+
+  
+  
+
+  const handleIndustryChange = (value) => {
+    setIndustryType(value);
+  };
+
+
+  const getUnitLabel = () => {
+    switch (industryType) {
+      case "Transportation":
+        return "No of Vehicle";
+      case "Manufacturing":
+        return "No of Food Handlers";
+      case "Trade and Retail":
+        return "Area (Sq. ft)";
+      case "Catering":
+        return "No of Food Handlers";
+      default:
+        return "Enter the Unit";
     }
   };
 
@@ -161,6 +187,60 @@ const UpdateOutletForm = ({
               disabled={!isEditMode}
             />
           </Form.Item>
+
+          <Form.Item
+          label={
+            <span className="text-gray-600 font-semibold">
+              Type Of Industry
+            </span>
+          }
+          name="type_of_industry"
+          rules={[{ required: true, message: "Please select an industry Type" }]}
+        >
+          <Select
+            placeholder="Select industry Type"
+            className="w-full"
+            size="large"
+            onChange={handleIndustryChange}
+          >
+            <Option value="Catering">Catering</Option>
+            <Option value="Manufacturing">Manufacturing</Option>
+            <Option value="Trade and Retail">Trade and Retail</Option>
+            <Option value="Transportation">Transportation</Option>
+          </Select>
+        </Form.Item>
+        {industryType && (
+          <Form.Item
+            label={
+              <span className="text-gray-600 font-semibold">
+                {getUnitLabel()}
+              </span>
+            }
+            name="unit"
+            rules={[{ required: true, message: "Please enter the unit" }]}
+          >
+            <Input
+              placeholder="Enter the unit"
+              className="placeholder-gray-400 p-3 rounded-lg w-full"
+            />
+          </Form.Item>
+        )}
+           {industryType==="Manufacturing" && (
+          <Form.Item
+            label={
+              <span className="text-gray-600 font-semibold">
+                No. Of Production Line
+              </span>
+            }
+            name="no_of_production_line"
+            rules={[{ required: true, message: "Please enter the unit" }]}
+          >
+            <Input
+              placeholder="Enter the unit"
+              className="placeholder-gray-400 p-3 rounded-lg w-full"
+            />
+          </Form.Item>
+        )}
 
           <Form.Item
             label={

@@ -534,6 +534,7 @@ const ProposalTable = () => {
         name="invoice"
         route="generateInvoice"
         title="Genrate Invoice"
+        buttonTitle="Go to Invoice"
       />
     </AdminDashboard>
   );

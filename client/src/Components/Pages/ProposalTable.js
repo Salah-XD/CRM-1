@@ -32,7 +32,6 @@ import GenerateProposalSendMail from "./GenerateProposalSendMail";
 import GenerateAgreementModal from "./GenrateAgreementModal";
 import GenrateInvoiceModal from "./GenrateInvoiceModal";
 import UpdateGenerateProposalModal from "./UpdateGenrateProposalModal";
-import ViewProposal from "./ViewProposal";
 
 const { confirm } = Modal;
 
@@ -666,6 +665,7 @@ const ProposalTable = () => {
         name="proposal"
         route="generateProposal"
         title="Genrate Proposal"
+        buttonTitle="Go to Proposal"
       />
     </AdminDashboard>
   );

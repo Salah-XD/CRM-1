@@ -7,9 +7,11 @@ import Proposal from "../models/proposalModel.js";
 const __dirname = path.resolve();
 
 export const generateProposal = async (req, res) => {
+
+  console.log(req.body);
   try {
-    const { proposalId } = req.params; // Access proposalId from route parameters
-    const { to, message } = req.body; // Email details
+    const { proposalId } = req.params; 
+    const { to,cc, message } = req.body; 
 
 
     console.log("hello",process.env.EMAIL_PASSWORD);
@@ -81,15 +83,15 @@ export const generateProposal = async (req, res) => {
         default:
           postfix = ""; // or any default value
       }
-  
+
       const outletName = outlet.outlet_name || "";
       const description = outlet.description || "";
-      const service = outlet.unit ? `${outlet.unit} ${postfix}` : "";
-      const manDays = outlet.man_days?.$numberDouble || outlet.man_days || 0;
+      const service = outletName === "Others" ? "N/A" : (outlet.unit ? `${outlet.unit} ${postfix}` : "");
+      const manDays = outletName === "Others" ? "N/A" : (outlet.man_days?.$numberDouble || outlet.man_days || 0);
       const quantity = outlet.quantity?.$numberInt || outlet.quantity || 0;
       const unitCost = outlet.unit_cost?.$numberInt || outlet.unit_cost || 0;
       const amount = outlet.amount?.$numberInt || outlet.amount || 0;
-  
+      
       return `
         <tr>
           <td class="px-2 py-1 text-center">${outletName}</td>
@@ -103,6 +105,7 @@ export const generateProposal = async (req, res) => {
       `;
     })
     .join("");
+
   
 
     // Inject dynamic data into HTML template
@@ -154,7 +157,8 @@ export const generateProposal = async (req, res) => {
 
     const mailOptions = {
       from: "Arun",
-      to, // Email recipient from request body
+      to,
+      cc, // Email recipient from request body
       subject: "Proposal Document",
       text: message, // Message body from request body
       attachments: [

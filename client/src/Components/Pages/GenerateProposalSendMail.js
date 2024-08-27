@@ -4,7 +4,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import SuccessMail from "./SuccessMail";
 
-const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title }) => {
+const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title,buttonTitle}) => {
   const [mailSent, setMailSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
@@ -12,15 +12,38 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title }) 
 
   useEffect(() => {
     if (visible) {
-      // Fetch the setting data when the modal is visible
-      axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
-        .then((response) => {
-          // Initialize the message field with the fetched data
-          form.setFieldsValue({ message: response.data.proposal_email });
-        })
-        .catch((error) => {
-          console.error("Failed to fetch setting data:", error);
-        });
+
+      if (name == "proposal") {
+        axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
+          .then((response) => {
+            // Initialize the message field with the fetched data
+            form.setFieldsValue({ message: response.data.proposal_email });
+          })
+          .catch((error) => {
+            console.error("Failed to fetch setting data:", error);
+          });
+      }
+      else if (name == "invoice") {
+        axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
+          .then((response) => {
+            // Initialize the message field with the fetched data
+            form.setFieldsValue({ message: response.data.invoice_email });
+          })
+          .catch((error) => {
+            console.error("Failed to fetch setting data:", error);
+          });
+      }
+      else {
+        axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
+          .then((response) => {
+            // Initialize the message field with the fetched data
+            form.setFieldsValue({ message: response.data.agreement_email });
+          })
+          .catch((error) => {
+            console.error("Failed to fetch setting data:", error);
+          });
+      }
+
     }
   }, [visible]);
 
@@ -50,7 +73,7 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title }) 
       });
   };
 
-  const handleGoToAgreement = () => {
+  const handleGoTo = () => {
     navigate("/proposal");
   };
 
@@ -87,6 +110,7 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title }) 
 
             <Form form={form} layout="vertical">
               <Form.Item
+              label="Mail ID"
                 name="email"
                 rules={[{ required: true, message: "Please enter the email" }]}
               >
@@ -96,10 +120,11 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title }) 
                   className="w-full p-2 border rounded mb-4"
                 />
               </Form.Item>
-              <p className="text-gray-500 mb-4">
-                Note: Generated document is attached in the email.
-              </p>
+              <p className="text-gray-600 mb-4">
+              Note: This mail will be sent to CCs also. You can edit in Settings.
+            </p>
               <Form.Item
+               label="Message"
                 name="message"
                 rules={[
                   { required: true, message: "Please enter the message" },
@@ -112,20 +137,20 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title }) 
                 />
               </Form.Item>
               <div className="flex justify-center">
-                <Button
+              <Button
                   type="primary"
                   onClick={handleSendMail}
                   loading={loading}
-                  className="mr-2 "
+                  className="mr-4 border border-buttonModalColor text-white bg-buttonModalColor rounded px-6 py-4 flex items-center justify-center"
                 >
                   Send Mail
                 </Button>
-                <Button
-                  onClick={handleGoToAgreement}
-                  className="border border-buttonModalColor text-buttonModalColor bg-none  rounded"
+                <button
+                  onClick={handleGoTo}
+                  className="border border-buttonModalColor text-buttonModalColor bg-none p-1 rounded"
                 >
-                  Go to Proposal
-                </Button>
+                 {buttonTitle}
+                </button>
               </div>
             </Form>
           </div>

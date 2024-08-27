@@ -1,0 +1,10 @@
+/* Global CSS or in a style block in your component */
+.ant-table-cell {
+    border: none !important;
+  }
+  
+  .ant-table th,
+  .ant-table td {
+    border: none !important;
+  }
+  

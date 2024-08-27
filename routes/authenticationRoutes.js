@@ -6,6 +6,7 @@ import {
   verifyOTP,
   setNewPassword,
   fetchAllUsers,
+  deleteFields
 } from "../controller/authController.js";
 import { verifyJWT } from "../middleware/verifyOTP.js";
 import { verifyToken } from "../middleware/auth.js";
@@ -17,9 +18,10 @@ router.post("/registerUser", registerUser);
 router.post("/login", loginUser);
 router.post("/forgotPassword", forgotPassword);
 router.post("/verifyOtp", verifyOTP);
-router.post("/setNewPassword", verifyJWT, setNewPassword);
-router.post("/getAllUsers", verifyJWT, fetchAllUsers);
-router.get("/protected", verifyToken, (req, res) => {
+router.post("/setNewPassword", setNewPassword);
+router.get("/getAllUsers", fetchAllUsers);
+router.delete("/deleteFields", deleteFields);
+router.get("/protected", verifyToken,(req, res) => {
   res.status(200).json({
     message: "This is a protected route",
     user: {

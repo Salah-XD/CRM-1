@@ -3,20 +3,23 @@ import { Layout, Menu } from 'antd';
 import AdminDashboard from '../Layout/AdminDashboard';
 import NoteForm from './NoteForm';
 import MailSettingForm from './MailSettingForm';
+import UserListSetting from './UserListSetting';
 
 const { Sider, Content } = Layout;
 
 const MailComponent = () => <div>Mail Content</div>;
 
 const SettingsPage = () => {
-  const [selectedMenuItem, setSelectedMenuItem] = useState('Notes');
+  const [selectedMenuItem, setSelectedMenuItem] = useState('User');
 
   const renderContent = () => {
     switch (selectedMenuItem) {
       case 'Notes':
-        return <NoteForm />; // Use the imported NotesForm component
+        return <NoteForm />; 
       case 'Mail':
         return <MailSettingForm />;
+      case 'User':
+        return <UserListSetting />;
       default:
         return null;
     }
@@ -40,12 +43,13 @@ const SettingsPage = () => {
         >
           <Menu
             mode="vertical"
-            defaultOpenKeys={['notes']}
+            defaultOpenKeys={['User']}
             style={{ borderRight: 0 }}
             selectedKeys={[selectedMenuItem]}
             onClick={(e) => setSelectedMenuItem(e.key)}
           >
             <Menu.ItemGroup key="g1">
+              <Menu.Item key="User">User</Menu.Item>
               <Menu.Item key="Notes">Notes</Menu.Item>
               <Menu.Item key="Mail">Mail</Menu.Item>
             </Menu.ItemGroup>

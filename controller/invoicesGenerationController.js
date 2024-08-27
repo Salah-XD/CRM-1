@@ -13,7 +13,7 @@ const __dirname = path.resolve();
 export const generateInvoice = async (req, res) => {
   const { invoiceId } = req.params;
   try {
-    const { to, message } = req.body; // Email details
+    const { to,cc, message } = req.body; // Email details
 
     // Fetch invoice details based on invoiceId
     const invoiceDetails = await Invoice.findById(invoiceId).exec();
@@ -134,6 +134,7 @@ export const generateInvoice = async (req, res) => {
     const mailOptions = {
       from: "unavar.steamtroops@gmail.com",
       to,
+      cc,
       subject: "Invoice Document",
       text: message,
       attachments: [

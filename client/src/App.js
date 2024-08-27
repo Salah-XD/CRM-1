@@ -17,7 +17,6 @@ import Agreement from "./Components/Pages/Agreement";
 import AuditPlan from "./Components/Pages/AuditPlan";
 import InvoiceTable from "./Components/Pages/InvoiceTable";
 import Dashboard from "./Components/Pages/Dashboard";
-import AddUserPage from "./Components/Auth/AddUserPage";
 import EnquiryTable from "./Components/Pages/EnquiryTable";
 import ClientApprovalTable from "./Components/Pages/ClientApprovalTable";
 import AgreementTable from "./Components/Pages/AgreementTable";
@@ -37,9 +36,9 @@ function App() {
 
         <Route path="/dashboard" element={<Dashboard />} />
 
-        <Route element={<SuperAdminRoute />}>
+        {/* <Route element={<SuperAdminRoute />}>
           <Route path="/add-user" element={<AddUserPage />} />
-        </Route>
+        </Route> */}
 
         <Route element={<AccountAdminRoute />}>
           <Route path="/enquiry" element={<EnquiryTable />} />

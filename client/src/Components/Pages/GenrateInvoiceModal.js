@@ -34,16 +34,59 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
     if (visible) {
       setInvoiceDate(moment());
 
+   
       // Fetch outlets when the modal is visible
-      axios
-        .get(`/api/proposal/getOutletsByProposalId/${proposalId}`)
-        .then((response) => {
-          setOutlets(response.data);
-        })
-        .catch((error) => {
-          console.error("Error fetching outlets:", error);
-        });
+    axios
+    .get(`/api/proposal/getOutletsByProposalId/${proposalId}`)
+    .then((response) => {
+      setOutlets(response.data.map((outlet) => {
+        const _id=outlet._id
+        const type_of_industry = outlet.type_of_industry || "";
+        const unit = outlet.unit || 0;
+        const man_days = outlet.man_days || 0;
+        const quantity = outlet.quantity || 0;
+        const unit_cost = outlet.unit_cost || 0;
+        const description= outlet.description || 0;
 
+        // Calculate amount based on quantity, unit cost, and man_days
+        const amount = outlet.amount || 0;
+
+        let postfix = "";
+        switch (type_of_industry) {
+          case "Transportation":
+            postfix = "VH";
+            break;
+          case "Catering":
+            postfix = "FH";
+            break;
+          case "Trade and Retail":
+            postfix = "Sq ft";
+            break;
+          case "Manufacturing":
+            postfix = "PD/Line";
+            break;
+          default:
+            postfix = ""; // or any default value
+        }
+
+        return {
+          outletId: outlet._id || "",
+          outlet_name: outlet.outlet_name || "",
+          type_of_industry,
+          unit,
+          man_days,
+          quantity,
+          description,
+          unit_cost,
+          amount,
+          _id,
+          service: `${unit} ${postfix}`
+        };
+      }));
+    })
+    .catch((error) => {
+      console.error("Error fetching outlets:", error);
+    });
       // Fetch proposal data to initialize the form
       axios
         .get(`/api/invoice/getProposalById/${proposalId}`)
@@ -92,6 +135,9 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
   const handleCancel = () => {
     onCancel();
     form.resetFields();
+    setItems([]);
+    setOutlets([]);
+    setSelectedOutlets([]);
     setShowForm(false);
   };
 
@@ -108,18 +154,43 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
   };
 
   const handleNext = () => {
-    const selectedItems = selectedOutlets.map((outlet) => ({
-      _id: outlet._id,
-      outlet_name: outlet.outlet_name,
-      no_of_food_handlers: outlet.no_of_food_handlers,
-      man_days: outlet.man_days,
-      unit_cost: outlet.unit_cost,
-      discount: outlet.discount,
-      amount: outlet.amount,
-    }));
+    const selectedItems = selectedOutlets.map((outlet) => {
+      let postfix = "";
+
+      switch (outlet.type_of_industry) { // assuming record refers to outlet
+        case "Transportation":
+          postfix = "VH";
+          break;
+        case "Catering":
+          postfix = "FH";
+          break;
+        case "Trade and Retail":
+          postfix = "Sq ft";
+          break;
+        case "Manufacturing":
+          postfix = "PD/Line";
+          break;
+        default:
+          postfix = ""; // or any default value
+      }
+
+      return {
+        _id: outlet._id,
+        outlet_name: outlet.outlet_name,
+        description: outlet.description,
+        man_days: outlet.man_days,
+        unit_cost: outlet.unit_cost,
+        quantity: outlet.quantity,
+        discount: outlet.discount,
+        amount: outlet.amount,
+        service: outlet.unit + " " + postfix // Assuming 'unit' is a property of the outlet object
+      };
+    });
+
     setItems(selectedItems);
     setShowForm(true);
   };
+
 
   const handleSubmit = async () => {
     try {
@@ -160,19 +231,20 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
     } catch (error) {
       console.error("Error saving invoice:", error);
       message.error(
-        `Error generating invoice: ${
-          error.response?.data?.message || error.message
+        `Error generating invoice: ${error.response?.data?.message || error.message
         }`
       );
     }
   };
-
   const calculateTotals = () => {
+ 
     const subTotal = items.reduce((sum, item) => sum + item.amount, 0);
+    //console.log("Sub total is"+subTotal);
     const tax = subTotal * 0.09;
     const total = subTotal + 2 * tax;
     return { subTotal, tax, total };
   };
+  
 
   const { subTotal, tax, total } = calculateTotals();
 
@@ -183,9 +255,14 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
       key: "outlet_name",
     },
     {
-      title: "No of Food Handlers",
-      dataIndex: "no_of_food_handlers",
-      key: "no_of_food_handlers",
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+    },
+    {
+      title: "Service",
+      dataIndex: "service",
+      key: "service",
     },
     {
       title: "Man Days",
@@ -209,38 +286,45 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
       title: "Outlet name",
       dataIndex: "outlet_name",
       key: "outlet_name",
-      render: (value) => <span className="text-center block">{value}</span>,
+      render: (value) => <span className=" block">{value}</span>,
     },
     {
-      title: "No of Food Handlers",
-      dataIndex: "no_of_food_handlers",
-      key: "no_of_food_handlers",
-      render: (value) => <span className="text-center block">{value}</span>,
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+      render: (value) => <span className=" block">{value}</span>,
+    },
+    {
+      title: "Service",
+      dataIndex: "service",
+      key: "service",
+      render: (value) => <span className=" block">{value}</span>,
     },
     {
       title: "Man Days",
       dataIndex: "man_days",
       key: "man_days",
-      render: (value) => <span className="text-center block">{value}</span>,
+      render: (value) => <span className=" block">{value}</span>,
+    },
+    {
+      title: "Quantity",
+      dataIndex: "quantity",
+      key: "",
+      render: (value) => <span className=" block">{value}</span>,
     },
     {
       title: "Unit Cost",
       dataIndex: "unit_cost",
       key: "unit_cost",
-      render: (value) => <span className="text-center block">{value}</span>,
+      render: (value) => <span className=" block">{value}</span>,
     },
-    {
-      title: "Discount",
-      dataIndex: "discount",
-      key: "discount",
-      render: (value) => <span className="text-center block">{value}</span>,
-    },
+
     {
       title: "Amount",
       dataIndex: "amount",
       key: "amount",
       render: (amount) => (
-        <span className="text-center block">
+        <span className=" block">
           {amount.toLocaleString("en-IN", {
             style: "currency",
             currency: "INR",
@@ -318,26 +402,15 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
                 rowSelection={{
                   selectedRowKeys: selectedOutlets.map((outlet) => outlet._id),
                   onSelect: (record, selected) => {
-                    if (!record.is_invoiced) {
-                      handleSelect(record, selected);
-                    }
+                    handleSelect(record, selected);
                   },
                   onSelectAll: (selected, selectedRows) => {
-                    const validSelectedRows = selectedRows.filter(
-                      (row) => row && !row.is_invoiced
-                    );
-                    handleSelectAll(selected, validSelectedRows);
+                    handleSelectAll(selected, selectedRows);
                   },
-                  getCheckboxProps: (record) => ({
-                    disabled: record.is_invoiced,
-                  }),
                 }}
-                rowClassName={(record) =>
-                  record.is_invoiced
-                    ? "bg-gray-200 pointer-events-none opacity-50"
-                    : ""
-                }
+                rowClassName={() => ""}
               />
+
 
               <div className="text-center mt-4">
                 <Button
@@ -375,7 +448,7 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
                   ]}
                 >
                   {" "}
-                
+
                   <DatePicker value={invoiceDate} className="w-full" />
                 </Form.Item>
                 <Form.Item
@@ -527,7 +600,7 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
                 <div className="flex justify-between items-center">
                   <div className="text-sm font-medium">CGST [9%]:</div>
                   <div className="text-sm font-medium">
-                    {(tax / 2).toLocaleString("en-IN", {
+                    {(tax ).toLocaleString("en-IN", {
                       style: "currency",
                       currency: "INR",
                     })}
@@ -536,7 +609,7 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
                 <div className="flex justify-between items-center">
                   <div className="text-sm font-medium">SGST [9%]:</div>
                   <div className="text-sm font-medium">
-                    {(tax / 2).toLocaleString("en-IN", {
+                    {(tax).toLocaleString("en-IN", {
                       style: "currency",
                       currency: "INR",
                     })}

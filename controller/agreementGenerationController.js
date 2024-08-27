@@ -10,7 +10,7 @@ const __dirname = path.resolve();
 export const generateagreement = async (req, res) => {
   try {
     const { agreementId } = req.params; // Access agreementId from route parameters
-    const { to, message } = req.body; // Email details
+    const { to, cc,message } = req.body; // Email details
 
     // Fetch agreement details based on agreementId
     const agreementDetails = await agreement.findById(agreementId).exec();
@@ -86,6 +86,7 @@ export const generateagreement = async (req, res) => {
     const mailOptions = {
       from: "Arun",
       to, // Email recipient from request body
+      cc,
       subject: "Agreement Document",
       text: message, // Message body from request body
       attachments: [

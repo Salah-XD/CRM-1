@@ -7,6 +7,7 @@ import SuccessTableMail from "./SuccessTableMail";
 const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, route, name, buttonTitle }) => {
   const [mailSent, setMailSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [ccmail,setCcmail]=useState([]);
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
@@ -16,6 +17,7 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
       if (name == "proposal") {
         axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
           .then((response) => {
+            setCcmail(response.data.proposal_cc);
             // Initialize the message field with the fetched data
             form.setFieldsValue({ message: response.data.proposal_email });
           })
@@ -26,8 +28,9 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
       else if (name == "invoice") {
         axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
           .then((response) => {
+            setCcmail(response.data.invoice_cc);
             // Initialize the message field with the fetched data
-            form.setFieldsValue({ message: response.data.invoice_email });
+            form.setFieldsValue({ message: response.data.invoice_email});
           })
           .catch((error) => {
             console.error("Failed to fetch setting data:", error);
@@ -36,6 +39,7 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
       else {
         axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
           .then((response) => {
+            setCcmail(response.data.agreement_cc);
             // Initialize the message field with the fetched data
             form.setFieldsValue({ message: response.data.agreement_email });
           })
@@ -57,6 +61,7 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
         axios
           .post(`/api/${name}/${route}/${id}`, {
             to: values.email,
+            cc:ccmail,
             message: values.message,
           })
           .then((response) => {
@@ -77,7 +82,7 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
 
 
 
-  const handleGoToAgreement = () => {
+  const handleGoTo = () => {
     if (buttonTitle == "Go to Proposal") {
       navigate("/proposal");
     }
@@ -118,12 +123,11 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
             <p className="text-green-50 font-bold mb-4">
               Document generated successfully
             </p>
-            <p className="text-gray-600 mb-4">
-              Note: Generated document is attached in the email.
-            </p>
+            
 
             <Form form={form} layout="vertical">
               <Form.Item
+               label="Mail ID"
                 name="email"
                 rules={[{ required: true, message: "Please enter the email" }]}
               >
@@ -133,7 +137,11 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
                   className="w-full p-2 border rounded mb-4"
                 />
               </Form.Item>
+              <p className="text-gray-600 mb-4">
+              Note: This mail will be sent to CCs also. You can edit in Settings.
+            </p>
               <Form.Item
+               label="Message"
                 name="message"
                 rules={[
                   { required: true, message: "Please enter the message" },
@@ -156,7 +164,7 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
                 </Button>
 
                 <button
-                  onClick={handleGoToAgreement}
+                  onClick={handleGoTo}
                   className="border border-buttonModalColor text-buttonModalColor bg-none p-1 rounded"
                 >
                   {buttonTitle}

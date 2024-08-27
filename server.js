@@ -1,5 +1,5 @@
 import express from "express";
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 import connectDB from "./config/dbConnect.js";
 import cors from "cors";
 import morgan from "morgan";
@@ -12,24 +12,25 @@ import agreementRoutes from "./routes/agreementRoutes.js"
 import auditorRoutes from "./routes/auditorRoutes.js"
 import settingRoutes from "./routes/settingRoutes.js"
 
-//import path from "path";
- //import { fileURLToPath } from "url";
+ import path from "path";
+ import { fileURLToPath } from "url";
 
 // Configure environment variables
 dotenv.config();
+
 
 // Create Express app
 const app = express();
 
 // Get current filename and directory
-//const __filename = fileURLToPath(import.meta.url);
-//const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 
 
 
 // // Serve React app
-// app.use(express.static(path.join(__dirname, "./client/build")));
+ app.use(express.static(path.join(__dirname, "./client/build")));
 
 
 // Connect to database and start server
@@ -59,9 +60,9 @@ app.use("/api/auditor", auditorRoutes);
 app.use("/api/setting", settingRoutes);
 
 // All other routes (non-API routes) go to React app
- //app.use("*", function (req, res) {
-   //res.sendFile(path.join(__dirname, "./client/build/index.html"));
- //})
+ app.use("*", function (req, res) {
+   res.sendFile(path.join(__dirname, "./client/build/index.html"));
+ })
 
 
 app.use((err, req, res, next) => {
