@@ -129,12 +129,9 @@ export const generateProposal = async (req, res) => {
 
    // Launch Puppeteer
    const browser = await puppeteer.launch({
-    args: [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox"],
-    executablePath: await chromium.executablePath,
-    headless: chromium.headless,
-    ignoreHTTPSErrors: true,
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
-  
   
     const page = await browser.newPage();
 
