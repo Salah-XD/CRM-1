@@ -106,7 +106,11 @@ export const generateInvoice = async (req, res) => {
       .replace(/{{place_of_supply}}/g, place_of_supply)
       .replace(/{{pincode}}/g, pincode);
 
-    const browser = await puppeteer.launch();
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      });
+      
     const page = await browser.newPage();
 
     // Set the base URL to allow relative paths for resources like images

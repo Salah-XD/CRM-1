@@ -124,7 +124,12 @@ export const generateProposal = async (req, res) => {
       .replace(/{{pincode}}/g, pincode)
       .replace(/{{overallTotal}}/g, overallTotal);
 
-    const browser = await puppeteer.launch();
+   // Launch Puppeteer
+   const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
+  
     const page = await browser.newPage();
 
     // Set the base URL to allow relative paths for resources like images
@@ -139,7 +144,7 @@ export const generateProposal = async (req, res) => {
     await browser.close();
 
 
-    console.log("arun")
+  
 
     // Set up Nodemailer
     const transporter = nodemailer.createTransport({

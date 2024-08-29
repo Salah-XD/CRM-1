@@ -56,7 +56,11 @@ export const generateagreement = async (req, res) => {
       .replace(/{{no_of_outlets}}/g, no_of_outlets)
       .replace(/{{period}}/g, period);
 
-    const browser = await puppeteer.launch();
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      });
+      
     const page = await browser.newPage();
 
     // Set the base URL to allow relative paths for resources like images
