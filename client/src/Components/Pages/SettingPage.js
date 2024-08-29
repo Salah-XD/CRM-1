@@ -4,6 +4,7 @@ import AdminDashboard from '../Layout/AdminDashboard';
 import NoteForm from './NoteForm';
 import MailSettingForm from './MailSettingForm';
 import UserListSetting from './UserListSetting';
+import ProfileSettings from './ProfileSetting';
 
 const { Sider, Content } = Layout;
 
@@ -20,6 +21,8 @@ const SettingsPage = () => {
         return <MailSettingForm />;
       case 'User':
         return <UserListSetting />;
+      case'Profile':
+      return <ProfileSettings />;
       default:
         return null;
     }
@@ -49,6 +52,7 @@ const SettingsPage = () => {
             onClick={(e) => setSelectedMenuItem(e.key)}
           >
             <Menu.ItemGroup key="g1">
+              <Menu.Item key="Profile">Profile</Menu.Item>
               <Menu.Item key="User">User</Menu.Item>
               <Menu.Item key="Notes">Notes</Menu.Item>
               <Menu.Item key="Mail">Mail</Menu.Item>

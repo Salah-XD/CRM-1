@@ -1,4 +1,5 @@
 import puppeteer from "puppeteer";
+import chromium from 'chrome-aws-lambda';
 import { promises as fs } from "fs";
 import path from "path";
 import nodemailer from "nodemailer";
@@ -57,8 +58,10 @@ export const generateagreement = async (req, res) => {
       .replace(/{{period}}/g, period);
 
       const browser = await puppeteer.launch({
-        headless: true,
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        args: chromium.args,
+        executablePath: await chromium.executablePath,
+        headless: chromium.headless,
+        defaultViewport: chromium.defaultViewport,
       });
       
     const page = await browser.newPage();
