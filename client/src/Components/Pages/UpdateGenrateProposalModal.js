@@ -408,7 +408,7 @@ no_of_production_line:0
       title: "Description",
       dataIndex: "description",
       render: (text, record, index) => {
-        const isOthers = record.outletId === "others";
+        const isOthers = record.outlet_name === "Others";
         return isOthers ? (
           <Input
             value={text}
@@ -441,7 +441,7 @@ no_of_production_line:0
       title: "Services",
       dataIndex: "unit",
       render: (text, record, index) => {
-        const isOthers = record.outletId === "others";
+        const isOthers = record.outlet_name === "Others";
 
         let postfix = "none";
 

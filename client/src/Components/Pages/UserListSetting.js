@@ -28,7 +28,9 @@ import axios from "axios";
 import { NavLink } from "react-router-dom";
 import toast from "react-hot-toast";
 import { ExclamationCircleFilled } from "@ant-design/icons";
-import AddUserModal from "../Auth/AddUserModal";
+import UpdateUserModal from "../Auth/UpdateUserModal";
+import AddUserModal from  "../Auth/AddUserModal";
+
 const { confirm } = Modal;
 const { Search } = Input;
 
@@ -62,10 +64,12 @@ const ClientTable = () => {
     },
   });
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [shouldFetch, setShouldFetch] = useState(false);
+  const [userId,setUserId]=useState("");
   const navigate = useNavigate();
 
   // Toggling
@@ -160,10 +164,18 @@ const ClientTable = () => {
   const showModal = () => {
     setIsModalVisible(true);
   };
-
+  
+  const showUpdateModal=(id)=>{
+   setUserId(id);
+    setIsUpdateModalVisible(true);
+  }
   const handleCancel = () => {
     fetchData();
     setIsModalVisible(false);
+  };
+  const handleUpdateCancel = () => {
+    fetchData();
+    setIsUpdateModalVisible(false);
   };
 
   // Row Selection
@@ -264,8 +276,8 @@ const showSingleDeleteConfirm = (id) => {
 // Updated handleMenuClick function
 const handleMenuClick = (record, { key }) => {
   switch (key) {
-    case "view":
-      navigate(`/client-profile/update-client/id/${record._id}`);
+    case "edit":
+      showUpdateModal(record._id);
       break;
     case "delete":
       showSingleDeleteConfirm(record._id); // Pass the correct record ID
@@ -281,7 +293,7 @@ const handleMenuClick = (record, { key }) => {
       style={{ padding: "8px" }}
     >
       <Menu.Item
-        key="view"
+        key="edit"
         style={{ margin: "8px 0", backgroundColor: "#FFE0B2" }}
       >
         <span
@@ -495,6 +507,7 @@ useEffect(() => {
         </div>
       </div>
       <AddUserModal visible={isModalVisible} onCancel={handleCancel} />
+      <UpdateUserModal visible={isUpdateModalVisible} userId={userId} onCancel={handleUpdateCancel} />
 </>
   );
 };

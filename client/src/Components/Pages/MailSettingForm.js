@@ -68,7 +68,7 @@ const MailSettingForm = () => {
             className='w-1/2'
             rules={[{ required: false }]}
           >
-            <Input placeholder="Enter CC email(s), separated by commas" />
+            <Input.TextArea rows={4} placeholder="Enter CC email(s), separated by commas" />
           </Form.Item>
 
           <Form.Item
@@ -85,7 +85,7 @@ const MailSettingForm = () => {
             className='w-1/2'
             rules={[{ required: false }]}
           >
-            <Input placeholder="Enter CC email(s), separated by commas" />
+            <Input.TextArea rows={4} placeholder="Enter CC email(s), separated by commas" />
           </Form.Item>
 
           <Form.Item
@@ -102,7 +102,7 @@ const MailSettingForm = () => {
             className='w-1/2'
             rules={[{ required: false }]}
           >
-            <Input placeholder="Enter CC email(s), separated by commas" />
+            <Input.TextArea rows={4} placeholder="Enter CC email(s), separated by commas" />
           </Form.Item>
 
           <Form.Item>

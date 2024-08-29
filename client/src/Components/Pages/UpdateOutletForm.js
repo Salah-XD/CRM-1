@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Modal, Form, Input, Button, message, Spin,Select } from "antd";
+import { Modal, Form, Input, Button, message, Spin, Select } from "antd";
 import axios from "axios";
 import "../css/outletForm.css"; // Import the custom CSS
 
@@ -15,7 +15,7 @@ const UpdateOutletForm = ({
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(true); // State to handle loading
   const [isEditMode, setIsEditMode] = useState(false); // State to manage edit mode
-  const [industryType, setIndustryType] = useState(null);
+  const [industryType, setIndustryType] = useState(null); // State to track selected industry type
 
   const fetchOutletDetails = useCallback(async () => {
     try {
@@ -29,12 +29,15 @@ const UpdateOutletForm = ({
         branch_name: outlet.branch_name,
         contact_number: outlet.contact_number,
         contact_person: outlet.contact_person,
-        no_of_food_handlers: outlet.no_of_food_handlers,
         fssai_license_number: outlet.fssai_license_number,
         gst_number: outlet.gst_number,
-        Vertical_of_industry: outlet.Vertical_of_industry,
-        address: outlet.private_details?.address,
+        type_of_industry: outlet.type_of_industry,
+        unit: outlet.unit,
+        no_of_production_line: outlet.no_of_production_line,
       });
+
+      // Initialize industryType based on the fetched data
+      setIndustryType(outlet.type_of_industry);
 
       setLoading(false); // Set loading to false after data is fetched
     } catch (error) {
@@ -51,6 +54,7 @@ const UpdateOutletForm = ({
         fetchOutletDetails();
       } else {
         form.resetFields(); // Reset form fields if there's no outletId
+        setIndustryType(null); // Reset industry type
         setLoading(false); // Set loading to false immediately
       }
     }
@@ -91,13 +95,9 @@ const UpdateOutletForm = ({
     }
   };
 
-  
-  
-
   const handleIndustryChange = (value) => {
     setIndustryType(value);
   };
-
 
   const getUnitLabel = () => {
     switch (industryType) {
@@ -189,58 +189,65 @@ const UpdateOutletForm = ({
           </Form.Item>
 
           <Form.Item
-          label={
-            <span className="text-gray-600 font-semibold">
-              Type Of Industry
-            </span>
-          }
-          name="type_of_industry"
-          rules={[{ required: true, message: "Please select an industry Type" }]}
-        >
-          <Select
-            placeholder="Select industry Type"
-            className="w-full"
-            size="large"
-            onChange={handleIndustryChange}
-          >
-            <Option value="Catering">Catering</Option>
-            <Option value="Manufacturing">Manufacturing</Option>
-            <Option value="Trade and Retail">Trade and Retail</Option>
-            <Option value="Transportation">Transportation</Option>
-          </Select>
-        </Form.Item>
-        {industryType && (
-          <Form.Item
             label={
               <span className="text-gray-600 font-semibold">
-                {getUnitLabel()}
+                Type Of Industry
               </span>
             }
-            name="unit"
-            rules={[{ required: true, message: "Please enter the unit" }]}
+            name="type_of_industry"
+            rules={[{ required: true, message: "Please select an industry Type" }]}
           >
-            <Input
-              placeholder="Enter the unit"
-              className="placeholder-gray-400 p-3 rounded-lg w-full"
-            />
+            <Select
+              placeholder="Select industry Type"
+              className="w-full"
+              size="large"
+              onChange={handleIndustryChange}
+              disabled={!isEditMode}
+            >
+              <Option value="Catering">Catering</Option>
+              <Option value="Manufacturing">Manufacturing</Option>
+              <Option value="Trade and Retail">Trade and Retail</Option>
+              <Option value="Transportation">Transportation</Option>
+            </Select>
           </Form.Item>
-        )}
-           {industryType==="Manufacturing" && (
-          <Form.Item
-            label={
-              <span className="text-gray-600 font-semibold">
-                No. Of Production Line
-              </span>
-            }
-            name="no_of_production_line"
-            rules={[{ required: true, message: "Please enter the unit" }]}
-          >
-            <Input
-              placeholder="Enter the unit"
-              className="placeholder-gray-400 p-3 rounded-lg w-full"
-            />
-          </Form.Item>
-        )}
+
+          {(industryType || form.getFieldValue('type_of_industry')) && (
+            <>
+              <Form.Item
+                label={
+                  <span className="text-gray-600 font-semibold">
+                    {getUnitLabel()}
+                  </span>
+                }
+                name="unit"
+                rules={[{ required: true, message: "Please enter the unit" }]}
+              >
+                <Input
+                  placeholder="Enter the unit"
+                  className="placeholder-gray-400 p-3 rounded-lg w-full"
+                  disabled={!isEditMode}
+                />
+              </Form.Item>
+
+              {industryType === "Manufacturing" || form.getFieldValue('type_of_industry') === "Manufacturing" ? (
+                <Form.Item
+                  label={
+                    <span className="text-gray-600 font-semibold">
+                      No. Of Production Line
+                    </span>
+                  }
+                  name="no_of_production_line"
+                  rules={[{ required: true, message: "Please enter the number of production lines" }]}
+                >
+                  <Input
+                    placeholder="Enter the number of production lines"
+                    className="placeholder-gray-400 p-3 rounded-lg w-full"
+                    disabled={!isEditMode}
+                  />
+                </Form.Item>
+              ) : null}
+            </>
+          )}
 
           <Form.Item
             label={
@@ -278,46 +285,31 @@ const UpdateOutletForm = ({
 
           <Form.Item
             label={
-              <span className="text-gray-600 font-semibold">
-                Contact Person
-              </span>
+              <span className="text-gray-600 font-semibold">Contact Person</span>
             }
             name="contact_person"
           >
             <Input
-              placeholder="Enter contact person name"
+              placeholder="Enter contact person"
               className="placeholder-gray-400 p-3 rounded-lg w-full"
               disabled={!isEditMode}
             />
           </Form.Item>
 
-          <Form.Item
-            label={
-              <span className="text-gray-600 font-semibold">
-                No. of food handlers
-              </span>
-            }
-            name="no_of_food_handlers"
-          >
-            <Input
-              placeholder="Enter number of food handlers"
-              className="placeholder-gray-400 p-3 rounded-lg w-full"
-              disabled={!isEditMode}
-            />
-          </Form.Item>
-
-          {isEditMode && (
-            <div className="flex justify-center">
+          <Form.Item>
+            {isEditMode && (
+              <div className="flex justify-center">
               <div className="flex justify-between space-x-2">
-                <Button onClick={() => setIsEditMode(false)} className="mr-5">
+                <Button className="mr-5" onClick={handleCancel}>
                   Cancel
                 </Button>
                 <Button type="primary" className="ml-5" onClick={handleSubmit}>
-                  Update
+                  Save
                 </Button>
               </div>
             </div>
-          )}
+            )}
+          </Form.Item>
         </Form>
       )}
     </Modal>

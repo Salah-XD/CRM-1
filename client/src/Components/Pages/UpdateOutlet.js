@@ -222,7 +222,7 @@ const UpdateOutlet = () => {
   };
 
   return (
-    <div className="w-3/4 mx-auto flex-grow" style={{ marginBottom: 380 }}>
+    <div className="w-full mx-auto flex-grow" style={{ marginBottom: 380 }}>
       <div
         className="flex justify-between items-center m-6 "
         style={{ marginTop: 100 }}
@@ -248,7 +248,7 @@ const UpdateOutlet = () => {
           </Button>
         </div>
       </div>
-      <div className="m-6">
+      <div className="m-2">
         <Table
           rowSelection={{
             type: selectionType,

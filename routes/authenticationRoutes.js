@@ -6,7 +6,9 @@ import {
   verifyOTP,
   setNewPassword,
   fetchAllUsers,
-  deleteFields
+  deleteFields,
+  getUserById,
+  updateUser
 } from "../controller/authController.js";
 import { verifyJWT } from "../middleware/verifyOTP.js";
 import { verifyToken } from "../middleware/auth.js";
@@ -21,6 +23,9 @@ router.post("/verifyOtp", verifyOTP);
 router.post("/setNewPassword", setNewPassword);
 router.get("/getAllUsers", fetchAllUsers);
 router.delete("/deleteFields", deleteFields);
+router.get("/getUserById/:userId",getUserById);
+router.put("/updateUser/:userId",updateUser);
+
 router.get("/protected", verifyToken,(req, res) => {
   res.status(200).json({
     message: "This is a protected route",

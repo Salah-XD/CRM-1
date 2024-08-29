@@ -137,16 +137,16 @@ export const forgotPassword = async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       host: "smtp.gmail.com",
-      port: 587,
+      port: 465,
       secure: false,
       auth: {
-        user: "unavar.steamtroops@gmail.com",
-        pass:"nwgg jdxf emoq enmo",
+        user: process.env.EMAIL_USERNAME,
+        pass: process.env.EMAIL_PASSWORD,
       },
     });
 
     const mailOptions = {
-      from: "unavar.steamtroops@gmail.com",
+      from: `<${process.env.EMAIL_USERNAME}>`,
       to: userId,
       subject: "Password Reset OTP",
       text: `Your OTP for password reset is: ${OTP}.`,
@@ -318,13 +318,42 @@ export const deleteFields = async (req, res) => {
 };
 
 
+export const getUserById = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Fetch the user by ID, excluding the password field
+    const user = await User.findById(userId).select('-password');
+
+    // Check if the user exists
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Return the user details
+    res.status(200).json(user);
+
+  } catch (error) {
+    console.error("Error in fetching the data:", error); // Log error to console
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+
+
+
 
 export const updateUser = async (req, res) => {
+
   try {
-    const { userName, userId, password, role } = req.body;
+
+    console.log(req.body);
+
+    const {userId}=req.params;
+    const { userName, password, role } = req.body;
 
     // Check if user exists
-    const existingUser = await User.findOne({ userId });
+    const existingUser = await User.findOne({ _id:userId });
 
     if (!existingUser) {
       return res.status(404).json({ message: "User not found" });

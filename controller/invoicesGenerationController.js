@@ -82,7 +82,7 @@ export const generateInvoice = async (req, res) => {
     );
 
     // Read the image file and convert it to base64 encoding
-    const imagePath = path.join(__dirname, "templates", "logo.png");
+    const imagePath = path.join(__dirname, "templates", "logo2.png");
     const imageData = await fs.readFile(imagePath, { encoding: "base64" });
 
     // Inject dynamic data into HTML template
@@ -124,15 +124,15 @@ export const generateInvoice = async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       host: "smtp.gmail.com",
-      port: 587,
+      port: 465,
       auth: {
-        user: "unavar.steamtroops@gmail.com",
-        pass: "nwgg jdxf emoq enmo",
+        user: process.env.EMAIL_USERNAME,
+        pass: process.env.EMAIL_PASSWORD,
       },
     });
 
     const mailOptions = {
-      from: "unavar.steamtroops@gmail.com",
+      from: `<${process.env.EMAIL_USERNAME}>`,
       to,
       cc,
       subject: "Invoice Document",

@@ -76,15 +76,15 @@ export const generateagreement = async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       host: "smtp.gmail.com",
-      port: 587,
+      port: 465,
       auth: {
-        user: "unavar.steamtroops@gmail.com",
-        pass: "nwgg jdxf emoq enmo",
+        user: process.env.EMAIL_USERNAME,
+        pass: process.env.EMAIL_PASSWORD,
       },
     });
 
     const mailOptions = {
-      from: "Arun",
+      from: `<${process.env.EMAIL_USERNAME}>`,
       to, // Email recipient from request body
       cc,
       subject: "Agreement Document",

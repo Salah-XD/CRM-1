@@ -14,7 +14,6 @@ export const generateProposal = async (req, res) => {
     const { to,cc, message } = req.body; 
 
 
-    console.log("hello",process.env.EMAIL_PASSWORD);
 
     // Fetch proposal details based on proposalId
     const proposalDetails = await Proposal.findById(proposalId).exec();
@@ -146,17 +145,17 @@ export const generateProposal = async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       host: "smtp.gmail.com",
-      port: 587,
+      port: 465,
       auth: {
-        user: "unavar.steamtroops@gmail.com",
-        pass: "nwgg jdxf emoq enmo",
+        user: process.env.EMAIL_USERNAME,
+        pass: process.env.EMAIL_PASSWORD,
       },
     });
 
    
 
     const mailOptions = {
-      from: "Arun",
+      from: `<${process.env.EMAIL_USERNAME}>`,
       to,
       cc, // Email recipient from request body
       subject: "Proposal Document",

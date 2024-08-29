@@ -11,9 +11,9 @@ const userRoles = {
 // Defining user schema
 const userSchema = new Schema(
   {
-    userName:{
-      type:String,
-      required:true,
+    userName: { 
+      type: String,
+      required: true,
     },
     userId: {
       type: String,
@@ -39,11 +39,12 @@ const userSchema = new Schema(
     },
   },
   {
-    collection: "crm_users", // Specify the collection name
+    timestamps: true,
+    collection: "users", // Changed collection name to users
   }
 );
 
 // Creating User model with specified collection name
-const CRMUser = model("CRMUser", userSchema); // Changed model name to CRMUser for clarity
+const User = model("User", userSchema); // No need to change model name
 
-export { CRMUser as User, userRoles }; // Exporting with the name User for consistency
+export { User, userRoles }; // Exporting with the name User for consistency

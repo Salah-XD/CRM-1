@@ -179,7 +179,6 @@ export const saveOutlet = async (req, res) => {
       branch_name,
       contact_number,
       contact_person,
-      no_of_food_handlers,
       fssai_license_number,
       gst_number,
       business,
@@ -193,7 +192,6 @@ export const saveOutlet = async (req, res) => {
       branch_name,
       contact_number,
       contact_person,
-      no_of_food_handlers,
       fssai_license_number,
       gst_number,
       business,
@@ -225,7 +223,6 @@ export const updateOutlet = async (req, res) => {
       contact_number,
       contact_person,
       fssai_license_number,
-      no_of_food_handlers,
       Vertical_of_industry,
     } = req.body;
 
@@ -248,7 +245,6 @@ export const updateOutlet = async (req, res) => {
     if (contact_person) outlet.contact_person = contact_person;
     if (fssai_license_number)
       outlet.fssai_license_number = fssai_license_number;
-    if (no_of_food_handlers) outlet.no_of_food_handlers = no_of_food_handlers;
     if (Vertical_of_industry)
       outlet.Vertical_of_industry = Vertical_of_industry;
 
@@ -427,11 +423,6 @@ export const sendEmail = async (req, res) => {
       throw new Error("Missing parameters");
     }
 
-    // Debugging environment variables
-    console.log("Checking environment variables...");
-   
-   console.log("EMAIL_PASSWORD:", process.env.EMAIL_PASSWORD);
-   console.log("EMAIL_USERNAME:", process.env.EMAIL_USERNAME);
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -577,14 +568,13 @@ export const getParticularOutletDetails = async (req, res) => {
       fssai_license_number: outlet.fssai_license_number,
       contact_number: outlet.contact_number,
       contact_person: outlet.contact_person,
-      no_of_food_handlers: outlet.no_of_food_handlers,
+       type_of_industry:outlet.type_of_industry,
+       unit:outlet.unit,
+       no_of_production_line:outlet.no_of_production_line,
       gst_number: outlet.gst_number,
     };
 
-    // Include private company details if applicable
-    if (outlet.private_company) {
-      response.private_details = outlet.private_company;
-    }
+    
 
     return res.status(200).json(response);
   } catch (error) {

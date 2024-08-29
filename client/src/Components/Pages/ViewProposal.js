@@ -16,17 +16,21 @@ const ViewProposal = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
  const navigate = useNavigate();
 
+
+
+ const fetchProposalData = async () => {
+  try {
+    const response = await axios.get(
+      `/api/proposal/getProposalById/${proposalId}`
+    );
+    setProposalData(response.data);
+  } catch (error) {
+    console.error("Error fetching proposal data:", error);
+  }
+};
+
   useEffect(() => {
-    const fetchProposalData = async () => {
-      try {
-        const response = await axios.get(
-          `/api/proposal/getProposalById/${proposalId}`
-        );
-        setProposalData(response.data);
-      } catch (error) {
-        console.error("Error fetching proposal data:", error);
-      }
-    };
+   
 
     const fetchNoteContent = async () => {
       try {
@@ -130,6 +134,7 @@ proposalData.outlets.forEach((outlet) => {
   };
 
   const handleCancel = () => {
+    fetchProposalData();
   
     setIsModalVisible(false);
   };
