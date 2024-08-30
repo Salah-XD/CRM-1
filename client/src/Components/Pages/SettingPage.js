@@ -11,18 +11,19 @@ const { Sider, Content } = Layout;
 const MailComponent = () => <div>Mail Content</div>;
 
 const SettingsPage = () => {
-  const [selectedMenuItem, setSelectedMenuItem] = useState('User');
+  const [selectedMenuItem, setSelectedMenuItem] = useState('Profile');
 
   const renderContent = () => {
     switch (selectedMenuItem) {
+      case'Profile':
+      return <ProfileSettings />;
       case 'Notes':
         return <NoteForm />; 
       case 'Mail':
         return <MailSettingForm />;
       case 'User':
         return <UserListSetting />;
-      case'Profile':
-      return <ProfileSettings />;
+      
       default:
         return null;
     }
