@@ -11,11 +11,6 @@
 		"src": "/(.*)",
 		"dest": "/server.js"
 	  }
-	],
-	"functions": {
-	  "api/proposal/generateProposal.js": {
-		"maxDuration": 60
-	  }
-	}
+	]
+	
   }
-  
