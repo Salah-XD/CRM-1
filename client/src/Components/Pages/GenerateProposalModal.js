@@ -9,7 +9,6 @@ import {
   Table,
   Button,
   message,
-  Descriptions,
   Spin
 } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
@@ -19,7 +18,7 @@ import GenreateSuccessSendMailTableModal from "./GenreateSuccessSendMailTableMod
 import "../css/GenerateProposalModal.css";
 
 const { Option } = Select;
-const { TextArea } = Input;
+
 
 const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
   const [form] = Form.useForm();
@@ -50,6 +49,7 @@ no_of_production_line:0
   const [prosposalId, setPropsalId] = useState();
   const [auditors, setAuditors] = useState([]);
   const [isFetching, setIsFetching] = useState(true);
+  const [state,setState]=useState("");
   const handleCancel = () => {
     setItems([]);
     setItems([
@@ -186,10 +186,21 @@ no_of_production_line:0
         }
       };
 
+      const fetchProfileSetting=async ()=>{
+        try{
+            const response=await axios.get("/api/setting/getProfileSetting");
+            setState(response.data.profile.state);
+
+        }catch(error){
+          console.error("Error is fetching the profile state");
+        }
+      }
+
       fetchOutlets();
       fetchProposalNumber();
-      fetchBusinessDetails();
       fetchAllAuditors();
+      fetchProfileSetting();
+      fetchBusinessDetails();
     }
   }, [visible, enquiryId, form]);
 
