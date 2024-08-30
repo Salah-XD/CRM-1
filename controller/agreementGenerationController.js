@@ -1,50 +1,36 @@
-import puppeteer from "puppeteer";
-import chromium from 'chrome-aws-lambda';
-import { promises as fs } from "fs";
-import path from "path";
-import nodemailer from "nodemailer";
-import moment from "moment"; // Import moment.js
-import agreement from "../models/agreementModel.js";
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
+import { promises as fs } from 'fs';
+import path from 'path';
+import nodemailer from 'nodemailer';
+import moment from 'moment';
+import Agreement from '../models/agreementModel.js'; // Ensure your model is properly named and imported
 
 const __dirname = path.resolve();
 
 export const generateagreement = async (req, res) => {
+  let browser = null;
   try {
-    const { agreementId } = req.params; // Access agreementId from route parameters
-    const { to, cc,message } = req.body; // Email details
+    const { agreementId } = req.params;
+    const { to, cc, message } = req.body;
 
-    // Fetch agreement details based on agreementId
-    const agreementDetails = await agreement.findById(agreementId).exec();
-
+    // Fetch agreement details
+    const agreementDetails = await Agreement.findById(agreementId).exec();
     if (!agreementDetails) {
-      return res.status(404).send("Agreement not found");
+      return res.status(404).send('Agreement not found');
     }
 
-    const {
-      fbo_name,
-      from_date,
-      to_date,
-      period,
-      total_cost,
-      address,
-      no_of_outlets,
-    } = agreementDetails;
+    const { fbo_name, from_date, to_date, period, total_cost, address, no_of_outlets } = agreementDetails;
 
-    console.log(fbo_name, from_date, to_date, total_cost, no_of_outlets);
+    // Format dates
+    const formattedFromDate = moment(from_date).format('DD/MM/YYYY');
+    const formattedToDate = moment(to_date).format('DD/MM/YYYY');
 
-    // Format dates using moment.js in the desired format (DD/MM/YYYY)
-    const formattedFromDate = moment(from_date).format("DD/MM/YYYY");
-    const formattedToDate = moment(to_date).format("DD/MM/YYYY");
-
-    // Read HTML template from file
-    const htmlTemplate = await fs.readFile(
-      path.join(__dirname, "templates", "agreement.html"),
-      "utf-8"
-    );
-
-    // Read the image file and convert it to base64 encoding
-    const imagePath = path.join(__dirname, "templates", "logo2.png");
-    const imageData = await fs.readFile(imagePath, { encoding: "base64" });
+    // Read HTML template and image concurrently
+    const [htmlTemplate, imageData] = await Promise.all([
+      fs.readFile(path.join(__dirname, 'templates', 'agreement.html'), 'utf-8'),
+      fs.readFile(path.join(__dirname, 'templates', 'logo2.png'), { encoding: 'base64' })
+    ]);
 
     // Inject dynamic data into HTML template
     const dynamicContent = htmlTemplate
@@ -57,33 +43,26 @@ export const generateagreement = async (req, res) => {
       .replace(/{{no_of_outlets}}/g, no_of_outlets)
       .replace(/{{period}}/g, period);
 
-      const browser = await puppeteer.launch({
-        args: [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox"],
-        executablePath: await chromium.executablePath,
-        headless: chromium.headless,
-        ignoreHTTPSErrors: true,
-      });
-      
-      
-    const page = await browser.newPage();
-
-    // Set the base URL to allow relative paths for resources like images
-    const baseUrl = `file://${__dirname}/templates/`;
-    await page.setContent(dynamicContent, {
-      waitUntil: "networkidle0",
-      baseUrl,
+    // Launch Puppeteer using Chromium
+    browser = await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+      ignoreHTTPSErrors: true,
     });
 
-    // Generate PDF content dynamically based on client input
-    const pdfBuffer = await page.pdf({ format: "A4", printBackground: true }); // Generate PDF in A4 format
-    await browser.close();
+    const page = await browser.newPage();
+    const baseUrl = `file://${__dirname}/templates/`;
+    await page.setContent(dynamicContent, { waitUntil: 'networkidle0', baseUrl });
 
-    console.log("arun");
+    // Generate PDF
+    const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
 
     // Set up Nodemailer
     const transporter = nodemailer.createTransport({
-      service: "gmail",
-      host: "smtp.gmail.com",
+      service: 'gmail',
+      host: 'smtp.gmail.com',
       port: 465,
       auth: {
         user: process.env.EMAIL_USERNAME,
@@ -93,30 +72,30 @@ export const generateagreement = async (req, res) => {
 
     const mailOptions = {
       from: `<${process.env.EMAIL_USERNAME}>`,
-      to, // Email recipient from request body
+      to,
       cc,
-      subject: "Agreement Document",
-      text: message, // Message body from request body
-      attachments: [
-        {
-          filename: `agreement-${agreementId}.pdf`,
-          content: pdfBuffer,
-          encoding: "base64",
-        },
-      ],
+      subject: 'Agreement Document',
+      text: message,
+      attachments: [{
+        filename: `agreement-${agreementId}.pdf`,
+        content: pdfBuffer,
+        encoding: 'base64',
+      }],
     };
 
-    // Send email
+    // Send email and update agreement status
     const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent:", info.response);
+    console.log('Email sent:', info.response);
 
-    // Update agreement status to "Mail Sent"
-    await agreement.findByIdAndUpdate(agreementId, { status: "Mail Sent" });
+    await Agreement.findByIdAndUpdate(agreementId, { status: 'Mail Sent' });
 
-    // Respond to client
-    res.status(200).json({ message: "Email sent successfully" });
+    res.status(200).json({ message: 'Email sent successfully' });
   } catch (error) {
-    console.error("Error generating PDF or sending email:", error);
-    res.status(500).send("Internal Server Error");
+    console.error('Error generating PDF or sending email:', error);
+    res.status(500).send('Internal Server Error');
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 };

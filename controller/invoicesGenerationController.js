@@ -1,5 +1,5 @@
-import puppeteer from "puppeteer";
-import chromium from 'chrome-aws-lambda';
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium"; // Use this if chrome-aws-lambda is deprecated
 import { promises as fs } from "fs";
 import path from "path";
 import nodemailer from "nodemailer";
@@ -13,12 +13,12 @@ const __dirname = path.resolve();
 
 export const generateInvoice = async (req, res) => {
   const { invoiceId } = req.params;
+  let browser;
   try {
-    const { to,cc, message } = req.body; // Email details
+    const { to, cc, message } = req.body; // Email details
 
     // Fetch invoice details based on invoiceId
     const invoiceDetails = await Invoice.findById(invoiceId).exec();
-
     if (!invoiceDetails) {
       return res.status(404).send("Invoice not found");
     }
@@ -43,7 +43,6 @@ export const generateInvoice = async (req, res) => {
     const invoiceDate = invoice_date ? new Date(invoice_date) : new Date();
 
     // Calculate total, cgst, sgst, and overall total
-    let total = 0;
     let subTotal = 0;
     const outletItems = outlets
       .map((outlet) => {
@@ -107,14 +106,14 @@ export const generateInvoice = async (req, res) => {
       .replace(/{{place_of_supply}}/g, place_of_supply)
       .replace(/{{pincode}}/g, pincode);
 
-      const browser = await puppeteer.launch({
-        args: [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox"],
-        executablePath: await chromium.executablePath,
-        headless: chromium.headless,
-        ignoreHTTPSErrors: true,
-      });
-      
-      
+    // Launch Puppeteer using Chromium
+    browser = await puppeteer.launch({
+      args: [...chromium.args, "--no-sandbox", "--disable-setuid-sandbox"],
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+      ignoreHTTPSErrors: true,
+    });
+
     const page = await browser.newPage();
 
     // Set the base URL to allow relative paths for resources like images
@@ -126,6 +125,8 @@ export const generateInvoice = async (req, res) => {
 
     // Generate PDF content dynamically based on client input
     const pdfBuffer = await page.pdf({ format: "A4", printBackground: true });
+
+    // Close browser
     await browser.close();
 
     // Set up Nodemailer
@@ -158,13 +159,16 @@ export const generateInvoice = async (req, res) => {
     const info = await transporter.sendMail(mailOptions);
     console.log("Email sent:", info.response);
 
-    // Update proposal status to "Mail Sent"
+    // Update invoice status to "Unpaid/Mail Sent"
     await Invoice.findByIdAndUpdate(invoiceId, { status: "Unpaid/Mail Sent" });
 
     // Respond to client
     res.status(200).json({ message: "Email sent successfully" });
   } catch (error) {
     console.error("Error generating PDF or sending email:", error);
+    if (browser) {
+      await browser.close();
+    }
     res.status(500).send("Internal Server Error");
   }
 };
