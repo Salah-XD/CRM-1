@@ -10,6 +10,7 @@ import {
   Button,
   message,
   Descriptions,
+  Spin
 } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 import moment from "moment";
@@ -48,6 +49,7 @@ no_of_production_line:0
   const [email, setEmail] = useState(0);
   const [prosposalId, setPropsalId] = useState();
   const [auditors, setAuditors] = useState([]);
+  const [isFetching, setIsFetching] = useState(true);
   const handleCancel = () => {
     setItems([]);
     setItems([
@@ -67,11 +69,13 @@ no_of_production_line:0
     setCgst(0);
     setTotal(0);
     onCancel();
+    setIsFetching(false);
   };
 
   useEffect(() => {
     if (visible) {
       setProposalDate(moment());
+  
 
       const fetchProposalNumber = async () => {
         try {
@@ -167,6 +171,9 @@ no_of_production_line:0
           setInitialValuesLoaded(true);
         } catch (error) {
           console.error("Error fetching business details", error);
+        }finally {
+          setIsFetching(false);
+  
         }
       };
 
@@ -576,6 +583,7 @@ no_of_production_line:0
 
   return (
     <>
+    
       <Modal
         visible={visible}
         onCancel={handleCancel}
@@ -584,6 +592,7 @@ no_of_production_line:0
         style={{ padding: "0 !important" }}
         className="acc-modal"
       >
+         <Spin spinning={isFetching}>
         <Form layout="vertical" onFinish={handleSubmit} form={form}>
           <div
             className="text-center align-middle font-medium text-xl title-div bg-blue-50 p-7"
@@ -803,6 +812,7 @@ no_of_production_line:0
             </div>
           </div>
         </Form>
+        </Spin>
       </Modal>
 
       <GenreateSuccessSendMailTableModal
@@ -815,6 +825,7 @@ no_of_production_line:0
         visible={showSendMailModal}
         buttonTitle="Go to Proposal"
       />
+    
     </>
   );
 };

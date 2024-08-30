@@ -6,7 +6,9 @@ import {
   getSettings,
   getSettingById,
   updateSetting,
-  deleteSetting
+  deleteSetting,
+  saveOrUpdateProfile,
+  getProfileSetting
   } from "../controller/settingController.js";
 
 
@@ -31,6 +33,10 @@ router.put("/updateSetting/:id", updateSetting);
 // Delete a setting by ID
 router.delete("/deleteSetting/:id", deleteSetting);
 
-// 66c41b85dedfff785c08df21
+router.post("/saveOrUpdateProfile",saveOrUpdateProfile);
+
+router.get("/getProfileSetting",getProfileSetting);
+
+// 66c41b85dedfff785c08df21 //setting
 
 export default router;

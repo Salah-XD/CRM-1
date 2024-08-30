@@ -1,4 +1,5 @@
 import Setting from "../models/settingModel.js";
+import ProfileSetting from "../models/ProfileSettingModel.js";
 
 
 // Create a new setting
@@ -93,5 +94,52 @@ export const deleteSetting = async (req, res) => {
     res.status(200).json({ message: "Setting deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Failed to delete setting", error });
+  }
+};
+
+
+
+
+
+export const saveOrUpdateProfile = async (req, res) => {
+  try {
+    const { company_name, company_address } = req.body;
+
+    // Check if the profile setting already exists
+    let profileSetting = await ProfileSetting.findOne();
+
+    if (profileSetting) {
+      // If it exists, update the fields
+      profileSetting.company_name = company_name;
+      profileSetting.company_address = company_address;
+    } else {
+      // If it doesn't exist, create a new profile setting
+      profileSetting = new ProfileSetting({
+        company_name,
+        company_address,
+      });
+    }
+
+    // Save the profile setting (either newly created or updated)
+    const savedProfile = await profileSetting.save();
+
+    res.status(200).json({ message: "Profile saved/updated successfully", profile: savedProfile });
+  } catch (error) {
+    res.status(500).json({ message: "Error saving/updating the profile", error });
+  }
+};
+
+
+export const getProfileSetting = async (req, res) => {
+  try {
+    const profileSetting = await ProfileSetting.findOne();
+
+    if (!profileSetting) {
+      return res.status(404).json({ message: "Profile setting not found" });
+    }
+
+    res.status(200).json({ profile: profileSetting });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching the profile setting", error });
   }
 };
