@@ -113,6 +113,10 @@ const proposalSchema = new Schema(
     message: {
       type: String,
     },
+    same_state:{
+      type:Boolean,
+      require:true
+    },
     note:{
       type:String
     }

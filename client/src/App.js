@@ -21,6 +21,8 @@ import EnquiryTable from "./Components/Pages/EnquiryTable";
 import ClientApprovalTable from "./Components/Pages/ClientApprovalTable";
 import AgreementTable from "./Components/Pages/AgreementTable";
 import ViewProposal from "./Components/Pages/ViewProposal";
+import ViewInvoice from "./Components/Pages/ViewInvoice";
+import ViewAgreement from "./Components/Pages/ViewAgreement";
 import SettingsPage from "./Components/Pages/SettingPage";
 import { SuperAdminRoute,AccountAdminRoute,AuditAdminRoute} from "./Components/Context/ProtectedRoute";
 
@@ -49,6 +51,8 @@ function App() {
           <Route path="/agreement" element={<AgreementTable />} />
           <Route path="/add" element={<BusinessDetail />} />
           <Route path="/proposal/view-proposal/:proposalId" element={<ViewProposal />} />
+          <Route path="/invoice/view-invoice/:invoiceId" element={<ViewInvoice />} />
+          <Route path="/agreement/view-agreement/:agreementId" element={<ViewAgreement />} />
           <Route path="/setting" element={<SettingsPage/>}/>
           <Route
             path="/client-profile/add-business"

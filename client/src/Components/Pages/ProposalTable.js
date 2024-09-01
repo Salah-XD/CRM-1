@@ -310,7 +310,7 @@ const ProposalTable = () => {
         showSingleDeleteConfirm(record._id);
         break;
 
-        case "edit":
+        case "view":
            navigate(`/proposal/view-proposal/${record._id}`);
           break;
 
@@ -345,7 +345,7 @@ const ProposalTable = () => {
         </span>
       </Menu.Item>
       <Menu.Item
-        key="edit"
+        key="view"
         style={{ margin: "8px 0", backgroundColor: "#E1BEE7" }}
       >
         <span

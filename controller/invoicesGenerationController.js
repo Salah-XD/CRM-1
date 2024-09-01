@@ -145,7 +145,7 @@ export const generateInvoice = async (req, res) => {
       to,
       cc,
       subject: "Invoice Document",
-      text: message,
+      html: message,
       attachments: [
         {
           filename: `invoice-${invoice_number}.pdf`,

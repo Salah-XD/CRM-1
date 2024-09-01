@@ -32,8 +32,8 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
       unit: 0,
       description: "",
       amount: 0,
-      
-no_of_production_line:0
+
+      no_of_production_line: 0
     },
   ]);
   const [proposal_date, setProposalDate] = useState(moment());
@@ -44,12 +44,14 @@ no_of_production_line:0
   const [subTotal, setSubTotal] = useState(0);
   const [sgst, setSgst] = useState(0);
   const [cgst, setCgst] = useState(0);
+  const [gst, setGst] = useState(0);
   const [total, setTotal] = useState(0);
   const [email, setEmail] = useState(0);
   const [prosposalId, setPropsalId] = useState();
   const [auditors, setAuditors] = useState([]);
   const [isFetching, setIsFetching] = useState(true);
-  const [state,setState]=useState("");
+  const [checkState, setCheckState] = useState("");
+  const [sameState, setSameState] = useState(true);
   const handleCancel = () => {
     setItems([]);
     setItems([
@@ -60,13 +62,13 @@ no_of_production_line:0
         man_days: 0,
         description: "",
         amount: 0,
-        
-no_of_production_line:0
+        no_of_production_line: 0
       },
     ]);
     setSubTotal(0);
     setSgst(0);
     setCgst(0);
+    setGst(0);
     setTotal(0);
     onCancel();
     setIsFetching(false);
@@ -75,7 +77,7 @@ no_of_production_line:0
   useEffect(() => {
     if (visible) {
       setProposalDate(moment());
-  
+
 
       const fetchProposalNumber = async () => {
         try {
@@ -137,6 +139,18 @@ no_of_production_line:0
         }
       };
 
+
+      const fetchProfileSetting = async () => {
+        try {
+          const response = await axios.get("/api/setting/getProfileSetting");
+          console.log("here", response.data.profile.company_address.state);
+          setCheckState(response.data.profile.company_address.state);
+
+        } catch (error) {
+          console.error("Error is fetching the profile state");
+        }
+      }
+
       const fetchBusinessDetails = async () => {
         try {
           const response = await axios.get(
@@ -155,6 +169,8 @@ no_of_production_line:0
           const city = businessData.address?.city || "";
           const state = businessData.address?.state || "";
 
+
+
           // Concatenate city and state if both exist
           const line2 = [city, state].filter(Boolean).join(", ");
 
@@ -168,12 +184,24 @@ no_of_production_line:0
             gst_number: businessData.gst_number,
             contact_person: businessData.contact_person,
           });
+
+
           setInitialValuesLoaded(true);
+
+
+          if (checkState === state) {
+            setSameState(true);
+          } else {
+            setSameState(false);
+          }
+
+
+
         } catch (error) {
           console.error("Error fetching business details", error);
-        }finally {
+        } finally {
           setIsFetching(false);
-  
+
         }
       };
 
@@ -186,15 +214,7 @@ no_of_production_line:0
         }
       };
 
-      const fetchProfileSetting=async ()=>{
-        try{
-            const response=await axios.get("/api/setting/getProfileSetting");
-            setState(response.data.profile.state);
 
-        }catch(error){
-          console.error("Error is fetching the profile state");
-        }
-      }
 
       fetchOutlets();
       fetchProposalNumber();
@@ -202,7 +222,7 @@ no_of_production_line:0
       fetchProfileSetting();
       fetchBusinessDetails();
     }
-  }, [visible, enquiryId, form]);
+  }, [visible, enquiryId, form,checkState]);
 
   const handleSubmit = async () => {
     try {
@@ -219,6 +239,7 @@ no_of_production_line:0
         proposal_date: proposal_date.format("YYYY-MM-DD"),
         outlets: outletItem,
         email: email,
+        same_state:sameState
       };
 
       // Make POST request to server
@@ -399,11 +420,16 @@ no_of_production_line:0
 
 
   const calculateTotals = (items) => {
-    console.log("i also triggerd");
+
     if (!Array.isArray(items) || items.length === 0) {
       setSubTotal(0);
-      setSgst(0);
-      setCgst(0);
+      if (sameState) {
+        setSgst(0);
+        setCgst(0);
+      } else {
+        setGst(0);
+      }
+
       setTotal(0);
       return;
     }
@@ -412,15 +438,28 @@ no_of_production_line:0
       (sum, item) => sum + (parseFloat(item.amount) || 0),
       0
     );
-
-    const calculatedIgst = calculatedSubTotal * 0.09;
-    const calculatedCgst = calculatedSubTotal * 0.09;
-    const calculatedTotal = calculatedSubTotal + calculatedIgst + calculatedCgst;
-
     setSubTotal(calculatedSubTotal);
-    setSgst(calculatedIgst);
-    setCgst(calculatedCgst);
-    setTotal(calculatedTotal);
+    if (sameState) {
+      const calculatedIgst = calculatedSubTotal * 0.09;
+      const calculatedCgst = calculatedSubTotal * 0.09;
+
+      setSgst(calculatedIgst);
+      setCgst(calculatedCgst);
+      const calculatedTotal = calculatedSubTotal + calculatedIgst + calculatedCgst;
+      setTotal(calculatedTotal);
+    }
+    else {
+      const calculatedGst = calculatedSubTotal * 0.18;
+
+      setGst(calculatedGst);
+      const calculatedTotal = calculatedSubTotal + calculatedGst;
+      setTotal(calculatedTotal);
+    }
+
+
+
+
+
   };
 
 
@@ -594,7 +633,7 @@ no_of_production_line:0
 
   return (
     <>
-    
+
       <Modal
         visible={visible}
         onCancel={handleCancel}
@@ -603,61 +642,30 @@ no_of_production_line:0
         style={{ padding: "0 !important" }}
         className="acc-modal"
       >
-         <Spin spinning={isFetching}>
-        <Form layout="vertical" onFinish={handleSubmit} form={form}>
-          <div
-            className="text-center align-middle font-medium text-xl title-div bg-blue-50 p-7"
-            style={{ boxShadow: "0 4px 2px -2px lightgrey" }}
-          >
-            Generate Proposal
-          </div>
-          <div
-            className="px-8 pt-4 pb-8"
-            style={{ backgroundColor: "#F6FAFB" }}
-          >
-            <div className="text-center font-medium text-xl mb-5 rounded-md">
-              Document Preview
+        <Spin spinning={isFetching}>
+          <Form layout="vertical" onFinish={handleSubmit} form={form}>
+            <div
+              className="text-center align-middle font-medium text-xl title-div bg-blue-50 p-7"
+              style={{ boxShadow: "0 4px 2px -2px lightgrey" }}
+            >
+              Generate Proposal
             </div>
-            <div className="flex space-x-4">
-              <Form.Item
-                label="FBO name (Business Name)"
-                name="fbo_name"
-                className="flex-1"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please input the business name!",
-                  },
-                ]}
-              >
-                <Input
-                  type="text"
-                  className="w-full p-2 border border-gray-300 rounded"
-                />
-              </Form.Item>
-              <Form.Item label="Proposal date" className="flex-1" size="large">
-                <DatePicker className="w-full" value={proposal_date} disabled />
-              </Form.Item>
-              <Form.Item
-                label="Proposal number"
-                name="proposal_number"
-                className="flex-1"
-              >
-                <Input
-                  placeholder="Auto Generated"
-                  className="w-full p-2 border border-gray-300 rounded"
-                  readOnly
-                />
-              </Form.Item>
-            </div>
-            <Form.Item label="Address">
-              <Input.Group>
+            <div
+              className="px-8 pt-4 pb-8"
+              style={{ backgroundColor: "#F6FAFB" }}
+            >
+              <div className="text-center font-medium text-xl mb-5 rounded-md">
+                Document Preview
+              </div>
+              <div className="flex space-x-4">
                 <Form.Item
-                  name={["address", "line1"]}
+                  label="FBO name (Business Name)"
+                  name="fbo_name"
+                  className="flex-1"
                   rules={[
                     {
                       required: true,
-                      message: "Please input the address line 1!",
+                      message: "Please input the business name!",
                     },
                   ]}
                 >
@@ -666,91 +674,122 @@ no_of_production_line:0
                     className="w-full p-2 border border-gray-300 rounded"
                   />
                 </Form.Item>
-                <Form.Item name={["address", "line2"]}>
+                <Form.Item label="Proposal date" className="flex-1" size="large">
+                  <DatePicker className="w-full" value={proposal_date} disabled />
+                </Form.Item>
+                <Form.Item
+                  label="Proposal number"
+                  name="proposal_number"
+                  className="flex-1"
+                >
+                  <Input
+                    placeholder="Auto Generated"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    readOnly
+                  />
+                </Form.Item>
+              </div>
+              <Form.Item label="Address">
+                <Input.Group>
+                  <Form.Item
+                    name={["address", "line1"]}
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please input the address line 1!",
+                      },
+                    ]}
+                  >
+                    <Input
+                      type="text"
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </Form.Item>
+                  <Form.Item name={["address", "line2"]}>
+                    <Input
+                      type="text"
+                      className="w-full p-2 border border-gray-300 rounded"
+                    />
+                  </Form.Item>
+                </Input.Group>
+              </Form.Item>
+              <div className="flex space-x-4">
+                <Form.Item
+                  label="Pincode"
+                  name="pincode"
+                  className="flex-1"
+                  rules={[
+                    { required: true, message: "Please input the pincode!" },
+                  ]}
+                >
                   <Input
                     type="text"
                     className="w-full p-2 border border-gray-300 rounded"
                   />
                 </Form.Item>
-              </Input.Group>
-            </Form.Item>
-            <div className="flex space-x-4">
+                <Form.Item
+                  label="GST Number"
+                  name="gst_number"
+                  className="flex-1"
+                  rules={[
+                    { required: true, message: "Please input the GST number!" },
+                  ]}
+                >
+                  <Input
+                    type="text"
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </Form.Item>
+              </div>
+              <div className="flex space-x-4">
+                <Form.Item
+                  label="Contact Person Name"
+                  name="contact_person"
+                  className="flex-1"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please input the contact person name!",
+                    },
+                  ]}
+                >
+                  <Input
+                    type="text"
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </Form.Item>
+                <Form.Item
+                  label="Contact Person Number"
+                  name="phone"
+                  className="flex-1"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please input the contact person number!",
+                    },
+                  ]}
+                >
+                  <Input
+                    type="text"
+                    className="w-full p-2 border border-gray-300 rounded"
+                  />
+                </Form.Item>
+              </div>
               <Form.Item
-                label="Pincode"
-                name="pincode"
-                className="flex-1"
-                rules={[
-                  { required: true, message: "Please input the pincode!" },
-                ]}
+                name="assigned_auditor"
+                label="Assigned Auditor"
+                rules={[{ required: true, message: "Please select an auditor!" }]}
               >
-                <Input
-                  type="text"
-                  className="w-full p-2 border border-gray-300 rounded"
-                />
+                <Select placeholder="Select an auditor">
+                  {auditors.map((auditor) => (
+                    <Option key={auditor._id} value={auditor._id}>
+                      {auditor.auditor_name}
+                    </Option>
+                  ))}
+                </Select>
               </Form.Item>
-              <Form.Item
-                label="GST Number"
-                name="gst_number"
-                className="flex-1"
-                rules={[
-                  { required: true, message: "Please input the GST number!" },
-                ]}
-              >
-                <Input
-                  type="text"
-                  className="w-full p-2 border border-gray-300 rounded"
-                />
-              </Form.Item>
-            </div>
-            <div className="flex space-x-4">
-              <Form.Item
-                label="Contact Person Name"
-                name="contact_person"
-                className="flex-1"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please input the contact person name!",
-                  },
-                ]}
-              >
-                <Input
-                  type="text"
-                  className="w-full p-2 border border-gray-300 rounded"
-                />
-              </Form.Item>
-              <Form.Item
-                label="Contact Person Number"
-                name="phone"
-                className="flex-1"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please input the contact person number!",
-                  },
-                ]}
-              >
-                <Input
-                  type="text"
-                  className="w-full p-2 border border-gray-300 rounded"
-                />
-              </Form.Item>
-            </div>
-            <Form.Item
-              name="assigned_auditor"
-              label="Assigned Auditor"
-              rules={[{ required: true, message: "Please select an auditor!" }]}
-            >
-              <Select placeholder="Select an auditor">
-                {auditors.map((auditor) => (
-                  <Option key={auditor._id} value={auditor._id}>
-                    {auditor.auditor_name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
 
-            {/* <div>
+              {/* <div>
               <Form.Item label="Note" name="note" className="flex-1">
                 <TextArea
                   className="w-full p-2 border border-gray-300 rounded"
@@ -759,70 +798,86 @@ no_of_production_line:0
               </Form.Item>
             </div> */}
 
-            <div className="my-4">
-              <h3 className="text-lg font-semibold mb-2">Items table</h3>
-              <Table
-                dataSource={outletItem}
-                columns={columns}
-                pagination={false}
-              />
-              <button
-                type="button"
-                onClick={addItem}
-                className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
-              >
-                + Add New Row
-              </button>
-            </div>
-            <div className="my-4 p-4 border rounded w-1/2 ml-auto bg-gray-50">
-              <div className="flex justify-between items-center">
-                <div className="text-sm font-medium">Sub Total:</div>
-                <div className="text-sm font-medium">
-                  {subTotal.toLocaleString("en-IN", {
-                    style: "currency",
-                    currency: "INR",
-                  })}
-                </div>
+              <div className="my-4">
+                <h3 className="text-lg font-semibold mb-2">Items table</h3>
+                <Table
+                  dataSource={outletItem}
+                  columns={columns}
+                  pagination={false}
+                />
+                <button
+                  type="button"
+                  onClick={addItem}
+                  className="mt-2 px-4 py-2 bg-blue-500 text-white rounded"
+                >
+                  + Add New Row
+                </button>
               </div>
-              <div className="flex justify-between items-center">
-                <div className="text-sm font-medium">IGST (9%):</div>
-                <div className="text-sm font-medium">
-                  {sgst.toLocaleString("en-IN", {
-                    style: "currency",
-                    currency: "INR",
-                  })}
+              <div className="my-4 p-4 border rounded w-1/2 ml-auto bg-gray-50">
+                <div className="flex justify-between items-center">
+                  <div className="text-sm font-medium">Sub Total:</div>
+                  <div className="text-sm font-medium">
+                    {subTotal.toLocaleString("en-IN", {
+                      style: "currency",
+                      currency: "INR",
+                    })}
+                  </div>
                 </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <div className="text-sm font-medium">CGST (9%):</div>
-                <div className="text-sm font-medium">
-                  {cgst.toLocaleString("en-IN", {
-                    style: "currency",
-                    currency: "INR",
-                  })}
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <div className="text-lg font-bold">Total:</div>
-                <div className="text-lg font-bold">
-                  {total.toLocaleString("en-IN", {
-                    style: "currency",
-                    currency: "INR",
-                  })}
-                </div>
-              </div>
-            </div>
 
-            <div className="text-center mt-4">
-              <button
-                className="bg-buttonModalColor px-4 py-2 text-white rounded"
-                htmlType="submit"
-              >
-                Generate
-              </button>
+                {sameState ? (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <div className="text-sm font-medium">SGST (9%):</div>
+                      <div className="text-sm font-medium">
+                        {sgst.toLocaleString("en-IN", {
+                          style: "currency",
+                          currency: "INR",
+                        })}
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <div className="text-sm font-medium">CGST (9%):</div>
+                      <div className="text-sm font-medium">
+                        {cgst.toLocaleString("en-IN", {
+                          style: "currency",
+                          currency: "INR",
+                        })}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm font-medium">GST (18%):</div>
+                    <div className="text-sm font-medium">
+                      {gst.toLocaleString("en-IN", {
+                        style: "currency",
+                        currency: "INR",
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center">
+                  <div className="text-lg font-bold">Total:</div>
+                  <div className="text-lg font-bold">
+                    {total.toLocaleString("en-IN", {
+                      style: "currency",
+                      currency: "INR",
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center mt-4">
+                <button
+                  className="bg-buttonModalColor px-4 py-2 text-white rounded"
+                  htmlType="submit"
+                >
+                  Generate
+                </button>
+              </div>
             </div>
-          </div>
-        </Form>
+          </Form>
         </Spin>
       </Modal>
 
@@ -836,7 +891,7 @@ no_of_production_line:0
         visible={showSendMailModal}
         buttonTitle="Go to Proposal"
       />
-    
+
     </>
   );
 };

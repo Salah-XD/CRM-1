@@ -8,6 +8,7 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title,but
   const [mailSent, setMailSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const [ccmail, setCcmail] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,6 +17,7 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title,but
       if (name == "proposal") {
         axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
           .then((response) => {
+            setCcmail(response.data.proposal_cc);
             // Initialize the message field with the fetched data
             form.setFieldsValue({ message: response.data.proposal_email });
           })
@@ -26,6 +28,7 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title,but
       else if (name == "invoice") {
         axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
           .then((response) => {
+            setCcmail(response.data.invoice_cc);
             // Initialize the message field with the fetched data
             form.setFieldsValue({ message: response.data.invoice_email });
           })
@@ -36,6 +39,7 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title,but
       else {
         axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
           .then((response) => {
+            setCcmail(response.data.agreement_cc);
             // Initialize the message field with the fetched data
             form.setFieldsValue({ message: response.data.agreement_email });
           })
@@ -46,6 +50,23 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title,but
 
     }
   }, [visible]);
+
+  const handleGoTo = () => {
+    if (buttonTitle == "Go to Proposal") {
+      navigate("/proposal");
+    }
+    else if (buttonTitle == "Go to Invoice") {
+      navigate("/invoice");
+    }
+    else {
+      navigate("/agreement");
+    }
+  };
+
+  const handleSuccessMailClose = () => {
+    setMailSent(false);
+  };
+
 
   const handleSendMail = () => {
     form
@@ -73,14 +94,7 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title,but
       });
   };
 
-  const handleGoTo = () => {
-    navigate("/proposal");
-  };
 
-  const handleSuccessMailClose = () => {
-    setMailSent(false);
-    onClose(); // Close parent component
-  };
 
   return (
     <>
@@ -120,6 +134,21 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title,but
                   className="w-full p-2 border rounded mb-4"
                 />
               </Form.Item>
+
+              <p className="text-gray-600 ">
+                CC's Mails:
+              </p>
+              {ccmail.length > 0 && (
+                <p className="text-gray-600 mb-4">
+               
+                  {ccmail.map((email, index) => (
+                    <span key={index} className="text-blue-600">
+                      {email}
+                      {index < ccmail.length - 1 && ', '}
+                    </span>
+                  ))}
+                </p>
+              )}
               <p className="text-gray-600 mb-4">
               Note: This mail will be sent to CCs also. You can edit in Settings.
             </p>

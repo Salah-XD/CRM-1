@@ -75,7 +75,7 @@ export const generateagreement = async (req, res) => {
       to,
       cc,
       subject: 'Agreement Document',
-      text: message,
+      html: message,
       attachments: [{
         filename: `agreement-${agreementId}.pdf`,
         content: pdfBuffer,

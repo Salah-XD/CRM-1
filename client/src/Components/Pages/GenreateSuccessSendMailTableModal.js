@@ -3,18 +3,23 @@ import { Modal, Button, Input, message, Form } from "antd";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import SuccessTableMail from "./SuccessTableMail";
+import e from "cors";
+
 
 const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, route, name, buttonTitle }) => {
   const [mailSent, setMailSent] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [ccmail,setCcmail]=useState([]);
+  const [ccmail, setCcmail] = useState([]);
+
   const [form] = Form.useForm();
+
   const navigate = useNavigate();
 
   useEffect(() => {
     if (visible) {
 
       if (name == "proposal") {
+        //Get The setting mail
         axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
           .then((response) => {
             setCcmail(response.data.proposal_cc);
@@ -24,13 +29,15 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
           .catch((error) => {
             console.error("Failed to fetch setting data:", error);
           });
+
+
       }
       else if (name == "invoice") {
         axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
           .then((response) => {
             setCcmail(response.data.invoice_cc);
             // Initialize the message field with the fetched data
-            form.setFieldsValue({ message: response.data.invoice_email});
+            form.setFieldsValue({ message: response.data.invoice_email });
           })
           .catch((error) => {
             console.error("Failed to fetch setting data:", error);
@@ -61,7 +68,7 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
         axios
           .post(`/api/${name}/${route}/${id}`, {
             to: values.email,
-            cc:ccmail,
+            cc: ccmail,
             message: values.message,
           })
           .then((response) => {
@@ -119,15 +126,15 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
           <div className="px-12 py-4" style={{ backgroundColor: "#F6FAFB" }}>
             <div className="text-center font-medium text-xl mb-5 rounded-md">
               Send Mail
+              <p className="text-green-50 font-bold mb-4">
+                Document generated successfully
+              </p>
             </div>
-            <p className="text-green-50 font-bold mb-4">
-              Document generated successfully
-            </p>
-            
+
 
             <Form form={form} layout="vertical">
               <Form.Item
-               label="Mail ID"
+                label="Mail ID"
                 name="email"
                 rules={[{ required: true, message: "Please enter the email" }]}
               >
@@ -137,11 +144,27 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
                   className="w-full p-2 border rounded mb-4"
                 />
               </Form.Item>
+              <p className="text-gray-600 ">
+                CC's Mails:
+              </p>
+              {ccmail.length > 0 && (
+                <p className="text-gray-600 mb-4">
+               
+                  {ccmail.map((email, index) => (
+                    <span key={index} className="text-blue-600">
+                      {email}
+                      {index < ccmail.length - 1 && ', '}
+                    </span>
+                  ))}
+                </p>
+              )}
+
+
               <p className="text-gray-600 mb-4">
-              Note: This mail will be sent to CCs also. You can edit in Settings.
-            </p>
+                Note: This mail will be sent to CCs also. You can edit in Settings.
+              </p>
               <Form.Item
-               label="Message"
+                label="Message"
                 name="message"
                 rules={[
                   { required: true, message: "Please enter the message" },

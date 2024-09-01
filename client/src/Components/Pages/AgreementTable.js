@@ -17,8 +17,7 @@ import {
   MoreOutlined,
   SearchOutlined,
   MailOutlined,
-  EditOutlined,
-
+  EyeOutlined,
 } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
 import { useNavigate } from "react-router-dom";
@@ -30,7 +29,6 @@ import GenerateAgreementModal from "./GenrateAgreementModal";
 import GenrateAgreementModal from "./GenrateAgreementModal";
 
 const { confirm } = Modal;
-
 
 // Debounce function definition
 const debounce = (func, delay) => {
@@ -64,12 +62,11 @@ const ProposalTable = () => {
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isModalVisibleAgreement, setIsModalVisibleAgreement] = useState(false);
-
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [shouldFetch, setShouldFetch] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [proposalId, setProposalId] = useState(null);
+  const [agreementId, setAgreementId] = useState(null);
   const [showSendMailModal, setShowSendMailModal] = useState(false);
   const navigate = useNavigate();
 
@@ -91,9 +88,9 @@ const ProposalTable = () => {
     setIsModalVisibleAgreement(false);
   };
 
-  const showModalAgreement = (proposalId) => {
-    console.log(proposalId);
-    setProposalId(proposalId);
+  const showModalAgreement = (agreementId) => {
+    console.log(agreementId);
+    setAgreementId(agreementId);
     setIsModalVisibleAgreement(true);
   };
 
@@ -250,22 +247,18 @@ const ProposalTable = () => {
   };
 
   //handle showSendMail
-  const showSendMail = (proposalId) => {
-    setProposalId(proposalId);
+  const showSendMail = (agreementId) => {
+    setAgreementId(agreementId);
     setShowSendMailModal(true);
-    console.log(proposalId, showSendMailModal + "top");
   };
 
   const showCloseSendMail = () => {
     setShowSendMailModal(false);
-    setProposalId(null);
+    setAgreementId(null);
   };
 
   // Handle Menu
   const handleMenuClick = (record, { key }) => {
-    console.log("Menu clicked for record:", record); // Debugging
-    console.log("Record _id:", record._id); // Debugging
-
     switch (key) {
       case "generate_agreement":
         showModalAgreement(record._id);
@@ -273,6 +266,14 @@ const ProposalTable = () => {
 
       case "delete":
         showSingleDeleteConfirm(record._id);
+        break;
+
+      case "view":
+        navigate(`/agreement/view-agreement/${record._id}`);
+        break;
+
+      case "send_mail":
+        showSendMail(record._id);
         break;
 
       default:
@@ -285,6 +286,16 @@ const ProposalTable = () => {
       onClick={(e) => handleMenuClick(record, e)}
       style={{ padding: "8px" }}
     >
+      <Menu.Item
+        key="view"
+        style={{ margin: "8px 0", backgroundColor: "#E1BEE7" }}
+      >
+        <span
+          style={{ color: "#4A148C", fontWeight: "bold", fontSize: "12px" }}
+        >
+          <EyeOutlined /> View
+        </span>
+      </Menu.Item>
       <Menu.Item
         key="send_mail"
         style={{ margin: "8px 0", backgroundColor: "#FFE0B2" }}
@@ -305,20 +316,9 @@ const ProposalTable = () => {
           <DeleteOutlined /> Delete
         </span>
       </Menu.Item>
-      <Menu.Item
-        key="edit"
-        style={{ margin: "8px 0", backgroundColor: "#E1BEE7" }}
-      >
-        <span
-          style={{ color: "#4A148C", fontWeight: "bold", fontSize: "12px" }}
-        >
-          <EditOutlined /> Edit
-        </span>
-      </Menu.Item>
     </Menu>
   );
 
-  
   const columns = [
     {
       title: "FBO Name",
@@ -374,8 +374,6 @@ const ProposalTable = () => {
     },
   ];
 
-
-
   // Fetch data with debounce
   const fetchDataWithDebounce = debounce(() => {
     if (searchKeyword.trim()) {
@@ -412,7 +410,6 @@ const ProposalTable = () => {
       console.log("Resetting fields to normal state");
     }
   }, [searchKeyword, fetchDataWithDebounce]);
-
 
   return (
     <AdminDashboard>
@@ -533,22 +530,15 @@ const ProposalTable = () => {
           </ConfigProvider>
         </div>
       </div>
-      <GenerateAgreementModal
-        visible={isModalVisible}
-        onOk={handleOk}
-        onCancel={handleCancel}
-      />
-      <GenrateAgreementModal
-        proposalId={proposalId}
-        visible={isModalVisibleAgreement}
-        onOk={handleAgreementOk}
-        onCancel={handleAgreementCancel}
-      />
-
+     
       <GenerateProposalSendMail
         visible={showSendMailModal}
         onClose={showCloseSendMail}
-        id={proposalId}
+        id={agreementId}
+        name="agreement"
+        route="generateagreement"
+        title="Genrate Agreement"
+        buttonTitle="Go to Agreement"
       />
     </AdminDashboard>
   );

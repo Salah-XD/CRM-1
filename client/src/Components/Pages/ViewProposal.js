@@ -116,10 +116,60 @@ proposalData.outlets.forEach((outlet) => {
 });
 
 
-  const cgst = parseFloat((total * 0.09).toFixed(2)); // 9% CGST
-  const sgst = parseFloat((total * 0.09).toFixed(2)); // 9% SGST
-  const overallTotal = parseFloat((total + cgst + sgst).toFixed(2));
+// Initialize tax variables
+let cgst = 0;
+let sgst = 0;
+let gst = 0;
+let overallTotal = 0;
 
+if (proposalData.same_state) {
+  cgst = parseFloat((total * 0.09).toFixed(2)); // 9% CGST
+  sgst = parseFloat((total * 0.09).toFixed(2)); // 9% SGST
+  overallTotal = parseFloat((total + cgst + sgst).toFixed(2));
+} else {
+  gst = parseFloat((total * 0.18).toFixed(2)); // 18% GST
+  overallTotal = parseFloat((total + gst).toFixed(2));
+}
+
+// Tax details to be displayed in the table
+const tax = proposalData.same_state
+  ? `
+    <tr>
+      <td colspan="6" class="border text-right w-3/4 small-cell">
+        <strong>CGST [9%]</strong>
+      </td>
+      <td class="border w-1/4 small-cell text-center">${cgst}</td>
+    </tr>
+    <tr>
+      <td colspan="6" class="border text-right w-3/4 small-cell">
+        <strong>SGST [9%]</strong>
+      </td>
+      <td class="border w-1/4 small-cell text-center">${sgst}</td>
+    </tr>
+  `
+  : `
+    <tr>
+      <td colspan="6" class="border text-right w-3/4 small-cell">
+        <strong>GST [18%]</strong>
+      </td>
+      <td class="border w-1/4 small-cell text-center">${gst}</td>
+    </tr>
+  `;
+
+
+  const tax2= proposalData.same_state 
+  ? `  <tr>
+                <td class="w-1/2 border px-4 py-1">CGST9 [9%]</td>
+                <td class="w-1/2 border px-4 py-1">${cgst}</td>
+              </tr>
+              <tr>
+                <td class="w-1/2 border px-4 py-1">SGST9 [9%]</td>
+                <td class="w-1/2 border px-4 py-1">${sgst}</td>
+              </tr>
+              <tr>`:` <tr>
+                <td class="w-1/2 border px-4 py-1">GST [18%]</td>
+                <td class="w-1/2 border px-4 py-1">${gst}</td>
+              </tr>`
 
 
    const showModal = () => {
@@ -284,19 +334,7 @@ proposalData.outlets.forEach((outlet) => {
               </td>
               <td class="border w-1/4 selected-cell small-cell text-center "><strong>${total}</strong></td>
             </tr>
-            <tr>
-              <td colspan="6" class="border text-right w-3/4 small-cell">
-                <strong>CGST9 [9%]</strong>
-              </td>
-              <td class="border w-1/4 small-cell  text-center">${cgst}</td>
-            </tr>
-            <tr>
-              <td colspan="6" class="border text-right w-3/4 small-cell">
-                <strong>SGST9 [9%]</strong>
-              </td>
-              <td class="border w-1/4 small-cell text-center ">${sgst}</td>
-            </tr>
-            <tr>
+           ${tax}
               <td colspan="6" class="border selected-cell text-right w-3/4 small-cell">
                 <strong>Total</strong>
               </td>
@@ -312,15 +350,7 @@ proposalData.outlets.forEach((outlet) => {
                 <td class="w-1/2 border px-4 py-1">Total Amount (without tax)</td>
                 <td class="w-1/2 border px-4 py-1"><strong>${total}</strong></td>
               </tr>
-              <tr>
-                <td class="w-1/2 border px-4 py-1">CGST9 [9%]</td>
-                <td class="w-1/2 border px-4 py-1">${cgst}</td>
-              </tr>
-              <tr>
-                <td class="w-1/2 border px-4 py-1">SGST9 [9%]</td>
-                <td class="w-1/2 border px-4 py-1">${sgst}</td>
-              </tr>
-              <tr>
+             ${tax2}
                 <td class="w-1/2 border px-4 py-1">
                   <strong>Total Amount (With Tax)</strong>
                 </td>
