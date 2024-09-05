@@ -9,27 +9,82 @@ import UpdateGenerateAgreementModal from "./UpdateGenerateAgreementModal";
 import "../css/view.css";
 
 const ViewAgreement = () => {
-  const { invoiceId } = useParams(); // Extract invoiceId from the route
-  const [invoiceData, setinvoiceData] = useState(null);
+  const { agreementId } = useParams(); // Extract agreementId from the route
+  const [agreementData, setagreementData] = useState(null);
   const [zoom, setZoom] = useState(1); // State to manage zoom level
   const [noteContent, setNoteContent] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [proposalId,setProposalId]=useState(false);
+
   const navigate = useNavigate();
+
+  const fetch = async () => {
+    try {
+      const response = await axios.get(
+        `/api/agreement/getAgreementById/${agreementId}`
+
+      );
+      setProposalId(response.data.proposalId);
+      setagreementData(response.data);
+    } catch (error) {
+      console.error("Error fetching agreement data:", error);
+    }
+  };
+
+  useEffect(() => {
+ 
+
+    const fetchNoteContent = async () => {
+      try {
+        const response = await axios.get(
+          `/api/setting/getSetting/66c41b85dedfff785c08df21`
+        );
+        console.log("Fetched note content:", response.data);
+        const formattedNote = response.data.agreement_note.split("\n");
+        setNoteContent(formattedNote);
+      } catch (error) {
+        console.error("Error fetching note content:", error);
+      }
+    };
+
+    fetch();
+    fetchNoteContent();
+  }, [agreementId]);
+
+  const formattedFromDate = agreementData
+    ? moment(agreementData.from_date).format("DD/MM/YYYY")
+    : "";
+  const formattedToDate = agreementData
+    ? moment(agreementData.to_date).format("DD/MM/YYYY")
+    : "";
+
+  if (!agreementData) {
+    return (
+      <AdminDashboard>
+        <div className="flex justify-center items-center h-screen">
+          <Spin />
+        </div>
+      </AdminDashboard>
+    );
+  }
 
   const showModal = () => {
     setIsModalVisible(true);
   };
 
   const handleOk = () => {
+    fetch();
     setIsModalVisible(false);
+    
   };
 
   const handleCancel = () => {
+    fetch();
     setIsModalVisible(false);
   };
 
   // Inject data into HTML template
-  const htmlTemplate =`<!DOCTYPE html>
+  const htmlTemplate = `<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -80,7 +135,7 @@ const ViewAgreement = () => {
             position: relative;
             background-image:
                 linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)),
-                url("data:image/png;base64,{{imageData}}");
+                   url('/logo2.png');
           
             background-repeat: no-repeat;
             background-size: contain;
@@ -123,7 +178,7 @@ const ViewAgreement = () => {
         <div class="flex p-2 header items-center border mb-4">
             <div class="w-1/5">
                 <!-- Include this placeholder where you want the image to appear -->
-                <img src="data:image/png;base64,{{imageData}}" alt="Your Image Alt Text" width="80" height="80" />
+               <img src="/logo2.png" alt="Your Image Alt Text" width="80" height="80" />
             </div>
             <div>
                 <h1 class="text-lg font-bold text-gray-800">
@@ -145,14 +200,14 @@ const ViewAgreement = () => {
 
 
                     <p class="ml-4 my-4">
-                        This Services Agreement (“Agreement”) is made on this day of <strong>{{from_date}}</strong> by and
+                        This Services Agreement (“Agreement”) is made on this day of <strong>${formattedFromDate}</strong> by and
                         between:<br>
                         <strong>M/s. UNAVAR FOOD INSPECTION AND CERTIFICATION PRIVATE LIMITED</strong> (“Hygiene Rating
                         Audit Agency”), with its principal place of business at <strong>Flat No. F1, First Floor, Door
                             No. 519, MMIlla, MKN Road, Adambakkam Village, Alandur, Chennai – 600016</strong>.<br>
                         And:<br>
-                        <strong>{{fbo_name}}</strong>, with respect to the <strong>Food Safety Services at the following
-                            address: {{address}}</strong>, hereinafter referred to as <strong>COMPANY</strong>.<br>
+                        <strong>${agreementData.fbo_name}</strong>, with respect to the <strong>Food Safety Services at the following
+                            address: ${agreementData.address}</strong>, hereinafter referred to as <strong>COMPANY</strong>.<br>
                         WHEREBY IT IS AGREED AS FOLLOWS:
                     </p>
 
@@ -173,10 +228,10 @@ const ViewAgreement = () => {
                     <li class="mb-4">
                         <strong>Term and Termination.</strong>
                         <p class="ml-4">
-                            The term of this Agreement shall be for a period of <strong>{{period}}</strong> months
+                            The term of this Agreement shall be for a period of <strong>${agreementData.period}</strong> months
                             starting from
-                            <strong> {{from_date}} </strong>to
-                            <strong>{{to_date}}</strong>. The parties may thereafter renew the term of this Agreement
+                            <strong> ${formattedFromDate}</strong> to
+                            <strong>${formattedToDate}</strong>. The parties may thereafter renew the term of this Agreement
                             upon mutual written
                             agreement. The Company may terminate this Agreement at any time during the term without any
                             prior written notice, without cause, without any termination fee, or any other cost, charge,
@@ -191,9 +246,9 @@ const ViewAgreement = () => {
                     <li class="mb-4">
                         <strong>Fee for Services, Payment, Limitation of Liability.</strong>
                         <p class="ml-4">
-                            The audit fees per outlet are decided as <strong>Rs. {{total_cost}}</strong> plus tax for
+                            The audit fees per outlet are decided as <strong>Rs. ${agreementData.total_cost}</strong> plus tax for
                             <strong>
-                                {{no_of_outlets}}
+                                ${agreementData.no_of_outlets}
                             </strong>
                             outlet. This fee is
                             determined upon acceptance of the proposal or work order issued by the client. The audit
@@ -503,11 +558,11 @@ const ViewAgreement = () => {
 </div>
 </div>
 </div>
-                        <div class="page-break-before content-box mt-6">
+                        <div class="page-break-before  content-box mt-6">
 
 
-                            <h2 class=" font-semibold mb-4">CONFIDENTIALITY</h2>
-                            <p class="mb-4">
+                            <h2 class="  ml-6 font-semibold mb-4">CONFIDENTIALITY</h2>
+                            <p class=" ml-6 mb-4">
                                 The terms of this Agreement are confidential, and Audit Agency and Company shall use
                                 reasonable
                                 efforts to ensure that the terms/information/data are not disclosed to any third party
@@ -534,8 +589,8 @@ const ViewAgreement = () => {
                                 value
                                 from not being generallyknown to the public.
                             </p>
-                            <h2 class=" font-semibold mb-4">HEADINGS; COUNTERPARTS</h2>
-                            <p class="mb-4">
+                            <h2 class="ml-6 font-semibold mb-4">HEADINGS; COUNTERPARTS</h2>
+                            <p class="mb-4 ml-6">
                                 The headings used in this Agreement are inserted only as a matter of convenience and for
                                 reference andin no way define, limit or describe neither the scope of this Agreement nor
                                 the
@@ -553,26 +608,26 @@ const ViewAgreement = () => {
                                 and year
                                 first above written.
                             </p>
-                            <p class="mb-4">
+                            <p class="mb-4 ml-6">
                                 Signed for and on behalf of:
                             </p>
 
-                            <h2 class=" font-semibold mb-4">UNAVAR FOOD INSPECTION AND CERTIFICATION Private Limited
+                            <h2 class=" font-semibold mb-4 ml-6">UNAVAR FOOD INSPECTION AND CERTIFICATION Private Limited
                                 (Audit Agency)</h2>
 
 
-                            <h2 class=" font-semibold mb-4">____________________</h2>
+                            <h2 class=" font-semibold mb-4 ml-6">____________________</h2>
 
-                            <h2 class=" mb-4 ">Name: Mr. Vivekanand C</h2>
-                            <h2 class=" mb-4 ">Title: Executive Director</h2>
+                            <h2 class=" mb-4 ml-6">Name: Mr. Vivekanand C</h2>
+                            <h2 class=" mb-4 ml-6 ">Title: Executive Director</h2>
 
-                            <h2 class=" mb-8 ">Signed for and on behalf of (“The Company/Company Owner”) as
+                            <h2 class=" mb-8 ml-6 ">Signed for and on behalf of (“The Company/Company Owner”) as
                                 for…………………………withrespect
                                 to the</h2>
 
-                            <h2 class=" mb-4 ">____________________________</h2>
+                            <h2 class=" mb-4 ml-6">____________________________</h2>
 
-                            <h2 class=" mb-4 ">Name:Title</h2>
+                            <h2 class=" mb-4 ml-6 ">Name:Title</h2>
 
 
                         </div>
@@ -643,7 +698,8 @@ const ViewAgreement = () => {
             visible={isModalVisible}
             onOk={handleOk}
             onCancel={handleCancel}
-            invoiceId={invoiceId}
+            agreementIds={agreementId}
+            proposalId={proposalId}
           />
         </>
       </AdminDashboard>

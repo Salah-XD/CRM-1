@@ -2,6 +2,40 @@ import mongoose from "mongoose";
 
 const { Schema, model } = mongoose;
 
+const outletSchema = new Schema(
+  {
+    outlet_name: {
+      type: String,
+      required: true,
+    },
+    man_days: {
+      type: Number,
+      default: 0,
+    },
+    description: {
+      type: String,
+    },
+    service: {
+      type: String,
+    },
+    quantity: {
+      type: Number,
+      default: 0,
+    },
+    unit_cost: {
+      type: Number,
+      default: 0,
+    },
+    amount: {
+      type: Number,
+      default: function () {
+        return this.quantity * this.unit_cost;
+      },
+    },
+  },
+  { _id: false }
+);
+
 const agreementSchema = new Schema({
   fbo_name: {
     type: String,
@@ -12,8 +46,12 @@ const agreementSchema = new Schema({
   total_cost: {
     type: Number, 
   },
+  outlets: {
+    type: [outletSchema],
+    required: true,
+  },
   address: {
-    type:String
+    type: String
   },
   status: {
     type: String,
@@ -32,12 +70,17 @@ const agreementSchema = new Schema({
     type: Date,
     required: true,
   },
-  period:{
-     type:String,
-    required:true
-  }
+  period: {
+    type: String,
+    required: true
+  },
+  proposalId: {
+    type: Schema.Types.ObjectId,
+    ref: "Proposal",
+    required: true,
+  },
 });
 
-const Agreement = model("Agreement", agreementSchema); 
+const Agreement = model("Agreement", agreementSchema);
 
 export default Agreement;

@@ -44,7 +44,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
   const [subTotal, setSubTotal] = useState(0);
   const [sgst, setSgst] = useState(0);
   const [cgst, setCgst] = useState(0);
-  const [gst, setGst] = useState(0);
+  const [igst, setIgst] = useState(0);
   const [total, setTotal] = useState(0);
   const [email, setEmail] = useState(0);
   const [prosposalId, setPropsalId] = useState();
@@ -68,7 +68,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
     setSubTotal(0);
     setSgst(0);
     setCgst(0);
-    setGst(0);
+    setIgst(0);
     setTotal(0);
     onCancel();
     setIsFetching(false);
@@ -427,7 +427,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
         setSgst(0);
         setCgst(0);
       } else {
-        setGst(0);
+        setIgst(0);
       }
 
       setTotal(0);
@@ -451,7 +451,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
     else {
       const calculatedGst = calculatedSubTotal * 0.18;
 
-      setGst(calculatedGst);
+      setIgst(calculatedGst);
       const calculatedTotal = calculatedSubTotal + calculatedGst;
       setTotal(calculatedTotal);
     }
@@ -847,9 +847,9 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
                   </>
                 ) : (
                   <div className="flex justify-between items-center">
-                    <div className="text-sm font-medium">GST (18%):</div>
+                    <div className="text-sm font-medium">IGST (18%):</div>
                     <div className="text-sm font-medium">
-                      {gst.toLocaleString("en-IN", {
+                      {igst.toLocaleString("en-IN", {
                         style: "currency",
                         currency: "INR",
                       })}

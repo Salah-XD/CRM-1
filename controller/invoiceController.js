@@ -72,6 +72,9 @@ export const createInvoice = async (req, res) => {
       phone,
       outlets,
       email,
+      same_state,
+      proposalId,
+      gst_number
     } = req.body;
 
     // Create a new invoice instance with the provided data
@@ -89,7 +92,10 @@ export const createInvoice = async (req, res) => {
       contact_person,
       phone,
       outlets,
-      email
+      email,
+      same_state,
+      proposalId,
+      gst_number
     });
 
     // Save the new invoice to the database
@@ -249,3 +255,159 @@ export const deleteFields = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
+export const getInvoiceById = async (req, res, next) => {
+  const { invoiceId } = req.params; // Extract the ID from the request parameters
+
+  try {
+    // Find the invoice by ID
+    const invoice = await Invoice.findById(invoiceId);
+
+    // Check if the invoice exists
+    if (!invoice) {
+      return res.status(404).json({ message: "invoice not found" });
+    }
+
+    // Send the invoice data as a response
+    res.status(200).json(invoice);
+  } catch (error) {
+    // Pass any errors to the error handling middleware
+    next(error);
+  }
+};
+
+
+export const updateInvoice = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  // Extract invoiceId from route params
+  const { invoiceId } = req.params;
+
+  try {
+    // Extract data from req.body
+    const {
+      fbo_name,
+      invoice_date,
+      status,
+      proposal_number,
+      invoice_number,
+      place_of_supply,
+      field_executive_name,
+      team_leader_name,
+      address,
+      pincode,
+      contact_person,
+      phone,
+      outlets,
+      email,
+      same_state,
+      note,
+      gst_number
+    } = req.body;
+
+    // Find and update the existing Invoice by ID
+    const updatedInvoice = await Invoice.findByIdAndUpdate(
+      invoiceId, // Use the invoiceId to find the invoice
+      {
+        fbo_name,
+        invoice_date,
+        status,
+        proposal_number,
+        invoice_number,
+        place_of_supply,
+        field_executive_name,
+        team_leader_name,
+        address,
+        pincode,
+        contact_person,
+        phone,
+        outlets,
+        email,
+        same_state,
+        message: "Invoice Updated", // Update the message to reflect the update
+        note,
+        gst_number
+      },
+      { new: true, session } // Return the updated document and use the session
+    );
+
+    if (!updatedInvoice) {
+      throw new Error("Invoice not found");
+    }
+
+    const outletIds = outlets.map((outlet) => outlet._id);
+
+    // Update the Proposal model outlets object if needed
+    await Proposal.updateMany(
+      { "outlets._id": { $in: outletIds } },
+      { $set: { "outlets.$[elem].is_invoiced": true } },
+      { arrayFilters: [{ "elem._id": { $in: outletIds } }], session }
+    );
+
+    // Commit the transaction
+    await session.commitTransaction();
+    session.endSession();
+
+    // Respond with the updated invoice data
+    res.status(200).json({
+      success: true,
+      message: "Invoice updated successfully!",
+      data: updatedInvoice,
+    });
+  } catch (err) {
+    // Rollback the transaction in case of error
+    await session.abortTransaction();
+    session.endSession();
+
+    // Handle error
+    console.error("Error updating invoice:", err);
+    res.status(500).json({ error: "Failed to update invoice" });
+  }
+};
+
+
+export const updateInvoiceStatus = async (req, res) => {
+  //console.log("Request Body:", req.body);
+  const { invoiceId } = req.params; 
+  const { status } = req.body; 
+
+  try {
+    // Validate input
+    if (!invoiceId || !status) {
+     // console.log("Validation failed: missing invoiceId or status");
+      return res
+        .status(400)
+        .json({ error: "Invoice ID and status are required" });
+    }
+
+    //console.log(`Updating invoice with ID: ${invoiceId} to status: ${status}`);
+
+    // Find and update the invoice
+    const updateInvoice = await Invoice.findByIdAndUpdate(
+      invoiceId,
+      { $set: { status, message: "Updated Status" } },
+      { new: true, runValidators: true } // Return the updated document and run validation
+    );
+
+    // Check if the invoice was found and updated
+    if (!updateInvoice) {
+    //  console.log("Invoice not found");
+      return res.status(404).json({ error: "Invoice not found" });
+    }
+
+    //console.log("Invoice updated successfully:", updateInvoice);
+
+    // Send a successful response
+    res.status(200).json({
+      message: "Invoice updated successfully",
+      updatedInvoice: updateInvoice, // Use the correct variable here
+    });
+  } catch (error) {
+   // console.error("Error updating invoice:", error.message);
+    // Handle errors
+    res.status(500).json({ error: "Server error", details: error.message });
+  }
+};
+

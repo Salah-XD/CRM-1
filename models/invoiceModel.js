@@ -15,15 +15,13 @@ const outletSchema = new Schema(
       type: Number,
       default: 0,
     },
-    no_of_food_handlers: {
-      type: Number,
-      default: 0,
+    description: {
+      type: String,
     },
-    amount: {
-      type: Number,
-      default: 0,
+    service: {
+      type: String,
     },
-    discount: {
+    quantity: {
       type: Number,
       default: 0,
     },
@@ -31,6 +29,11 @@ const outletSchema = new Schema(
       type: Number,
       default: 0,
     },
+    amount: {
+      type: Number,
+      default: 0,
+    },
+    
   },
   { _id: false }
 ); // Disable automatic ID creation
@@ -100,6 +103,19 @@ const invoiceSchema = new Schema(
     },
     message: {
       type: String,
+    },
+    same_state:{
+      type:Boolean,
+      require:true
+    },
+    proposalId: {
+      type: Schema.Types.ObjectId,
+      ref: "Proposal",
+      required: true,
+    },
+    gst_number: {
+      type: String,
+      required: true,
     },
   },
   {

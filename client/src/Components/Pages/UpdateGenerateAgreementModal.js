@@ -11,10 +11,16 @@ import {
 } from "antd";
 import moment from "moment";
 import axios from "axios";
-import GenreateSuccessSendMailTableModal from "./GenreateSuccessSendMailTableModal";
 
-const UpdateGenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
+const UpdateGenerateAgreementModal = ({
+  visible,
+  onOk,
+  onCancel,
+  proposalId,
+  agreementIds,
+}) => {
   const [selectedOutlets, setSelectedOutlets] = useState([]);
+  const [agreementOutlets, setAgreementOutlets] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [totalAmount, setTotalAmount] = useState(0);
   const [outlets, setOutlets] = useState([]);
@@ -26,9 +32,12 @@ const UpdateGenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) =
   useEffect(() => {
     if (visible) {
       setLoading(true);
+
+      // Fetch outlets by proposal ID
       axios
         .get(`/api/proposal/getOutletsByProposalId/${proposalId}`)
         .then((response) => {
+          console.log("Fetched outlets:", response.data); // Debug log
           setOutlets(response.data);
           setLoading(false);
         })
@@ -37,18 +46,34 @@ const UpdateGenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) =
           setLoading(false);
         });
 
+      // Fetch agreement data by agreement ID
       axios
-        .get(`/api/invoice/getProposalById/${proposalId}`)
+        .get(`/api/agreement/getAgreementById/${agreementIds}`)
         .then((response) => {
-          const { address, fbo_name } = response.data;
+          const { address, fbo_name, from_date, period, outlets } =
+            response.data;
+
+          console.log("Fetched agreement outlets:", outlets); // Debug log
+          setSelectedOutlets(outlets); // Directly set the selected outlets
+
+          // Console log selected outlets
+          console.log("Selected outlets:", outlets);
+
+          // Set form values
           form.setFieldsValue({
             fbo_name,
-            address: `${address.line1} ${address.line2}`,
-            from_date: moment(), // Set today's date as default
+            address,
+            period,
+            from_date: moment(from_date),
+            to_date: moment(from_date).add(period, "months"),
+            total_outlet: outlets.length, // Set the total number of outlets
           });
+
+          calculateTotalAmount(outlets); // Calculate the total amount based on the selected outlets
         })
         .catch((error) => {
-          console.error("Error fetching proposal data:", error);
+          console.error("Error fetching agreement data:", error);
+          message.error("Error fetching agreement data");
         });
     }
   }, [proposalId, visible, form]);
@@ -62,7 +87,6 @@ const UpdateGenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) =
       title: "Description",
       dataIndex: "description",
     },
-   
     {
       title: "Man Days",
       dataIndex: "man_days",
@@ -128,16 +152,21 @@ const UpdateGenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) =
       const formData = form.getFieldsValue();
       formData.total_cost = totalAmount;
       formData.no_of_outlets = selectedOutlets.length;
-      onOk();
-      const response = await axios.post("/api/agreement/createAgreement", formData);
+      formData.proposalId = proposalId;
+
+      const response = await axios.put(
+        `/api/agreement/updateAgreement/${agreementIds}`,
+        formData
+      );
       setAgreementId(response.data.data._id);
-      console.log(response.data.data._id);
-      setShowSendMailModal(true);
-   
-      message.success("Agreement generated successfully");
+      setShowForm(false);
+
+      message.success("Agreement updated successfully");
+      form.resetFields();
+      onOk();
     } catch (error) {
-      console.error("Error saving agreement:", error);
-      message.error("Error generating agreement");
+      console.error("Error updating agreement:", error);
+      message.error("Error updating agreement");
     }
   };
 
@@ -150,6 +179,7 @@ const UpdateGenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) =
 
   const handleCancel = () => {
     setShowForm(false);
+    setSelectedOutlets([]);
     onCancel();
   };
 
@@ -159,63 +189,64 @@ const UpdateGenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) =
 
   return (
     <>
-    <Modal
-      visible={visible}
-      onCancel={handleCancel}
-      footer={null}
-      width={800}
-      className="acc-modal"
-    >
-      <Form layout="vertical" form={form} onFinish={handleSubmit}>
-        <div
-          className="text-center align-middle font-medium text-xl bg-blue-50 p-4"
-          style={{ boxShadow: "0 4px 2px -2px lightgrey" }}
-        >
-          Generate Agreement
-        </div>
-        {loading ? (
-          <div className="flex justify-center items-center h-48">
-            <Spin size="small" />
+      <Modal
+        visible={visible}
+        onCancel={handleCancel}
+        footer={null}
+        width={800}
+        className="acc-modal"
+      >
+        <Form layout="vertical" form={form} onFinish={handleSubmit}>
+          <div
+            className="text-center align-middle font-medium text-xl bg-blue-50 p-4"
+            style={{ boxShadow: "0 4px 2px -2px lightgrey" }}
+          >
+            Update Agreement
           </div>
-        ) : !showForm ? (
-          <div className="p-6" style={{ backgroundColor: "#F6FAFB" }}>
-            <div className="text-center font-medium text-xl mb-5 rounded-md">
-              Select outlets
+          {loading ? (
+            <div className="flex justify-center items-center h-48">
+              <Spin size="small" />
             </div>
-            <Table
-              dataSource={outlets}
-              columns={outletsColumns}
-              pagination={false}
-              rowKey={(record) => record._id}
-              rowSelection={{
-                selectedRowKeys: selectedOutlets.map((outlet) => outlet._id),
-                onSelect: handleSelect,
-                onSelectAll: handleSelectAll,
-              }}
-            />
-            <div className="text-center mt-4">
-              <Button
-                className="bg-buttonModalColor text-white rounded"
-                onClick={handleNext}
-                disabled={selectedOutlets.length === 0}
+          ) : !showForm ? (
+            <div className="p-6" style={{ backgroundColor: "#F6FAFB" }}>
+              <div className="text-center font-medium text-xl mb-5 rounded-md">
+                Select outlets
+              </div>
+              <Table
+                dataSource={outlets}
+                columns={outletsColumns}
+                pagination={false}
+                rowKey={(record) => record._id}
+                rowSelection={{
+                  selectedRowKeys: selectedOutlets.map((outlet) => outlet._id), // Use IDs here
+                  onSelect: handleSelect,
+                  onSelectAll: handleSelectAll,
+                }}
+              />
+
+              <div className="text-center mt-4">
+                <Button
+                  className="bg-buttonModalColor text-white rounded"
+                  onClick={handleNext}
+                  disabled={selectedOutlets.length === 0}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="p-6" style={{ backgroundColor: "#F6FAFB" }}>
+              <div className="text-center font-medium text-xl mb-5 rounded-md">
+                Document Preview
+              </div>
+              <Form.Item
+                label="FBO name (Business Name)"
+                name="fbo_name"
+                rules={[{ required: true, message: "Please enter FBO name!" }]}
               >
-                Next
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="p-6" style={{ backgroundColor: "#F6FAFB" }}>
-            <div className="text-center font-medium text-xl mb-5 rounded-md">
-              Document Preview
-            </div>
-            <Form.Item
-              label="FBO name (Business Name)"
-              name="fbo_name"
-              rules={[{ required: true, message: "Please enter FBO name!" }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
+                <Input />
+              </Form.Item>
+              <Form.Item
                 label="Period (Months)"
                 name="period"
                 rules={[{ required: true, message: "Please enter period!" }]}
@@ -225,69 +256,64 @@ const UpdateGenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) =
                   onChange={(e) => handlePeriodChange(e.target.value)}
                 />
               </Form.Item>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-           
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Form.Item
+                  label="From date"
+                  name="from_date"
+                  rules={[
+                    { required: true, message: "Please select from date!" },
+                  ]}
+                >
+                  <DatePicker className="w-full" />
+                </Form.Item>
+                <Form.Item
+                  label="To date"
+                  name="to_date"
+                  rules={[
+                    { required: true, message: "Please select to date!" },
+                  ]}
+                >
+                  <DatePicker className="w-full" disabled />
+                </Form.Item>
+              </div>
               <Form.Item
-                label="From date"
-                name="from_date"
+                label="FBO Address"
+                name="address"
                 rules={[
-                  { required: true, message: "Please select from date!" },
+                  { required: true, message: "Please enter FBO address!" },
                 ]}
               >
-                <DatePicker className="w-full" />
+                <Input />
               </Form.Item>
-              <Form.Item
-                label="To date"
-                name="to_date"
-                rules={[{ required: true, message: "Please select to date!" }]}
-              >
-                <DatePicker className="w-full" disabled />
-              </Form.Item>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Form.Item label="No of Outlets" name="total_outlet">
+                  <Input readOnly />
+                </Form.Item>
+                <Form.Item
+                  label="Total Cost"
+                  rules={[
+                    { required: true, message: "Total cost is required!" },
+                  ]}
+                >
+                  <Input
+                    value={`₹${totalAmount.toLocaleString("en-IN")}`}
+                    readOnly
+                  />
+                </Form.Item>
+              </div>
+              <div className="flex justify-center">
+                <Button
+                  htmlType="submit"
+                  className="bg-buttonModalColor text-white rounded"
+                >
+                  Update
+                </Button>
+              </div>
             </div>
-            <Form.Item
-              label="FBO Address"
-              name="address"
-              rules={[{ required: true, message: "Please enter FBO address!" }]}
-            >
-              <Input />
-            </Form.Item>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Form.Item label="No of Outlets" name="total_outlet">
-                <Input readOnly />
-              </Form.Item>
-              <Form.Item
-                label="Total Cost"
-                rules={[{ required: true, message: "Total cost is required!" }]}
-              >
-                <Input
-                  value={`₹${totalAmount.toLocaleString("en-IN")}`}
-                  readOnly
-                />
-              </Form.Item>
-            </div>
-            <div className="text-center mt-4">
-              <button
-                className="bg-buttonModalColor px-4 py-2 text-white rounded"
-                htmlType="submit"
-              >
-                Generate
-              </button>
-            </div>
-          </div>
-        )}
-      </Form>
-    </Modal>
-         <GenreateSuccessSendMailTableModal
-         onClose={() => setShowSendMailModal(false)}
-         id={agreementId}
-         onOk={handleOk}
-         title="Generate Agreement"
-         name="agreement"
-         route="generateagreement"
-         visible={showSendMailModal}
-          buttonTitle="Go to Agreement"
-       />
-       </>
+          )}
+        </Form>
+      </Modal>
+    </>
   );
 };
 

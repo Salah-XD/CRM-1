@@ -6,7 +6,10 @@ import {
   getProposalById,
   createInvoice,
   getAllInvoiceDetail,
-  deleteFields
+  deleteFields,
+  getInvoiceById,
+  updateInvoice,
+  updateInvoiceStatus
 } from "../controller/invoiceController.js";
 
 import {generateInvoice} from "../controller/invoicesGenerationController.js";
@@ -25,6 +28,12 @@ router.delete("/deleteFields", deleteFields);
 
 router.post("/createInvoice", createInvoice);
 
+router.get("/getInvoiceById/:invoiceId", getInvoiceById);
+
+router.put("/updateInvoice/:invoiceId",updateInvoice)
+
+
+router.put("/updateInvoieStatus/:invoiceId", updateInvoiceStatus);
 
 
 

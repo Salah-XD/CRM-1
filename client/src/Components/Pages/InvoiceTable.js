@@ -10,6 +10,8 @@ import {
   Dropdown,
   Menu,
   ConfigProvider,
+  message,
+  Select
 } from "antd";
 import {
   DeleteOutlined,
@@ -17,7 +19,7 @@ import {
   SearchOutlined,
   MailOutlined,
   EditOutlined,
-  EyeOutlined
+  EyeOutlined,
 } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
 import { useNavigate } from "react-router-dom";
@@ -25,8 +27,6 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 import GenerateProposalSendMail from "./GenerateProposalSendMail";
-
-
 
 const { confirm } = Modal;
 
@@ -266,9 +266,9 @@ const ProposalTable = () => {
         showSendMail(record._id);
         break;
 
-        case "view":
-          navigate(`/invoice/view-invoice/${record._id}`);
-         break;
+      case "view":
+        navigate(`/invoice/view-invoice/${record._id}`);
+        break;
 
       case "delete":
         showSingleDeleteConfirm(record._id);
@@ -277,6 +277,21 @@ const ProposalTable = () => {
       default:
         break;
     }
+  };
+
+  const handleStatusChange = (value, record) => {
+    axios
+      .put(`/api/invoice//updateInvoieStatus/${record._id}`, {
+        status: value,
+      })
+      .then((response) => {
+        message.success("Status updated successfully");
+        setShouldFetch(true);
+      })
+      .catch((error) => {
+        console.error("Error updating status:", error);
+        toast.error("Failed to update status");
+      });
   };
 
   // Fetch initial data on component mount
@@ -302,10 +317,8 @@ const ProposalTable = () => {
   useEffect(() => {
     if (searchKeyword.trim()) {
       fetchDataWithDebounce();
-    } 
+    }
   }, [searchKeyword, fetchDataWithDebounce]);
-
-
 
   const menu = (record) => (
     <Menu
@@ -376,18 +389,60 @@ const ProposalTable = () => {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (status) => {
-        let color;
-        if (status === "Unpaid/Mail Sent") {
-          color = "volcano";
-        } else if (status === "Partial Invoice" && status == "Sale Closed") {
-          color = "green";
-        } else if (status == "Hold") {
-          color = "red";
-        } else if (status == "paid") {
-          color = "green";
-        }
-        return <Tag color={color}>{status.toUpperCase()}</Tag>;
+      render: (status, record) => {
+        const statusOptions = [
+          "Mail not sent",
+          "Unpaid/Mail Sent",
+          "Paid",
+          "Hold",
+        ];
+
+        const getTagColor = (option) => {
+          switch (option) {
+            case "Mail not sent":
+              return "grey";
+            case "Unpaid/Mail Sent":
+              return "volcano";
+            case "Paid":
+              return "green";
+            case "Hold":
+              return "orange";
+            case "Partial Invoiced":
+              return "blue";
+            case "Sale Closed":
+              return "green";
+            case "Dropped":
+              return "red";
+            case "Pending":
+              return "grey";
+            default:
+              return "blue";
+          }
+        };
+
+        return (
+          <Select
+            defaultValue={status}
+            style={{
+              width: "auto",
+              minWidth: "120px",
+              border: "none",
+              boxShadow: "none",
+              padding: "0",
+            }}
+            dropdownStyle={{
+              width: "auto",
+              border: "none", // Remove border from dropdown
+            }}
+            onChange={(value) => handleStatusChange(value, record)}
+          >
+            {statusOptions.map((option) => (
+              <Select.Option key={option} value={option}>
+                <Tag color={getTagColor(option)}>{option.toUpperCase()}</Tag>
+              </Select.Option>
+            ))}
+          </Select>
+        );
       },
     },
 
@@ -527,7 +582,7 @@ const ProposalTable = () => {
           </ConfigProvider>
         </div>
       </div>
-    
+
       <GenerateProposalSendMail
         visible={showSendMailModal}
         onClose={showCloseSendMail}

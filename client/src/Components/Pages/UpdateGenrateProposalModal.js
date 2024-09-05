@@ -15,11 +15,15 @@ import { DeleteOutlined } from "@ant-design/icons";
 import moment from "moment";
 import axios from "axios";
 
-
 const { Option } = Select;
 const { TextArea } = Input;
 
-const UpdateGenerateProposalModal = ({ visible, onOk, onCancel, proposalId }) => {
+const UpdateGenerateProposalModal = ({
+  visible,
+  onOk,
+  onCancel,
+  proposalId,
+}) => {
   const [form] = Form.useForm();
   const [outletItem, setItems] = useState([
     {
@@ -31,8 +35,8 @@ const UpdateGenerateProposalModal = ({ visible, onOk, onCancel, proposalId }) =>
       unit: 0,
       description: "",
       amount: 0,
-      
-no_of_production_line:0
+
+      no_of_production_line: 0,
     },
   ]);
   const [proposal_date, setProposalDate] = useState(moment());
@@ -43,13 +47,15 @@ no_of_production_line:0
   const [subTotal, setSubTotal] = useState(0);
   const [sgst, setSgst] = useState(0);
   const [cgst, setCgst] = useState(0);
+  const [igst, setIgst] = useState(0);
   const [total, setTotal] = useState(0);
   const [email, setEmail] = useState(0);
   const [auditors, setAuditors] = useState([]);
+  const [checkState, setCheckState] = useState("");
+  const [sameState, setSameState] = useState(true);
   const handleCancel = () => {
     setItems([]);
 
-    
     setItems([
       {
         outletId: "",
@@ -58,8 +64,8 @@ no_of_production_line:0
         man_days: 0,
         description: "",
         amount: 0,
-        
-no_of_production_line:0
+
+        no_of_production_line: 0,
       },
     ]);
     setSubTotal(0);
@@ -71,13 +77,27 @@ no_of_production_line:0
 
   useEffect(() => {
     if (visible) {
+
+      const fetchProfileSetting = async () => {
+        try {
+          const response = await axios.get("/api/setting/getProfileSetting");
+          setCheckState(response.data.profile.company_address.state);
+        //  console.log("This is second check state",checkState);
+        } catch (error) {
+          console.error("Error is fetching the profile state");
+        }
+      };
+
+
       const fetchBusinessDetails = async () => {
         try {
           const response = await axios.get(
             `/api/proposal/getProposalById/${proposalId}`
           );
           const businessData = response.data;
-      
+          
+          const{address}=response.data;
+
           // Set the form fields with the data fetched from the API, including the nested address object and the select option
           form.setFieldsValue({
             fbo_name: businessData.fbo_name,
@@ -93,10 +113,10 @@ no_of_production_line:0
             proposal_date: businessData.proposal_date,
             assigned_auditor: businessData.assigned_auditor, // Populate the select option
           });
-      
+
           // Set the outlets state
           setOutlets(businessData.outlets);
-      
+
           // Populate the items array with calculated man days
           setItems(
             businessData.outlets.map((outlet) => {
@@ -105,14 +125,10 @@ no_of_production_line:0
               const no_of_production_line = outlet.no_of_production_line || 0;
               const quantity = outlet.quantity || 0;
               const unit_cost = outlet.unit_cost || 0;
-              const description=outlet.description || 0;
-             
+              const description = outlet.description || 0;
 
-              
-              
-          
               let man_days = 0;
-          
+
               // Calculate man days based on the type of industry
               if (type_of_industry === "Catering") {
                 man_days = calculateManDays(unit);
@@ -121,9 +137,12 @@ no_of_production_line:0
               } else if (type_of_industry === "Trade and Retail") {
                 man_days = calculateStorageManDays(unit);
               } else {
-                man_days = calculateManufacturingManDays(unit, no_of_production_line);
+                man_days = calculateManufacturingManDays(
+                  unit,
+                  no_of_production_line
+                );
               }
-          
+
               return {
                 outletId: outlet._id || "",
                 outlet_name: outlet.outlet_name || "",
@@ -133,22 +152,29 @@ no_of_production_line:0
                 amount: outlet.amount || 0,
                 quantity: quantity,
                 unit_cost: unit_cost,
-                description:description
+                description: description,
               };
             })
           );
           calculateTotals(outletItem);
-
-        
           
-      
+
+          const state = address.line2.split(",")[1].trim();
+
+          console.log("This is the state",state);
+          if (checkState === state) {
+            setSameState(true);
+          } else {
+            setSameState(false);
+          }
+ //         console.log("the check state is ",checkState);
+
+
           setInitialValuesLoaded(true);
         } catch (error) {
           console.error("Error fetching business details", error);
         }
       };
-      
-      
 
       const fetchAllAuditors = async () => {
         try {
@@ -159,8 +185,8 @@ no_of_production_line:0
         }
       };
 
-     
- 
+  
+      fetchProfileSetting();
       fetchBusinessDetails();
       fetchAllAuditors();
     }
@@ -168,23 +194,21 @@ no_of_production_line:0
 
   const handleSubmit = async () => {
     try {
-    
       await form.validateFields();
-
 
       const formData = form.getFieldsValue();
 
       const proposalData = {
-        ...formData,outlets:outletItem
-      
+        ...formData,
+        outlets: outletItem,
       };
 
- 
       const response = await axios.put(
         `/api/proposal/updateProposalAndOutlet/${proposalId}`,
         proposalData
       );
-    
+      onOk();
+      handleCancel();
       message.success("Proposal Updated successfully!");
     } catch (error) {
       message.error("Failed to update proposal.");
@@ -273,8 +297,6 @@ no_of_production_line:0
     return Math.max(manDaysFoodHandlers, manDaysProductionLine);
   };
 
-
-
   const handleInputChange = (index, field, value) => {
     setItems((prevItems) => {
       const newItems = [...prevItems];
@@ -317,7 +339,7 @@ no_of_production_line:0
             ...currentItem,
             outletId: value,
             type_of_industry: selectedOutlet?.type_of_industry || 0,
-            outlet_name: selectedOutlet?.outlet_name || "",
+            outlet_name: selectedOutlet?.branch_name || "",
             unit: selectedOutlet?.unit || 0,
             service: selectedOutlet?.service || 0,
             amount: 0,
@@ -343,44 +365,58 @@ no_of_production_line:0
         newItems[index].description = value;
       }
 
+      // Recalculate totals
+      calculateTotals(newItems);
 
       return newItems;
     });
   };
 
-
   useEffect(() => {
     calculateTotals(outletItem);
   }, [outletItem]);
 
-
-
   const calculateTotals = (items) => {
-    console.log("i also triggerd Arun");
+
     if (!Array.isArray(items) || items.length === 0) {
       setSubTotal(0);
-      setSgst(0);
-      setCgst(0);
+      if (sameState) {
+        setSgst(0);
+        setCgst(0);
+      } else {
+        setIgst(0);
+      }
+
       setTotal(0);
       return;
     }
 
     const calculatedSubTotal = items.reduce(
-      
       (sum, item) => sum + (parseFloat(item.amount) || 0),
       0
     );
-
-    console.log(calculatedSubTotal);
-
-    const calculatedIgst = calculatedSubTotal * 0.09;
-    const calculatedCgst = calculatedSubTotal * 0.09;
-    const calculatedTotal = calculatedSubTotal + calculatedIgst + calculatedCgst;
-
     setSubTotal(calculatedSubTotal);
-    setSgst(calculatedIgst);
-    setCgst(calculatedCgst);
-    setTotal(calculatedTotal);
+    if (sameState) {
+      const calculatedIgst = calculatedSubTotal * 0.09;
+      const calculatedCgst = calculatedSubTotal * 0.09;
+
+      setSgst(calculatedIgst);
+      setCgst(calculatedCgst);
+      const calculatedTotal = calculatedSubTotal + calculatedIgst + calculatedCgst;
+      setTotal(calculatedTotal);
+    }
+    else {
+      const calculatedGst = calculatedSubTotal * 0.18;
+
+      setIgst(calculatedGst);
+      const calculatedTotal = calculatedSubTotal + calculatedGst;
+      setTotal(calculatedTotal);
+    }
+
+
+
+
+
   };
 
 
@@ -445,10 +481,9 @@ no_of_production_line:0
 
         let postfix = "none";
 
-        console.log("Type of industry",record.type_of_industry);
+        console.log("Type of industry", record.type_of_industry);
 
         switch (record.type_of_industry) {
-
           case "Transportation":
             postfix = "VH";
             break;
@@ -489,7 +524,7 @@ no_of_production_line:0
       title: "Man Days",
       dataIndex: "man_days",
       render: (text, record, index) => {
-        const isOthers =record.outlet_name === "Others";
+        const isOthers = record.outlet_name === "Others";
         return isOthers ? (
           <Input disabled className="w-full" />
         ) : (
@@ -570,7 +605,7 @@ no_of_production_line:0
             className="text-center align-middle font-medium text-xl title-div bg-blue-50 p-7"
             style={{ boxShadow: "0 4px 2px -2px lightgrey" }}
           >
-         Update Generate Proposal
+            Update Generate Proposal
           </div>
           <div
             className="px-8 pt-4 pb-8"
@@ -711,7 +746,6 @@ no_of_production_line:0
               </Select>
             </Form.Item>
 
-
             <div className="my-4">
               <h3 className="text-lg font-semibold mb-2">Items table</h3>
               <Table
@@ -737,24 +771,38 @@ no_of_production_line:0
                   })}
                 </div>
               </div>
-              <div className="flex justify-between items-center">
-                <div className="text-sm font-medium">IGST (9%):</div>
-                <div className="text-sm font-medium">
-                  {sgst.toLocaleString("en-IN", {
-                    style: "currency",
-                    currency: "INR",
-                  })}
+              {sameState ? (
+                <>
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm font-medium">SGST (9%):</div>
+                    <div className="text-sm font-medium">
+                      {sgst.toLocaleString("en-IN", {
+                        style: "currency",
+                        currency: "INR",
+                      })}
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm font-medium">CGST (9%):</div>
+                    <div className="text-sm font-medium">
+                      {cgst.toLocaleString("en-IN", {
+                        style: "currency",
+                        currency: "INR",
+                      })}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-between items-center">
+                  <div className="text-sm font-medium">IGST (18%):</div>
+                  <div className="text-sm font-medium">
+                    {igst.toLocaleString("en-IN", {
+                      style: "currency",
+                      currency: "INR",
+                    })}
+                  </div>
                 </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <div className="text-sm font-medium">CGST (9%):</div>
-                <div className="text-sm font-medium">
-                  {cgst.toLocaleString("en-IN", {
-                    style: "currency",
-                    currency: "INR",
-                  })}
-                </div>
-              </div>
+              )}
               <div className="flex justify-between items-center">
                 <div className="text-lg font-bold">Total:</div>
                 <div className="text-lg font-bold">
@@ -771,14 +819,12 @@ no_of_production_line:0
                 className="bg-buttonModalColor px-4 py-2 text-white rounded"
                 htmlType="submit"
               >
-              Update
+                Update
               </button>
             </div>
           </div>
         </Form>
       </Modal>
-
-      
     </>
   );
 };

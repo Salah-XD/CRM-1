@@ -11,6 +11,8 @@ import {
   Dropdown,
   Menu,
   ConfigProvider,
+  Select,
+  message
 } from "antd";
 import {
   DeleteOutlined,
@@ -25,8 +27,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 import GenerateProposalSendMail from "./GenerateProposalSendMail";
-import GenerateAgreementModal from "./GenrateAgreementModal";
-import GenrateAgreementModal from "./GenrateAgreementModal";
+
 
 const { confirm } = Modal;
 
@@ -46,7 +47,7 @@ const debounce = (func, delay) => {
 // Define your debounce delay (e.g., 300ms)
 const debounceDelay = 300;
 
-const ProposalTable = () => {
+const AgreementTable = () => {
   const [flattenedTableData, setFlattenedTableData] = useState([]);
   const [sortData, setSortData] = useState("alllist");
   const [selectionType, setSelectionType] = useState("checkbox");
@@ -160,6 +161,21 @@ const ProposalTable = () => {
       setSelectedRowKeys(selectedRowKeys);
       setSelectedRows(selectedRows);
     },
+  };
+
+  const handleStatusChange = (value, record) => {
+    axios
+      .put(`/api/agreement//updateAgreementStatus/${record._id}`, {
+        status: value,
+      })
+      .then((response) => {
+        message.success("Status updated successfully");
+        setShouldFetch(true);
+      })
+      .catch((error) => {
+        console.error("Error updating status:", error);
+        toast.error("Failed to update status");
+      });
   };
 
   // Show confirm Delete
@@ -338,22 +354,75 @@ const ProposalTable = () => {
       key: "no_of_outlets",
     },
 
+    // {
+    //   title: "Status",
+    //   dataIndex: "status",
+    //   key: "status",
+    //   render: (status) => {
+    //     let color;
+    //     if (status === "Unpaid/Mail Sent") {
+    //       color = "volcano";
+    //     } else if (status === "Partial Agreement" && status == "Sale Closed") {
+    //       color = "green";
+    //     } else if (status == "Hold") {
+    //       color = "red";
+    //     } else if (status == "paid") {
+    //       color = "green";
+    //     }
+    //     return <Tag color={color}>{status.toUpperCase()}</Tag>;
+    //   },
+    // },
+
     {
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (status) => {
-        let color;
-        if (status === "Unpaid/Mail Sent") {
-          color = "volcano";
-        } else if (status === "Partial Agreement" && status == "Sale Closed") {
-          color = "green";
-        } else if (status == "Hold") {
-          color = "red";
-        } else if (status == "paid") {
-          color = "green";
-        }
-        return <Tag color={color}>{status.toUpperCase()}</Tag>;
+      render: (status, record) => {
+        const statusOptions = [
+          "Mail not sent",
+          "Mail Sent",
+          "Audit Planned Done",
+          "Hold",
+        ];
+    
+        const getTagColor = (option) => {
+          switch (option) {
+            case "Mail not sent":
+              return "grey";
+            case "Mail Sent":
+              return "volcano";
+            case "Audit Planned Done":
+              return "green";
+            case "Hold":
+              return "orange";
+            default:
+              return "blue";
+          }
+        };
+
+        return (
+          <Select
+            defaultValue={status}
+            style={{
+              width: "auto",
+              minWidth: "120px",
+              border: "none",
+              boxShadow: "none",
+              padding: "0",
+            }}
+            dropdownStyle={{
+              width: "auto",
+              border: "none", // Remove border from dropdown
+            }}
+            onChange={(value) => handleStatusChange(value, record)}
+          >
+            {statusOptions.map((option) => (
+              <Select.Option key={option} value={option}>
+                <Tag color={getTagColor(option)}>{option.toUpperCase()}</Tag>
+              </Select.Option>
+            ))}
+          </Select>
+        );
       },
     },
 
@@ -530,7 +599,7 @@ const ProposalTable = () => {
           </ConfigProvider>
         </div>
       </div>
-     
+
       <GenerateProposalSendMail
         visible={showSendMailModal}
         onClose={showCloseSendMail}
@@ -544,4 +613,4 @@ const ProposalTable = () => {
   );
 };
 
-export default ProposalTable;
+export default AgreementTable;

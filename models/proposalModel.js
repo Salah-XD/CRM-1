@@ -11,10 +11,7 @@ const outletSchema = new Schema({
     type: Number,
     default: 0,
   },
-  no_of_food_handlers: {
-    type: Number,
-    default: 0,
-  },
+ 
   description: {
     type: String,
   },

@@ -120,26 +120,35 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
       form.setFieldsValue({ to_date: toDate });
     }
   };
-
   const handleSubmit = async () => {
     try {
       await form.validateFields();
-
+  
       const formData = form.getFieldsValue();
       formData.total_cost = totalAmount;
       formData.no_of_outlets = selectedOutlets.length;
-      onOk();
+      formData.proposalId = proposalId;
+      formData.outlets = selectedOutlets; // Set selected outlets here
+  
+      // Debugging: Check if proposalId and outlets are correctly added
+      console.log("Form Data before submission:", formData);
+  
       const response = await axios.post("/api/agreement/createAgreement", formData);
       setAgreementId(response.data.data._id);
-      console.log(response.data.data._id);
       setShowSendMailModal(true);
-   
+  
       message.success("Agreement generated successfully");
+  
+      // Optionally reset the form after successful submission
+      form.resetFields();
+      onOk();
     } catch (error) {
       console.error("Error saving agreement:", error);
       message.error("Error generating agreement");
     }
   };
+  
+  
 
   const handleNext = () => {
     setShowForm(true);
@@ -149,6 +158,7 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
   };
 
   const handleCancel = () => {
+    setSelectedOutlets([]);
     setShowForm(false);
     onCancel();
   };

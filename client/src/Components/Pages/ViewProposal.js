@@ -119,7 +119,7 @@ proposalData.outlets.forEach((outlet) => {
 // Initialize tax variables
 let cgst = 0;
 let sgst = 0;
-let gst = 0;
+let igst = 0;
 let overallTotal = 0;
 
 if (proposalData.same_state) {
@@ -127,8 +127,8 @@ if (proposalData.same_state) {
   sgst = parseFloat((total * 0.09).toFixed(2)); // 9% SGST
   overallTotal = parseFloat((total + cgst + sgst).toFixed(2));
 } else {
-  gst = parseFloat((total * 0.18).toFixed(2)); // 18% GST
-  overallTotal = parseFloat((total + gst).toFixed(2));
+  igst = parseFloat((total * 0.18).toFixed(2)); // 18% GST
+  overallTotal = parseFloat((total + igst).toFixed(2));
 }
 
 // Tax details to be displayed in the table
@@ -150,9 +150,9 @@ const tax = proposalData.same_state
   : `
     <tr>
       <td colspan="6" class="border text-right w-3/4 small-cell">
-        <strong>GST [18%]</strong>
+        <strong>IGST [18%]</strong>
       </td>
-      <td class="border w-1/4 small-cell text-center">${gst}</td>
+      <td class="border w-1/4 small-cell text-center">${igst}</td>
     </tr>
   `;
 
@@ -167,8 +167,8 @@ const tax = proposalData.same_state
                 <td class="w-1/2 border px-4 py-1">${sgst}</td>
               </tr>
               <tr>`:` <tr>
-                <td class="w-1/2 border px-4 py-1">GST [18%]</td>
-                <td class="w-1/2 border px-4 py-1">${gst}</td>
+                <td class="w-1/2 border px-4 py-1">IGST [18%]</td>
+                <td class="w-1/2 border px-4 py-1">${igst}</td>
               </tr>`
 
 

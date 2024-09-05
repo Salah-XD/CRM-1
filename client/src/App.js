@@ -13,7 +13,6 @@ import AdminHeader from "./Components/Layout/AdminHeader";
 import ProposalTable from "./Components/Pages/ProposalTable";
 import LoginPage from "./Components/Auth/LoginPage";
 import ForgotPasswordPage from "./Components/Auth/ForgotPassword";
-import Agreement from "./Components/Pages/Agreement";
 import AuditPlan from "./Components/Pages/AuditPlan";
 import InvoiceTable from "./Components/Pages/InvoiceTable";
 import Dashboard from "./Components/Pages/Dashboard";
@@ -68,7 +67,6 @@ function App() {
 
         <Route element={<AuditAdminRoute />}>
           <Route path="/audit-plan" element={<AuditPlan />} />
-          <Route path="/agreement" element={<Agreement />} />
         </Route>
 
         <Route

@@ -112,7 +112,7 @@ export const createAgreement = async (req, res) => {
   session.startTransaction();
 
   try {
-    const { fbo_name, from_date, to_date, total_cost, no_of_outlets, address,period } =
+    const { fbo_name, from_date, to_date, total_cost, no_of_outlets, address,period,proposalId ,outlets} =
       req.body;
 
 
@@ -124,7 +124,9 @@ export const createAgreement = async (req, res) => {
       to_date,
       total_cost,
       no_of_outlets,
-      period
+      period,
+      proposalId,
+      outlets
     });
 
     // Save the new agreement to the database
@@ -152,5 +154,110 @@ export const createAgreement = async (req, res) => {
       message: "Failed to create agreement",
       error: error.message,
     });
+  }
+};
+
+export const getAgreementById = async (req, res, next) => {
+  const { agreementId } = req.params; // Extract the ID from the request parameters
+
+  try {
+    // Find the agreement by ID
+    const agreement = await Agreement.findById(agreementId);
+
+    // Check if the agreement exists
+    if (!agreement) {
+      return res.status(404).json({ message: "agreement not found" });
+    }
+
+    // Send the agreement data as a response
+    res.status(200).json(agreement);
+  } catch (error) {
+    // Pass any errors to the error handling middleware
+    next(error);
+  }
+};
+
+
+export const updateAgreement = async (req, res) => {
+  try {
+    const { agreementId } = req.params; 
+    const { fbo_name, from_date, to_date, total_cost, no_of_outlets, address, period,outlets } =
+      req.body;
+
+    // Find the agreement by ID and update it with the provided data
+    const updatedAgreement = await Agreement.findByIdAndUpdate(
+      agreementId,
+      {
+        fbo_name,
+        address,
+        from_date,
+        to_date,
+        total_cost,
+        no_of_outlets,
+        period,
+        outlets
+      },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedAgreement) {
+      return res.status(404).json({
+        success: false,
+        message: "Agreement not found",
+      });
+    }
+
+    // Send a response with the updated agreement data
+    res.status(200).json({
+      success: true,
+      message: "Agreement updated successfully!",
+      data: updatedAgreement,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to update agreement",
+      error: error.message,
+    });
+  }
+};
+
+
+export const updateAgreementStatus = async (req, res) => {
+  console.log("Request Body:", req.body);
+  
+  const { agreementId } = req.params;  // Extract agreementId from params
+  const { status } = req.body;         // Extract status from the request body
+  
+  try {
+    // Validate input
+    if (!agreementId || !status) {
+      return res
+        .status(400)
+        .json({ error: "Agreement ID and status are required" });
+    }
+
+    // Find and update the agreement
+    const updateAgreement = await Agreement.findByIdAndUpdate(
+      agreementId,
+      { $set: { status, message: "Updated Status" } }, // Update status and message
+      { new: true, runValidators: true }               // Return updated document and run validators
+    );
+
+    // Check if the agreement was found and updated
+    if (!updateAgreement) {
+      return res.status(404).json({ error: "Agreement not found" });
+    }
+
+    // Send a successful response
+    res
+      .status(200)
+      .json({ message: "Agreement updated successfully", updateAgreement });
+    
+  } catch (error) {
+    // Handle any server errors
+    res.status(500).json({ error: "Server error", details: error.message });
   }
 };

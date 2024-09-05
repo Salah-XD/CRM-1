@@ -5,6 +5,9 @@ import {
   createAgreement,
   deleteFields,
   getAllAgreementDetails,
+  getAgreementById,
+  updateAgreement,
+  updateAgreementStatus
 } from "../controller/agreementController.js";
 
 import { generateagreement } from "../controller/agreementGenerationController.js";
@@ -17,9 +20,14 @@ router.post("/createAgreement", createAgreement);
 
 router.get("/getAllAgreementDetails", getAllAgreementDetails);
 
-router.post("/generateagreement/:agreementId",generateagreement);
+router.post("/generateagreement/:agreementId", generateagreement);
+
+router.get("/getAgreementById/:agreementId", getAgreementById);
+
+router.put("/updateAgreement/:agreementId",updateAgreement);
 
 
+router.put("/updateAgreementStatus/:agreementId",updateAgreementStatus);
 
 
 

@@ -1,10 +1,13 @@
-/* Global CSS or in a style block in your component */
+/* Global CSS or component-level style */
 .ant-table-cell {
-    border: none !important;
-  }
-  
-  .ant-table th,
-  .ant-table td {
-    border: none !important;
-  }
-  
+  border: none !important;
+}
+
+.update_table {
+  font-size: 12px !important; /* Example: Small font size */
+}
+
+.ant-table th,
+.ant-table td {
+  border: none !important;
+}
