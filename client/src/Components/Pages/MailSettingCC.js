@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, message, Spin } from 'antd';
+import { Form, Input, Button, message, Spin, Typography } from 'antd';
 import axios from 'axios';
 
 const MailSettingCC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(true); // State to handle the initial data loading
+  const [isFetching, setIsFetching] = useState(true);
+
+  const { Title } = Typography;
 
   useEffect(() => {
     // Fetch the initial form data
@@ -23,37 +25,39 @@ const MailSettingCC = () => {
         message.error('Failed to fetch settings');
       } finally {
         setLoading(false);
-        setIsFetching(false); // Set fetching to false once data is loaded
+        setIsFetching(false);
       }
     };
 
     fetchSettings();
   }, [form]);
 
-  const handleUpdate = async () => {
+  const handleUpdate = async (fieldName) => {
     try {
-      const values = await form.validateFields();
+      const values = await form.validateFields([fieldName]);
 
       // Convert comma-separated string back to array
-      values.proposal_cc = values.proposal_cc.split(',').map(email => email.trim());
-      values.invoice_cc = values.invoice_cc.split(',').map(email => email.trim());
-      values.agreement_cc = values.agreement_cc.split(',').map(email => email.trim());
+      const updatedField = {
+        [fieldName]: values[fieldName].split(',').map(email => email.trim()),
+      };
 
       setLoading(true);
-      await axios.put('/api/setting/updateSetting/66c41b85dedfff785c08df21', values);
-      message.success('Settings updated successfully');
+      await axios.put('/api/setting/updateSetting/66c41b85dedfff785c08df21', updatedField);
+      message.success(`${fieldName.replace('_cc', '')} CC updated successfully`);
     } catch (error) {
-      message.error('Failed to update settings');
+      message.error(`Failed to update ${fieldName}`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Spin spinning={isFetching}> {/* Spin wraps the entire form and shows until isFetching is false */}
+    <Spin spinning={isFetching}>
       <div style={{ padding: 20 }}>
         <Form form={form} layout="vertical" initialValues={{ proposal_cc: '', invoice_cc: '', agreement_cc: '' }}>
-          
+          <Title level={3}>CC's Mail Setting</Title>
+
+          <div className="my-4">
           <Form.Item
             label="Proposal CC Email(s)"
             name="proposal_cc"
@@ -62,7 +66,13 @@ const MailSettingCC = () => {
           >
             <Input.TextArea rows={4} placeholder="Enter CC email(s), separated by commas" />
           </Form.Item>
+          <Button type="primary" onClick={() => handleUpdate('proposal_cc')}>
+            Save Proposal CC
+          </Button>
+          </div>
 
+ 
+          <div className="my-4">
           <Form.Item
             label="Agreement CC Email(s)"
             name="agreement_cc"
@@ -71,6 +81,10 @@ const MailSettingCC = () => {
           >
             <Input.TextArea rows={4} placeholder="Enter CC email(s), separated by commas" />
           </Form.Item>
+          <Button type="primary" onClick={() => handleUpdate('agreement_cc')}>
+            Save Agreement CC
+          </Button>
+</div>
 
           <Form.Item
             label="Invoice CC Email(s)"
@@ -80,13 +94,12 @@ const MailSettingCC = () => {
           >
             <Input.TextArea rows={4} placeholder="Enter CC email(s), separated by commas" />
           </Form.Item>
-
-          <Form.Item>
-            <Button type="primary" onClick={handleUpdate} >
-              Update
-            </Button>
-          </Form.Item>
+          <Button type="primary" onClick={() => handleUpdate('invoice_cc')}>
+            Save Invoice CC
+          </Button>
+ 
         </Form>
+      
       </div>
     </Spin>
   );

@@ -1,29 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { CKEditor } from '@ckeditor/ckeditor5-react';
-import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { Form, Input, Button, Spin, Typography, message } from "antd";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
+import axios from "axios";
+
+const { Title } = Typography;
 
 const MailSettingForm = () => {
   const [formValues, setFormValues] = useState({
-    proposal_email: '',
-    agreement_email: '',
-    invoice_email: '',
+    proposal_email: "",
+    agreement_email: "",
+    invoice_email: "",
   });
-  const [loading, setLoading] = useState(false);
+
   const [isFetching, setIsFetching] = useState(true);
+  const [loading,setLoading]=useState(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('/api/setting/getSetting/66c41b85dedfff785c08df21');
+        const response = await axios.get(
+          "/api/setting/getSetting/66c41b85dedfff785c08df21"
+        );
         const settings = response.data;
 
         setFormValues({
           ...settings,
         });
       } catch (error) {
-        console.error('Failed to fetch settings', error);
+        console.error("Failed to fetch settings", error);
       } finally {
         setLoading(false);
         setIsFetching(false);
@@ -33,89 +39,88 @@ const MailSettingForm = () => {
     fetchSettings();
   }, []);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormValues({ ...formValues, [name]: value });
-  };
-
   const handleEditorChange = (name, event, editor) => {
     const data = editor.getData();
     setFormValues({ ...formValues, [name]: data });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleSave = async (name) => {
     try {
-      setLoading(true);
-
       const updatedValues = {
-        ...formValues
+        [name]: formValues[name],
       };
 
-      await axios.put('/api/setting/updateSetting/66c41b85dedfff785c08df21', updatedValues);
-      alert('Settings updated successfully');
+      await axios.put(
+        `/api/setting/updateSetting/66c41b85dedfff785c08df21`,
+        updatedValues
+      );
+      message.success(`${name.replace("_", " ")} updated successfully`);
     } catch (error) {
-      console.error('Failed to update settings', error);
-      alert('Failed to update settings');
-    } finally {
-      setLoading(false);
+      console.error(`Failed to update ${name}`, error);
+      message.error(`Failed to update ${name}`);
     }
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '800px', }}>
-      {isFetching ? (
-        <p>Loading...</p>
-      ) : (
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '20px' }}>
-            <label className='my-4'>Proposal Mail Message</label>
-            <CKEditor
-              editor={ClassicEditor}
-              data={formValues.proposal_email}
-              onChange={(event, editor) => handleEditorChange('proposal_email', event, editor)}
-            />
+    <div style={{ padding: "20px", maxWidth: "800px" }}>
+       <Spin spinning={isFetching}>
+        <Form layout="vertical">
+          <Title level={3}>Mail Settings</Title>
+
+          <div className="my-4">
+            <Form.Item label="Proposal Mail Message" name="proposal_email">
+              <CKEditor
+                editor={ClassicEditor}
+                data={formValues.proposal_email}
+                onChange={(event, editor) =>
+                  handleEditorChange("proposal_email", event, editor)
+                }
+              />
+            </Form.Item>
+            <Button
+              type="primary"
+              onClick={() => handleSave("proposal_email")}
+              style={{ marginTop: "10px", marginRight: "10px" }}
+            >
+              Save Proposal Message
+            </Button>
           </div>
-
-          
-          
-
-          <div style={{ marginBottom: '20px' }}>
-            <label>Agreement Mail Message</label>
-            <CKEditor
-              editor={ClassicEditor}
-              data={formValues.agreement_email}
-              onChange={(event, editor) => handleEditorChange('agreement_email', event, editor)}
-            />
+          <div className="my-4">
+            <Form.Item label="Agreement Mail Message" name="agreement_email">
+              <CKEditor
+                editor={ClassicEditor}
+                data={formValues.agreement_email}
+                onChange={(event, editor) =>
+                  handleEditorChange("agreement_email", event, editor)
+                }
+              />
+            </Form.Item>
+            <Button
+              type="primary"
+              onClick={() => handleSave("agreement_email")}
+              style={{ marginTop: "10px", marginRight: "10px" }}
+            >
+              Save Agreement Message
+            </Button>
           </div>
-         
-
-          <div style={{ marginBottom: '20px' }}>
-            <label>Invoice Mail Message</label>
+          <Form.Item label="Invoice Mail Message" name="invoice_email">
             <CKEditor
               editor={ClassicEditor}
               data={formValues.invoice_email}
-              onChange={(event, editor) => handleEditorChange('invoice_email', event, editor)}
+              onChange={(event, editor) =>
+                handleEditorChange("invoice_email", event, editor)
+              }
             />
-          </div>
-          
-
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              padding: '10px 20px',
-              backgroundColor: '#007bff',
-              color: '#fff',
-              border: 'none',
-              cursor: 'pointer',
-            }}
+          </Form.Item>
+          <Button
+            type="primary"
+            onClick={() => handleSave("invoice_email")}
+            style={{ marginTop: "10px" }}
           >
-            {loading ? 'Updating...' : 'Update'}
-          </button>
-        </form>
-      )}
+            Save Invoice Message
+          </Button>
+        </Form>
+        </Spin>
     </div>
   );
 };

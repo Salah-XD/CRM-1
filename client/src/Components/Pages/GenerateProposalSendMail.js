@@ -3,19 +3,30 @@ import { Modal, Button, Input, message, Form } from "antd";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import SuccessMail from "./SuccessMail";
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
-const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title,buttonTitle}) => {
+const GenerateProposalSendMail = ({
+  visible,
+  onClose,
+  id,
+  name,
+  route,
+  title,
+  buttonTitle,
+}) => {
   const [mailSent, setMailSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const [ccmail, setCcmail] = useState([]);
+
   const navigate = useNavigate();
 
   useEffect(() => {
     if (visible) {
-
       if (name == "proposal") {
-        axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
+        axios
+          .get("/api/setting/getSetting/66c41b85dedfff785c08df21")
           .then((response) => {
             setCcmail(response.data.proposal_cc);
             // Initialize the message field with the fetched data
@@ -24,9 +35,9 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title,but
           .catch((error) => {
             console.error("Failed to fetch setting data:", error);
           });
-      }
-      else if (name == "invoice") {
-        axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
+      } else if (name == "invoice") {
+        axios
+          .get("/api/setting/getSetting/66c41b85dedfff785c08df21")
           .then((response) => {
             setCcmail(response.data.invoice_cc);
             // Initialize the message field with the fetched data
@@ -35,9 +46,9 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title,but
           .catch((error) => {
             console.error("Failed to fetch setting data:", error);
           });
-      }
-      else {
-        axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
+      } else {
+        axios
+          .get("/api/setting/getSetting/66c41b85dedfff785c08df21")
           .then((response) => {
             setCcmail(response.data.agreement_cc);
             // Initialize the message field with the fetched data
@@ -47,18 +58,15 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title,but
             console.error("Failed to fetch setting data:", error);
           });
       }
-
     }
   }, [visible]);
 
   const handleGoTo = () => {
     if (buttonTitle == "Go to Proposal") {
       navigate("/proposal");
-    }
-    else if (buttonTitle == "Go to Invoice") {
+    } else if (buttonTitle == "Go to Invoice") {
       navigate("/invoice");
-    }
-    else {
+    } else {
       navigate("/agreement");
     }
   };
@@ -66,7 +74,6 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title,but
   const handleSuccessMailClose = () => {
     setMailSent(false);
   };
-
 
   const handleSendMail = () => {
     form
@@ -94,8 +101,6 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title,but
       });
   };
 
-
-
   return (
     <>
       <Modal
@@ -118,13 +123,13 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title,but
             <div className="text-center font-medium text-xl mb-5 rounded-md">
               Send Mail
             </div>
-            <p className="text-green-50 font-bold mb-4">
+            {/* <p className="text-green-50 font-bold mb-4">
               Document generated successfully
-            </p>
+            </p> */}
 
             <Form form={form} layout="vertical">
               <Form.Item
-              label="Mail ID"
+                label="Mail ID"
                 name="email"
                 rules={[{ required: true, message: "Please enter the email" }]}
               >
@@ -135,38 +140,39 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title,but
                 />
               </Form.Item>
 
-              <p className="text-gray-600 ">
-                CC's Mails:
-              </p>
+              <p className="text-gray-600 ">CC's Mails:</p>
               {ccmail.length > 0 && (
                 <p className="text-gray-600 mb-4">
-               
                   {ccmail.map((email, index) => (
                     <span key={index} className="text-blue-600">
                       {email}
-                      {index < ccmail.length - 1 && ', '}
+                      {index < ccmail.length - 1 && ", "}
                     </span>
                   ))}
                 </p>
               )}
               <p className="text-gray-600 mb-4">
-              Note: This mail will be sent to CCs also. You can edit in Settings.
-            </p>
+                Note: This mail will be sent to CCs also. You can edit in
+                Settings.
+              </p>
               <Form.Item
-               label="Message"
+                label="Message"
                 name="message"
                 rules={[
                   { required: true, message: "Please enter the message" },
                 ]}
               >
-                <Input.TextArea
-                  className="w-full p-2 border rounded mb-4"
-                  placeholder="Enter your message"
-                  rows={4}
+                <CKEditor
+                  editor={ClassicEditor}
+                  data={form.getFieldValue("message") || ""}
+                  onChange={(event, editor) => {
+                    const data = editor.getData();
+                    form.setFieldsValue({ message: data });
+                  }}
                 />
               </Form.Item>
               <div className="flex justify-center">
-              <Button
+                <Button
                   type="primary"
                   onClick={handleSendMail}
                   loading={loading}
@@ -178,7 +184,7 @@ const GenerateProposalSendMail = ({ visible, onClose, id, name, route, title,but
                   onClick={handleGoTo}
                   className="border border-buttonModalColor text-buttonModalColor bg-none p-1 rounded"
                 >
-                 {buttonTitle}
+                  {buttonTitle}
                 </button>
               </div>
             </Form>

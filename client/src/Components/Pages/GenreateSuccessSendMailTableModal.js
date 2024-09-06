@@ -3,8 +3,8 @@ import { Modal, Button, Input, message, Form } from "antd";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import SuccessTableMail from "./SuccessTableMail";
-import e from "cors";
-
+import { CKEditor } from "@ckeditor/ckeditor5-react";
+import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 
 const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, route, name, buttonTitle }) => {
   const [mailSent, setMailSent] = useState(false);
@@ -126,9 +126,9 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
           <div className="px-12 py-4" style={{ backgroundColor: "#F6FAFB" }}>
             <div className="text-center font-medium text-xl mb-5 rounded-md">
               Send Mail
-              <p className="text-green-50 font-bold mb-4">
+              {/* <p className="text-green-100 font-bold mb-4">
                 Document generated successfully
-              </p>
+              </p> */}
             </div>
 
 
@@ -166,14 +166,15 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
               <Form.Item
                 label="Message"
                 name="message"
-                rules={[
-                  { required: true, message: "Please enter the message" },
-                ]}
+                rules={[{ required: true, message: "Please enter the message" }]}
               >
-                <Input.TextArea
-                  className="w-full p-2 border rounded mb-4"
-                  placeholder="Enter your message"
-                  rows={4}
+                <CKEditor
+                  editor={ClassicEditor}
+                  data={form.getFieldValue("message") || ""}
+                  onChange={(event, editor) => {
+                    const data = editor.getData();
+                    form.setFieldsValue({ message: data });
+                  }}
                 />
               </Form.Item>
               <div className="flex justify-center">

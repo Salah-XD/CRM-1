@@ -16,7 +16,7 @@ const businessSchema = new Schema({
     enum: ["Catering", "Manufacturing", "Trade and retail", "Transportation"],
   },
   vertical_of_industry: {
-    type: [String], 
+    type: [String],
     enum: [
       "Sweet Shop",
       "Meat Retail",
@@ -75,6 +75,10 @@ const businessSchema = new Schema({
   gst_enable: {
     type: Boolean,
     default: false, // Default to false
+  },
+  place_of_supply: {
+    type: String,
+    required: true,
   },
 });
 

@@ -3,8 +3,46 @@ import { Form, Input, Select, Spin, Button, Checkbox, message } from "antd";
 import { useNavigate, useLocation, useParams, NavLink } from "react-router-dom";
 import axios from "axios";
 
-
 const { Option } = Select;
+
+const indianStatesAndUTs = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Andaman and Nicobar Islands",
+  "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Lakshadweep",
+  "Delhi",
+  "Puducherry",
+  "Ladakh",
+  "Jammu and Kashmir",
+];
 
 const UpdateBusinessDetail = ({
   loading,
@@ -49,6 +87,7 @@ const UpdateBusinessDetail = ({
             "address.state": businessData.address?.state || "",
             "address.pincode": businessData.address?.pincode || "",
             enable_gst: !!businessData.gst_number, // Set initial state for GST checkbox
+            place_of_supply:businessData.place_of_supply
           });
           setIsGstEnabled(!!businessData.gst_number); // Set state based on initial data
         } else {
@@ -70,9 +109,7 @@ const UpdateBusinessDetail = ({
 
   const handleSubmit = async (values) => {
     try {
-     
       const requestData = { ...values };
-
 
       if (!requestData.enable_gst) {
         requestData.gst_number = "";
@@ -92,15 +129,14 @@ const UpdateBusinessDetail = ({
         message.success("Business data updated successfully");
         setIsEditable(false);
         setShowUpdateButtons(false);
-
       } else {
         message.error("An Error Occurred");
-       console.error("Update response: ", response.data);
+        console.error("Update response: ", response.data);
       }
     } catch (error) {
       message.error("Error updating business data");
       console.error("Error: ", error);
-    } 
+    }
   };
 
   const handleGstCheckboxChange = (e) => {
@@ -242,7 +278,24 @@ const UpdateBusinessDetail = ({
               disabled={!isEditable || !isGstEnabled}
             />
           </Form.Item>
-
+          <Form.Item
+            name="place_of_supply"
+            className="w-1/4"
+            label={
+              <span className="text-gray-600 font-semibold">
+                Place of Supply
+              </span>
+            }
+            // rules={[{ required: true, message: 'Please select the state or union territory' }]}
+          >
+            <Select placeholder="Select state or union territory" disabled={!isEditable}>
+              {indianStatesAndUTs.map((state) => (
+                <Option key={state} value={state}>
+                  {state}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
           <Form.Item
             name="vertical_of_industry"
             className="w-1/4"
@@ -350,12 +403,7 @@ const UpdateBusinessDetail = ({
           }`}
         >
           <Form.Item>
-            <Button
-              type="primary"
-              className="ml-6"
-              htmlType="submit"
-    
-            >
+            <Button type="primary" className="ml-6" htmlType="submit">
               Update
             </Button>
           </Form.Item>

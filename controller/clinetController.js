@@ -23,6 +23,7 @@ console.log(req.body);
       added_by,
       status,
       gst_enable,
+      place_of_supply
     } = req.body;
 
     // Validate required fields
@@ -46,6 +47,7 @@ console.log(req.body);
       added_by,
       status, 
       gst_enable,
+      place_of_supply,
       created_at: new Date(), 
     });
 
@@ -78,6 +80,7 @@ export const updateBusiness = async (req, res) => {
       "address.city": city,
       "address.state": state,
       "address.pincode": pincode,
+      place_of_supply,
       updated_by,
     } = req.body;
 
@@ -106,6 +109,7 @@ export const updateBusiness = async (req, res) => {
       gst_number,
       address: { line1, line2, city, state, pincode },
       updated_by,
+      place_of_supply
     });
 
     // Update business fields
@@ -123,6 +127,7 @@ export const updateBusiness = async (req, res) => {
     existingBusiness.phone = phone || existingBusiness.phone;
     existingBusiness.email = email || existingBusiness.email;
     existingBusiness.gst_number = gst_number || existingBusiness.gst_number;
+    existingBusiness.place_of_supply = place_of_supply|| existingBusiness.place_of_supply;
     existingBusiness.address = {
       line1: line1 || existingBusiness.address.line1,
       line2: line2 || existingBusiness.address.line2,

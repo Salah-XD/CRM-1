@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, message, Spin } from 'antd';
+import { Form, Input, Button, message, Spin,Typography } from 'antd';
 import axios from 'axios';
 
 const NoteForm = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true); // State to handle the initial data loading
+
+  const { Title } = Typography;
 
   useEffect(() => {
     // Fetch the initial form data
@@ -42,6 +44,7 @@ const NoteForm = () => {
     <Spin spinning={isFetching}> {/* Spin wraps the entire form and shows until isFetching is false */}
       <div style={{ padding: 20 }}>
         <Form form={form} layout="vertical" initialValues={{ proposalNote: '', invoiceNote: '' }}>
+        <Title level={3}>Note Setting</Title>
           <Form.Item
             label="Proposal Note"
             name="proposal_note"

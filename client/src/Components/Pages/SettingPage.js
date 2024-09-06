@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { AppstoreOutlined, MailOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons';
 import { Layout, Menu } from 'antd';
 import AdminDashboard from '../Layout/AdminDashboard';
 import NoteForm from './NoteForm';
@@ -9,28 +10,62 @@ import ProfileSettings from './ProfileSetting';
 
 const { Sider, Content } = Layout;
 
+const menuItems = [
+  {
+    key: 'Profile',
+    icon: <UserOutlined />,
+    label: 'Profile',
+  },
+  {
+    key: 'Notes',
+    icon: <AppstoreOutlined />,
+    label: 'Notes',
+  },
+  {
+    key: 'Mail',
+    icon: <MailOutlined />,
+    label: 'Mail',
+    children: [
+      {
+        key: 'MailMessage',
+        label: 'Mail Message',
+      },
+      {
+        key: 'CCMails',
+        label: 'CC\'s Mails',
+      },
+    ],
+  },
+  {
+    key: 'User',
+    icon: <SettingOutlined />,
+    label: 'User',
+  },
+];
+
 const SettingsPage = () => {
-  const [selectedMenuItem, setSelectedMenuItem] = useState('Profile');
-  const [subMenuItem, setSubMenuItem] = useState('');
+  const [current, setCurrent] = useState('Profile'); // Set default tab to 'Profile'
+
+  const onClick = (e) => {
+    setCurrent(e.key);
+  };
 
   const renderContent = () => {
-    switch (selectedMenuItem) {
+    switch (current) {
       case 'Profile':
         return <ProfileSettings />;
       case 'Notes':
         return <NoteForm />;
       case 'Mail':
-        if (subMenuItem === 'MailMessage') {
-          return <MailSettingForm />;
-        }
-        if (subMenuItem === 'CCMails') {
-          return <MailSettingCC />;
-        }
         return <MailSettingForm />;
+      case 'MailMessage':
+        return <MailSettingForm />;
+      case 'CCMails':
+        return <MailSettingCC />;
       case 'User':
         return <UserListSetting />;
       default:
-        return null;
+        return <ProfileSettings />;
     }
   };
 
@@ -50,38 +85,16 @@ const SettingsPage = () => {
           }}
         >
           <Menu
+            theme="light"
+            onClick={onClick}
+            style={{
+              width: 200,
+            }}
+            defaultOpenKeys={['Profile']}
+            selectedKeys={[current]}
             mode="inline"
-            defaultOpenKeys={['Mail']}
-            style={{ borderRight: 0 }}
-            selectedKeys={[selectedMenuItem]}
-            openKeys={['Mail']} // Ensure 'Mail' submenu is open by default
-            onClick={(e) => {
-              if (e.key === 'Mail' || e.key === 'MailMessage' || e.key === 'CCMails') {
-                setSelectedMenuItem('Mail');
-                setSubMenuItem(e.key); // Set sub-menu item when a submenu item is clicked
-              } else {
-                setSelectedMenuItem(e.key);
-                setSubMenuItem(''); // Reset sub-menu item on main menu item click
-              }
-            }}
-            onOpenChange={(keys) => {
-              // Handle submenu open change
-              if (keys.length === 0) {
-                setSelectedMenuItem('');
-                setSubMenuItem('');
-              }
-            }}
-          >
-            <Menu.ItemGroup key="g1">
-              <Menu.Item key="Profile">Profile</Menu.Item>
-              <Menu.Item key="User">User</Menu.Item>
-              <Menu.Item key="Notes">Notes</Menu.Item>
-              <Menu.SubMenu key="Mail" title="Mail">
-                <Menu.Item key="MailMessage">Mail Message</Menu.Item>
-                <Menu.Item key="CCMails">CC's Mails</Menu.Item>
-              </Menu.SubMenu>
-            </Menu.ItemGroup>
-          </Menu>
+            items={menuItems}
+          />
         </Sider>
         <Layout>
           <Content

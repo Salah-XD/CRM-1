@@ -53,10 +53,10 @@ const SendMailModal = ({ visible, onCancel, onCloseMainModal }) => {
       generateFormLink();
       console.log("Response:", response);
       setSuccessModalVisible(true);
-      toast.success("Form link sent successfully");
+      message.success("Form link sent successfully");
     } catch (error) {
       console.error("Error sending form link:", error);
-      toast.error("Failed to send form link");
+      message.error("Failed to send form link");
     } finally {
       setLoading(false);
     }
