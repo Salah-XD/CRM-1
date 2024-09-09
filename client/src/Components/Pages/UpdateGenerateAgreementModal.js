@@ -37,8 +37,13 @@ const UpdateGenerateAgreementModal = ({
       axios
         .get(`/api/proposal/getOutletsByProposalId/${proposalId}`)
         .then((response) => {
-          console.log("Fetched outlets:", response.data); // Debug log
-          setOutlets(response.data);
+          const outletsData = response.data.map((outlet) => ({
+            ...outlet,
+            _id: outlet._id || outlet.id, // Ensure _id exists, fallback to id if needed
+          }));
+
+          console.log("Fetched outlets:", outletsData); // Debug log
+          setOutlets(outletsData); // Initialize outlets with the correct _id field
           setLoading(false);
         })
         .catch((error) => {
@@ -153,6 +158,7 @@ const UpdateGenerateAgreementModal = ({
       formData.total_cost = totalAmount;
       formData.no_of_outlets = selectedOutlets.length;
       formData.proposalId = proposalId;
+      formData.outlets = selectedOutlets; 
 
       const response = await axios.put(
         `/api/agreement/updateAgreement/${agreementIds}`,
@@ -162,6 +168,7 @@ const UpdateGenerateAgreementModal = ({
       setShowForm(false);
 
       message.success("Agreement updated successfully");
+      onCancel();
       form.resetFields();
       onOk();
     } catch (error) {
@@ -218,7 +225,7 @@ const UpdateGenerateAgreementModal = ({
                 pagination={false}
                 rowKey={(record) => record._id}
                 rowSelection={{
-                  selectedRowKeys: selectedOutlets.map((outlet) => outlet._id), // Use IDs here
+                  selectedRowKeys: selectedOutlets.map((outlet) => outlet._id), // Ensure this maps the correct keys
                   onSelect: handleSelect,
                   onSelectAll: handleSelectAll,
                 }}
@@ -264,7 +271,13 @@ const UpdateGenerateAgreementModal = ({
                     { required: true, message: "Please select from date!" },
                   ]}
                 >
-                  <DatePicker className="w-full" />
+                  <DatePicker
+                    className="w-full"
+                    onChange={(date, dateString) => {
+                      // Handle date change if necessary
+                      console.log("Selected From Date:", date, dateString);
+                    }}
+                  />
                 </Form.Item>
                 <Form.Item
                   label="To date"

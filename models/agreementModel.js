@@ -4,6 +4,9 @@ const { Schema, model } = mongoose;
 
 const outletSchema = new Schema(
   {
+    _id: {
+      type: String, 
+    },
     outlet_name: {
       type: String,
       required: true,

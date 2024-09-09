@@ -179,6 +179,7 @@ export const getAgreementById = async (req, res, next) => {
 
 
 export const updateAgreement = async (req, res) => {
+  console.log(req.body)
   try {
     const { agreementId } = req.params; 
     const { fbo_name, from_date, to_date, total_cost, no_of_outlets, address, period,outlets } =

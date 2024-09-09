@@ -112,6 +112,7 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
         onCancel={onClose}
         footer={null}
         centered
+        width={500}
         closable={true}
         className="acc-modal"
       >

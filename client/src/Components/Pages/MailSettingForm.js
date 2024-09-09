@@ -64,7 +64,7 @@ const MailSettingForm = () => {
   return (
     <div style={{ padding: "20px", maxWidth: "800px" }}>
        <Spin spinning={isFetching}>
-        <Form layout="vertical">
+       {!isFetching && ( <Form layout="vertical">
           <Title level={3}>Mail Settings</Title>
 
           <div className="my-4">
@@ -119,7 +119,7 @@ const MailSettingForm = () => {
           >
             Save Invoice Message
           </Button>
-        </Form>
+        </Form>)}
         </Spin>
     </div>
   );

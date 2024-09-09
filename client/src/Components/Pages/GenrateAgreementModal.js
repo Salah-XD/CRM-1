@@ -21,6 +21,7 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
   const [loading, setLoading] = useState(true);
   const [agreementId, setAgreementId] = useState(null); // Initialize as null
   const [showSendMailModal, setShowSendMailModal] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -30,7 +31,7 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
         .get(`/api/proposal/getOutletsByProposalId/${proposalId}`)
         .then((response) => {
           setOutlets(response.data);
-          setLoading(false);
+          setIsFetching(false);
         })
         .catch((error) => {
           message.error("Failed to fetch outlets");
@@ -176,6 +177,7 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
       width={800}
       className="acc-modal"
     >
+      <Spin spinning={isFetching}>
       <Form layout="vertical" form={form} onFinish={handleSubmit}>
         <div
           className="text-center align-middle font-medium text-xl bg-blue-50 p-4"
@@ -183,11 +185,7 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
         >
           Generate Agreement
         </div>
-        {loading ? (
-          <div className="flex justify-center items-center h-48">
-            <Spin size="small" />
-          </div>
-        ) : !showForm ? (
+        { !showForm ? (
           <div className="p-6" style={{ backgroundColor: "#F6FAFB" }}>
             <div className="text-center font-medium text-xl mb-5 rounded-md">
               Select outlets
@@ -286,6 +284,7 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
           </div>
         )}
       </Form>
+      </Spin>
     </Modal>
          <GenreateSuccessSendMailTableModal
          onClose={() => setShowSendMailModal(false)}
