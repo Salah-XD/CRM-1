@@ -114,8 +114,10 @@
       <p><span class="font-semibold">Address:</span> {{address}}</p>
       <p><span class="font-semibold">GSTIN:</span> {{gst_number}}</p>
       <p><span class="font-semibold">State (Place of Supply):</span> {{place_of_supply}}</p>
-      <p><span class="font-semibold">pincode Code:</span> {{pincode}}</p>
+      <p><span class="font-semibold">Pincode Code:</span> {{pincode}}</p>
     </div>
+
+
 
     <div class="mb-2">
       <p><span class="font-semibold">SAC:</span> 998399 (18%)</p>
@@ -144,7 +146,7 @@
           </tr> -->
         {{outletItems}}
         <tr>
-          <td class="px-2 py-1 font-bold text-right" colspan="5">Sub Total</td>
+          <td class="px-2 py-1 font-bold text-right" colspan="6">Sub Total</td>
           <td class="px-2 py-1 font-bold text-center ">{{sub_total}}</td>
         </tr>
       </tbody>
@@ -156,8 +158,7 @@
         <span class="font-normal">{{totalInWords}}</span>
       </p>
       <p><span class="font-semibold">Total Amount before Tax:</span>{{sub_total}}</p>
-      <p><span class="font-semibold">Add: CGST(9%):</span>{{cgst}}</p>
-      <p><span class="font-semibold">Add: SGST(9%):</span>{{sgst}}</p>
+    {{tax}}
       <p><span class="font-semibold">Total Amount after Tax:</span>{{overallTotal}}</p>
       <p><span class="font-semibold">Gst On Reverse Charge:</span>{{Gst Charge}}</p>
     </div>

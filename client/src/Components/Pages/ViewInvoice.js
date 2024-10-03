@@ -59,7 +59,6 @@ const ViewInvoice = () => {
     outletItems = invoiceData.outlets
       .map((outlet) => {
         const unit_cost = parseFloat(outlet.unit_cost || 0);
-        const discount = parseFloat(outlet.discount || 0);
         const amount = parseFloat(outlet.amount || 0);
 
         subTotal += amount;
@@ -99,7 +98,7 @@ const ViewInvoice = () => {
     tax = `<p><span class="font-semibold">Add: CGST(9%):</span>${cgst}</p>
          <p><span class="font-semibold">Add: SGST(9%):</span>${sgst}</p>`;
   } else {
-    tax = `<p><span class="font-semibold">Add: GST:</span>${gst}</p>`;
+    tax = `<p><span class="font-semibold">Add: IGST:</span>${gst}</p>`;
   }
 
 
