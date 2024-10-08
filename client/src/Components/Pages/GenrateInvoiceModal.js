@@ -13,6 +13,11 @@ import axios from "axios";
 import "../css/GenerateProposalModal.css";
 import GenreateSuccessSendMailTableModal from "./GenreateSuccessSendMailTableModal";
 import moment from "moment";
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+
+// Extend dayjs with customParseFormat
+dayjs.extend(customParseFormat);
 
 const { Option } = Select;
 
@@ -488,7 +493,13 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
                   ]}
                 >
                   {" "}
-                  <DatePicker value={invoiceDate} className="w-full" />
+                  
+                  <DatePicker
+                    defaultValue={dayjs()}
+                    format="DD/MM/YYYY"
+                    className="w-full"
+                  />
+            
                 </Form.Item>
                 <Form.Item
                   label="Proposal number (Order Ref No.)"

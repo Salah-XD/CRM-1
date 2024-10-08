@@ -12,6 +12,12 @@ import {
 import moment from "moment";
 import axios from "axios";
 import GenreateSuccessSendMailTableModal from "./GenreateSuccessSendMailTableModal";
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+
+// Extend dayjs with customParseFormat
+dayjs.extend(customParseFormat);
+
 
 const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
   const [selectedOutlets, setSelectedOutlets] = useState([]);
@@ -45,7 +51,7 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
           form.setFieldsValue({
             fbo_name,
             address: `${address.line1} ${address.line2}`,
-            from_date: moment(), // Set today's date as default
+         
           });
         })
         .catch((error) => {
@@ -132,7 +138,7 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
       formData.outlets = selectedOutlets; // Set selected outlets here
   
       // Debugging: Check if proposalId and outlets are correctly added
-      console.log("Form Data before submission:", formData);
+      //console.log("Form Data before submission:", formData);
   
       const response = await axios.post("/api/agreement/createAgreement", formData);
       setAgreementId(response.data.data._id);
@@ -242,7 +248,11 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
                   { required: true, message: "Please select from date!" },
                 ]}
               >
-                <DatePicker className="w-full" />
+              <DatePicker
+                    defaultValue={dayjs()}
+                    format="DD/MM/YYYY"
+                    className="w-full"
+                  />
               </Form.Item>
               <Form.Item
                 label="To date"

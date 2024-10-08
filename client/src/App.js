@@ -23,7 +23,7 @@ import ViewProposal from "./Components/Pages/ViewProposal";
 import ViewInvoice from "./Components/Pages/ViewInvoice";
 import ViewAgreement from "./Components/Pages/ViewAgreement";
 import SettingsPage from "./Components/Pages/SettingPage";
-import { SuperAdminRoute,AccountAdminRoute,AuditAdminRoute} from "./Components/Context/ProtectedRoute";
+import { AccountAdminRoute,AuditAdminRoute} from "./Components/Context/ProtectedRoute";
 
 
 
@@ -37,9 +37,6 @@ function App() {
 
         <Route path="/dashboard" element={<Dashboard />} />
 
-        {/* <Route element={<SuperAdminRoute />}>
-          <Route path="/add-user" element={<AddUserPage />} />
-        </Route> */}
 
         <Route element={<AccountAdminRoute />}>
           <Route path="/enquiry" element={<EnquiryTable />} />

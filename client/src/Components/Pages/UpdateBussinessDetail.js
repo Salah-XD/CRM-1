@@ -58,6 +58,10 @@ const UpdateBusinessDetail = ({
   const location = useLocation();
   const { id } = useParams();
 
+  const handleCancel = () => {
+    navigate("/client-profile"); // Replace with your desired route
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -87,7 +91,7 @@ const UpdateBusinessDetail = ({
             "address.state": businessData.address?.state || "",
             "address.pincode": businessData.address?.pincode || "",
             enable_gst: !!businessData.gst_number, // Set initial state for GST checkbox
-            place_of_supply:businessData.place_of_supply
+            place_of_supply: businessData.place_of_supply,
           });
           setIsGstEnabled(!!businessData.gst_number); // Set state based on initial data
         } else {
@@ -288,7 +292,10 @@ const UpdateBusinessDetail = ({
             }
             // rules={[{ required: true, message: 'Please select the state or union territory' }]}
           >
-            <Select placeholder="Select state or union territory" disabled={!isEditable}>
+            <Select
+              placeholder="Select state or union territory"
+              disabled={!isEditable}
+            >
               {indianStatesAndUTs.map((state) => (
                 <Option key={state} value={state}>
                   {state}
@@ -405,6 +412,9 @@ const UpdateBusinessDetail = ({
           <Form.Item>
             <Button type="primary" className="ml-6" htmlType="submit">
               Update
+            </Button>
+            <Button type="primary" className="ml-6" onClick={handleCancel}>
+              Cancel
             </Button>
           </Form.Item>
         </div>
