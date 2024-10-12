@@ -9,15 +9,13 @@ import {
   message,
   Spin,
 } from "antd";
-import moment from "moment";
 import axios from "axios";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import GenreateSuccessSendMailTableModal from "./GenreateSuccessSendMailTableModal";
-import dayjs from 'dayjs';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
 
 // Extend dayjs with customParseFormat
 dayjs.extend(customParseFormat);
-
 
 const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
   const [selectedOutlets, setSelectedOutlets] = useState([]);
@@ -25,7 +23,7 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [outlets, setOutlets] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [agreementId, setAgreementId] = useState(null); // Initialize as null
+  const [agreementId, setAgreementId] = useState(null);
   const [showSendMailModal, setShowSendMailModal] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [form] = Form.useForm();
@@ -51,7 +49,6 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
           form.setFieldsValue({
             fbo_name,
             address: `${address.line1} ${address.line2}`,
-         
           });
         })
         .catch((error) => {
@@ -69,7 +66,6 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
       title: "Description",
       dataIndex: "description",
     },
-   
     {
       title: "Man Days",
       dataIndex: "man_days",
@@ -121,32 +117,32 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
   };
 
   const handlePeriodChange = (value) => {
-    const fromDate = form.getFieldValue("from_date");
-    if (fromDate && value) {
-      const toDate = moment(fromDate).add(value, "months");
+    const fromDate = form.getFieldValue("from_date") || dayjs(); // Use current date if no date selected
+    if (value) {
+      const toDate = fromDate.add(value, "months");
       form.setFieldsValue({ to_date: toDate });
     }
   };
+
   const handleSubmit = async () => {
     try {
       await form.validateFields();
-  
+
       const formData = form.getFieldsValue();
       formData.total_cost = totalAmount;
       formData.no_of_outlets = selectedOutlets.length;
       formData.proposalId = proposalId;
-      formData.outlets = selectedOutlets; // Set selected outlets here
-  
-      // Debugging: Check if proposalId and outlets are correctly added
-      //console.log("Form Data before submission:", formData);
-  
-      const response = await axios.post("/api/agreement/createAgreement", formData);
+      formData.outlets = selectedOutlets;
+
+      const response = await axios.post(
+        "/api/agreement/createAgreement",
+        formData
+      );
       setAgreementId(response.data.data._id);
       setShowSendMailModal(true);
-  
+
       message.success("Agreement generated successfully");
-  
-      // Optionally reset the form after successful submission
+
       form.resetFields();
       onOk();
     } catch (error) {
@@ -154,8 +150,6 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
       message.error("Error generating agreement");
     }
   };
-  
-  
 
   const handleNext = () => {
     setShowForm(true);
@@ -176,137 +170,155 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
 
   return (
     <>
-    <Modal
-      visible={visible}
-      onCancel={handleCancel}
-      footer={null}
-      width={800}
-      className="acc-modal"
-    >
-      <Spin spinning={isFetching}>
-      <Form layout="vertical" form={form} onFinish={handleSubmit}>
-        <div
-          className="text-center align-middle font-medium text-xl bg-blue-50 p-4"
-          style={{ boxShadow: "0 4px 2px -2px lightgrey" }}
-        >
-          Generate Agreement
-        </div>
-        { !showForm ? (
-          <div className="p-6" style={{ backgroundColor: "#F6FAFB" }}>
-            <div className="text-center font-medium text-xl mb-5 rounded-md">
-              Select outlets
-            </div>
-            <Table
-              dataSource={outlets}
-              columns={outletsColumns}
-              pagination={false}
-              rowKey={(record) => record._id}
-              rowSelection={{
-                selectedRowKeys: selectedOutlets.map((outlet) => outlet._id),
-                onSelect: handleSelect,
-                onSelectAll: handleSelectAll,
-              }}
-            />
-            <div className="text-center mt-4">
-              <Button
-                className="bg-buttonModalColor text-white rounded"
-                onClick={handleNext}
-                disabled={selectedOutlets.length === 0}
-              >
-                Next
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="p-6" style={{ backgroundColor: "#F6FAFB" }}>
-            <div className="text-center font-medium text-xl mb-5 rounded-md">
-              Document Preview
-            </div>
-            <Form.Item
-              label="FBO name (Business Name)"
-              name="fbo_name"
-              rules={[{ required: true, message: "Please enter FBO name!" }]}
+      <Modal
+        visible={visible}
+        onCancel={handleCancel}
+        footer={null}
+        width={800}
+        className="acc-modal"
+      >
+        <Spin spinning={isFetching}>
+          <Form layout="vertical" form={form} onFinish={handleSubmit}>
+            <div
+              className="text-center align-middle font-medium text-xl bg-blue-50 p-4"
+              style={{ boxShadow: "0 4px 2px -2px lightgrey" }}
             >
-              <Input />
-            </Form.Item>
-            <Form.Item
-                label="Period (Months)"
-                name="period"
-                rules={[{ required: true, message: "Please enter period!" }]}
-              >
-                <Input
-                  type="number"
-                  onChange={(e) => handlePeriodChange(e.target.value)}
+              Generate Agreement
+            </div>
+            {!showForm ? (
+              <div className="p-6" style={{ backgroundColor: "#F6FAFB" }}>
+                <div className="text-center font-medium text-xl mb-5 rounded-md">
+                  Select outlets
+                </div>
+                <Table
+                  dataSource={outlets}
+                  columns={outletsColumns}
+                  pagination={false}
+                  rowKey={(record) => record._id}
+                  rowSelection={{
+                    selectedRowKeys: selectedOutlets.map(
+                      (outlet) => outlet._id
+                    ),
+                    onSelect: handleSelect,
+                    onSelectAll: handleSelectAll,
+                    getCheckboxProps: (record) => ({
+                      disabled: record.is_agreement === true, // Disable if is_agreement is true
+                    }),
+                  }}
                 />
-              </Form.Item>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-           
-              <Form.Item
-                label="From date"
-                name="from_date"
-                rules={[
-                  { required: true, message: "Please select from date!" },
-                ]}
-              >
-              <DatePicker
-                    defaultValue={dayjs()}
-                    format="DD/MM/YYYY"
-                    className="w-full"
+
+                <div className="text-center mt-4">
+                  <Button
+                    className="bg-buttonModalColor text-white rounded"
+                    onClick={handleNext}
+                    disabled={selectedOutlets.length === 0}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-6" style={{ backgroundColor: "#F6FAFB" }}>
+                <div className="text-center font-medium text-xl mb-5 rounded-md">
+                  Document Preview
+                </div>
+                <Form.Item
+                  label="FBO name (Business Name)"
+                  name="fbo_name"
+                  rules={[
+                    { required: true, message: "Please enter FBO name!" },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+                <Form.Item
+                  label="Period (Months)"
+                  name="period"
+                  rules={[{ required: true, message: "Please enter period!" }]}
+                >
+                  <Input
+                    type="number"
+                    onChange={(e) => handlePeriodChange(e.target.value)} // Call handlePeriodChange
                   />
-              </Form.Item>
-              <Form.Item
-                label="To date"
-                name="to_date"
-                rules={[{ required: true, message: "Please select to date!" }]}
-              >
-                <DatePicker className="w-full" disabled />
-              </Form.Item>
-            </div>
-            <Form.Item
-              label="FBO Address"
-              name="address"
-              rules={[{ required: true, message: "Please enter FBO address!" }]}
-            >
-              <Input />
-            </Form.Item>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Form.Item label="No of Outlets" name="total_outlet">
-                <Input readOnly />
-              </Form.Item>
-              <Form.Item
-                label="Total Cost"
-                rules={[{ required: true, message: "Total cost is required!" }]}
-              >
-                <Input
-                  value={`₹${totalAmount.toLocaleString("en-IN")}`}
-                  readOnly
-                />
-              </Form.Item>
-            </div>
-            <div className="text-center mt-4">
-              <button
-                className="bg-buttonModalColor px-4 py-2 text-white rounded"
-                htmlType="submit"
-              >
-                Generate
-              </button>
-            </div>
-          </div>
-        )}
-      </Form>
-      </Spin>
-    </Modal>
-         <GenreateSuccessSendMailTableModal
-         onClose={() => setShowSendMailModal(false)}
-         id={agreementId}
-         onOk={handleOk}
-         title="Generate Agreement"
-         name="agreement"
-         route="generateagreement"
-         visible={showSendMailModal}
+                </Form.Item>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Form.Item label="From date" name="from_date">
+                    <DatePicker
+                      defaultValue={dayjs()} // Set current date if no date is selected
+                      format="DD/MM/YYYY"
+                      className="w-full"
+                      onChange={(date) =>
+                        form.setFieldsValue({ from_date: date })
+                      }
+                    />
+                  </Form.Item>
+
+                  <Form.Item
+                    label="To date"
+                    name="to_date"
+                    rules={[
+                      { required: true, message: "Please select to date!" },
+                    ]}
+                  >
+                    <DatePicker
+                      className="w-full"
+                      format="DD/MM/YYYY"
+                      disabled
+                    />
+                  </Form.Item>
+                </div>
+                <Form.Item
+                  label="FBO Address"
+                  name="address"
+                  rules={[
+                    { required: true, message: "Please enter FBO address!" },
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Form.Item label="No of Outlets" name="total_outlet">
+                    <Input readOnly />
+                  </Form.Item>
+                  <Form.Item
+                    label="Total Cost"
+                    rules={[
+                      { required: true, message: "Total cost is required!" },
+                    ]}
+                  >
+                    <Input
+                      value={`₹${totalAmount.toLocaleString("en-IN")}`}
+                      readOnly
+                    />
+                  </Form.Item>
+                </div>
+                <div className="text-center mt-4">
+                  <button
+                    className="bg-buttonModalColor px-4 py-2 text-white rounded"
+                    htmlType="submit"
+                  >
+                    Generate
+                  </button>
+                </div>
+              </div>
+            )}
+          </Form>
+        </Spin>
+      </Modal>
+
+      {showSendMailModal && (
+        <GenreateSuccessSendMailTableModal
+          onClose={() => setShowSendMailModal(false)}
+          id={agreementId}
+          onOk={handleOk}
+          title="Generate Agreement"
+          name="agreement"
+          route="generateagreement"
+          visible={showSendMailModal}
           buttonTitle="Go to Agreement"
-       />
-       </>
+        />
+      )}
+    </>
   );
 };
 

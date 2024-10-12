@@ -61,6 +61,7 @@ export const createInvoice = async (req, res) => {
       fbo_name,
       invoice_date,
       status,
+      mail_status,
       proposal_number,
       invoice_number,
       place_of_supply,
@@ -74,7 +75,7 @@ export const createInvoice = async (req, res) => {
       email,
       same_state,
       proposalId,
-      gst_number
+      gst_number,
     } = req.body;
 
     // Create a new invoice instance with the provided data
@@ -82,6 +83,7 @@ export const createInvoice = async (req, res) => {
       fbo_name,
       invoice_date,
       status,
+      mail_status,
       proposal_number,
       invoice_number,
       place_of_supply,
@@ -95,7 +97,7 @@ export const createInvoice = async (req, res) => {
       email,
       same_state,
       proposalId,
-      gst_number
+      gst_number,
     });
 
     // Save the new invoice to the database
@@ -192,7 +194,7 @@ export const getAllInvoiceDetail = async (req, res) => {
       .skip((pageNumber - 1) * sizePerPage)
       .limit(sizePerPage)
       .select(
-        "fbo_name proposal_number phone email outlets invoice_date status"
+        "fbo_name proposal_number phone email outlets invoice_date status proposalId mail_status"
       ); // Select only the required fields, including email
 
     // Calculate total outlets and invoiced outlets for each invoice
@@ -203,7 +205,6 @@ export const getAllInvoiceDetail = async (req, res) => {
         (outlet) => outlet.is_invoiced
       ).length;
 
-  
       return {
         _id: invoice._id,
         fbo_name: invoice.fbo_name,
@@ -211,9 +212,12 @@ export const getAllInvoiceDetail = async (req, res) => {
         phone: invoice.phone,
         email: invoice.email,
         invoice_date: moment(invoice.invoice_date).format("MM/DD/YYYY"),
-        status: invoice.status, 
-        totalOutlets: totalOutlets, 
-        invoicedOutlets: invoicedOutlets, 
+        status: invoice.status,
+        outlets: invoice.outlets,
+        totalOutlets: totalOutlets,
+        invoicedOutlets: invoicedOutlets,
+        proposalId: invoice.proposalId,
+        mail_status:invoice.mail_status
       };
     });
 
@@ -228,30 +232,70 @@ export const getAllInvoiceDetail = async (req, res) => {
   }
 };
 
-
 export const deleteFields = async (req, res) => {
+  console.log(req.body);
   try {
-    const arrayOfInvoiceId = req.body;
+    const { id: invoiceIds, proposalId, outletId } = req.body; // Destructure the request body
 
-    // Validate arrayOfInvoiceId if necessary
-    if (!Array.isArray(arrayOfInvoiceId)) {
+    // Validate invoiceIds if necessary
+    if (!Array.isArray(invoiceIds)) {
       return res
         .status(400)
         .json({ error: "Invalid input: Expected an array of Invoice IDs" });
     }
 
-    // Perform deletions
-    const deletionPromises = arrayOfInvoiceId.map(async (proposalId) => {
+    // Flatten the nested outletId array for each proposalId
+    const flattenedOutletIdsArray = outletId.map((outlets) =>
+      outlets.flat(3).map((outlet) => outlet._id.toString())
+    );
+    console.log(flattenedOutletIdsArray);
+
+    // Perform deletions for Invoice IDs
+    const invoiceDeletionPromises = invoiceIds.map(async (invoiceId) => {
       // Delete Invoice document
-      await Invoice.deleteOne({ _id: proposalId });
+      await Invoice.deleteOne({ _id: invoiceId });
     });
 
-    // Wait for all deletion operations to complete
-    await Promise.all(deletionPromises);
+    // Wait for all invoice deletions to complete
+    await Promise.all(invoiceDeletionPromises);
 
-    res.status(200).json({ message: "Invoices deleted successfully" });
+    // Update is_invoiced flag for each outlet associated with each proposalId
+    const updateOutletPromises = proposalId.map(async (proposalId, index) => {
+      // Get the corresponding flattened outletIds for the current proposal
+      const flattenedOutletIds = flattenedOutletIdsArray[index];
+
+      // Find the proposal by ID and populate the outlets
+      const proposal = await Proposal.findById(proposalId).populate("outlets");
+
+      if (!proposal) {
+        return; // Skip this iteration if no proposal is found
+      }
+
+      // Update the is_invoiced flag for each outlet in the proposal
+      let isUpdated = false;
+      proposal.outlets.forEach((outlet) => {
+        if (flattenedOutletIds.includes(outlet._id.toString())) {
+          outlet.is_invoiced = false;
+          isUpdated = true;
+        }
+      });
+
+      // If outlets were updated, save the proposal document
+      if (isUpdated) {
+        await proposal.save();
+      }
+    });
+
+    // Execute the update promises for all proposals
+    await Promise.all(updateOutletPromises);
+
+    console.log("\nAll proposals processed successfully.");
+
+    res
+      .status(200)
+      .json({ message: "Records deleted and outlets updated successfully" });
   } catch (err) {
-    console.error("Error deleting proposals:", err);
+    console.error("Error deleting records:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -276,7 +320,6 @@ export const getInvoiceById = async (req, res, next) => {
     next(error);
   }
 };
-
 
 export const updateInvoice = async (req, res) => {
   const session = await mongoose.startSession();
@@ -304,7 +347,7 @@ export const updateInvoice = async (req, res) => {
       email,
       same_state,
       note,
-      gst_number
+      gst_number,
     } = req.body;
 
     // Find and update the existing Invoice by ID
@@ -328,7 +371,7 @@ export const updateInvoice = async (req, res) => {
         same_state,
         message: "Invoice Updated", // Update the message to reflect the update
         note,
-        gst_number
+        gst_number,
       },
       { new: true, session } // Return the updated document and use the session
     );
@@ -366,46 +409,43 @@ export const updateInvoice = async (req, res) => {
     res.status(500).json({ error: "Failed to update invoice" });
   }
 };
-
-
 export const updateInvoiceStatus = async (req, res) => {
-  //console.log("Request Body:", req.body);
-  const { invoiceId } = req.params; 
-  const { status } = req.body; 
+  const { invoiceId } = req.params;
+  const { status, mail_status } = req.body;
 
   try {
     // Validate input
-    if (!invoiceId || !status) {
-     // console.log("Validation failed: missing invoiceId or status");
-      return res
-        .status(400)
-        .json({ error: "Invoice ID and status are required" });
+    if (!invoiceId || (!status && !mail_status)) {
+      return res.status(400).json({ error: "Invoice ID is required and at least one of status or mail_status must be provided" });
     }
 
-    //console.log(`Updating invoice with ID: ${invoiceId} to status: ${status}`);
+    // Prepare update object
+    const updateFields = {};
+    if (status) {
+      updateFields.status = status;
+    }
+    if (mail_status) {
+      updateFields.mail_status = mail_status;
+    }
 
     // Find and update the invoice
-    const updateInvoice = await Invoice.findByIdAndUpdate(
+    const updatedInvoice = await Invoice.findByIdAndUpdate(
       invoiceId,
-      { $set: { status, message: "Updated Status" } },
+      { $set: { ...updateFields, message: "Updated Status" } },
       { new: true, runValidators: true } // Return the updated document and run validation
     );
 
     // Check if the invoice was found and updated
-    if (!updateInvoice) {
-    //  console.log("Invoice not found");
+    if (!updatedInvoice) {
       return res.status(404).json({ error: "Invoice not found" });
     }
-
-    //console.log("Invoice updated successfully:", updateInvoice);
 
     // Send a successful response
     res.status(200).json({
       message: "Invoice updated successfully",
-      updatedInvoice: updateInvoice, // Use the correct variable here
+      updatedInvoice, // Use the correct variable here
     });
   } catch (error) {
-   // console.error("Error updating invoice:", error.message);
     // Handle errors
     res.status(500).json({ error: "Server error", details: error.message });
   }

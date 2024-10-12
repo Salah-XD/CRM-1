@@ -68,6 +68,8 @@ const AgreementTable = () => {
   const [shouldFetch, setShouldFetch] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [agreementId, setAgreementId] = useState(null);
+  const [proposalIds,setProposalIds]=useState([]);
+  const  [outletIds,setOutletIds]=useState([]);
   const [showSendMailModal, setShowSendMailModal] = useState(false);
   const navigate = useNavigate();
 
@@ -154,14 +156,26 @@ const AgreementTable = () => {
       setFlattenedTableData([]);
     }
   };
-
-  // Row Selection
   const rowSelection = {
     onChange: (selectedRowKeys, selectedRows) => {
+      // Set selected row keys and rows
       setSelectedRowKeys(selectedRowKeys);
       setSelectedRows(selectedRows);
+  
+      // Extract proposalIds and outletIds from selected rows
+      const selectedProposalIds = selectedRows.map((row) => row.proposalId);
+      const selectedOutletIds = selectedRows.map((row) => row.outlets);
+  
+      // Set the proposalIds and outletIds state
+      setProposalIds(selectedProposalIds);
+      setOutletIds(selectedOutletIds);
+  
+      // Console log the proposalIds and outletIds
+      console.log("Selected Proposal IDs:", selectedProposalIds);
+      console.log("Selected Outlet IDs:", selectedOutletIds);
     },
   };
+  
 
   const handleStatusChange = (value, record) => {
     axios
@@ -187,8 +201,14 @@ const AgreementTable = () => {
       okType: "danger",
       cancelText: "No",
       onOk() {
+
+        const requestData = {
+          proposalId: proposalIds,
+          outletId: outletIds,
+          id:selectedRows,
+        };
         axios
-          .delete("/api/agreement/deleteFields", { data: selectedRows })
+          .delete("/api/agreement/deleteFields", { data: requestData })
           .then((response) => {
             const currentPage = tableParams.pagination.current;
             const pageSize = tableParams.pagination.pageSize;
@@ -221,7 +241,7 @@ const AgreementTable = () => {
     });
   };
 
-  const showSingleDeleteConfirm = (id) => {
+  const showSingleDeleteConfirm = (id,proposalId,outletId) => {
     confirm({
       title: "Are you sure delete?",
       icon: <ExclamationCircleFilled />,
@@ -230,7 +250,11 @@ const AgreementTable = () => {
       cancelText: "No",
       onOk() {
         axios
-          .delete("/api/agreement/deleteFields", { data: [id] }) // Send ID as an array
+          .delete("/api/agreement/deleteFields", { data: {
+            id: [id],                   // Single ID to delete
+            proposalId: [proposalId], // Array of proposal IDs
+            outletId: [outletId]      // Array of outlet IDs
+          }}) // Send ID as an array
           .then((response) => {
             const currentPage = tableParams.pagination.current;
             const pageSize = tableParams.pagination.pageSize;
@@ -281,7 +305,7 @@ const AgreementTable = () => {
         break;
 
       case "delete":
-        showSingleDeleteConfirm(record._id);
+        showSingleDeleteConfirm(record._id,record.proposalId,record.outlets);
         break;
 
       case "view":

@@ -1,32 +1,74 @@
 import moment from "moment";
 import mongoose from "mongoose";
 import Agreement from "../models/agreementModel.js";
+import Proposal from "../models/proposalModel.js";
 
 
 
 export const deleteFields = async (req, res) => {
+  console.log(req.body);
   try {
-    const arrayOfAgreementId = req.body;
+    const { id: agreementIds, proposalId, outletId } = req.body; // Destructure the request body
 
-    // Validate arrayOfAgreementId if necessary
-    if (!Array.isArray(arrayOfAgreementId)) {
+    // Validate agreementIds if necessary
+    if (!Array.isArray(agreementIds)) {
       return res
         .status(400)
         .json({ error: "Invalid input: Expected an array of Agreement IDs" });
     }
 
-    // Perform deletions
-    const deletionPromises = arrayOfAgreementId.map(async (aggrementId) => {
+    // Flatten the nested outletId array for each proposalId
+    const flattenedOutletIdsArray = outletId.map((outlets) =>
+      outlets.flat(3).map((outlet) => outlet._id.toString())
+    );
+    console.log(flattenedOutletIdsArray);
+
+    // Perform deletions for Agreement IDs
+    const agreementDeletionPromises = agreementIds.map(async (agreementId) => {
       // Delete Agreement document
-      await Agreement.deleteOne({ _id: aggrementId });
+      await Agreement.deleteOne({ _id: agreementId }); // Ensure you have a model for agreements
     });
 
-    // Wait for all deletion operations to complete
-    await Promise.all(deletionPromises);
+    // Wait for all agreement deletions to complete
+    await Promise.all(agreementDeletionPromises);
 
-    res.status(200).json({ message: "Agreements deleted successfully" });
+    // Update is_agreement flag for each outlet associated with each proposalId
+    const updateOutletPromises = proposalId.map(async (proposalId, index) => {
+      // Get the corresponding flattened outletIds for the current proposal
+      const flattenedOutletIds = flattenedOutletIdsArray[index];
+
+      // Find the proposal by ID and populate the outlets
+      const proposal = await Proposal.findById(proposalId).populate("outlets");
+
+      if (!proposal) {
+        return; // Skip this iteration if no proposal is found
+      }
+
+      // Update the is_agreement flag for each outlet in the proposal
+      let isUpdated = false;
+      proposal.outlets.forEach((outlet) => {
+        if (flattenedOutletIds.includes(outlet._id.toString())) {
+          outlet.is_agreement = false; // Update the is_agreement flag
+          isUpdated = true;
+        }
+      });
+
+      // If outlets were updated, save the proposal document
+      if (isUpdated) {
+        await proposal.save();
+      }
+    });
+
+    // Execute the update promises for all proposals
+    await Promise.all(updateOutletPromises);
+
+    console.log("\nAll proposals processed successfully.");
+
+    res
+      .status(200)
+      .json({ message: "Records deleted and outlets updated successfully" });
   } catch (err) {
-    console.error("Error deleting aggrements:", err);
+    console.error("Error deleting records:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -112,16 +154,22 @@ export const createAgreement = async (req, res) => {
   session.startTransaction();
 
   try {
-    const { fbo_name, from_date, to_date, total_cost, no_of_outlets, address,period,proposalId ,outlets} =
-      req.body;
+    const { fbo_name, from_date, to_date, total_cost, no_of_outlets, address, period,  proposalId, outlets } = req.body;
 
+    if (!fbo_name ||  !to_date || !total_cost || !no_of_outlets || !address || !period || ! proposalId || !outlets) {
+      throw new Error("Missing required fields");
+    }
+
+    const formattedFromDate = from_date ? from_date : moment().format("DD/MM/YYYY");
+
+    const formattedToDate=to_date  ? to_date  : moment().format("DD/MM/YYYY");
 
     // Create a new agreement instance with the provided data
     const newAgreement = new Agreement({
       fbo_name,
       address,
-      from_date,
-      to_date,
+      from_date: formattedFromDate,
+      to_date:formattedToDate,
       total_cost,
       no_of_outlets,
       period,
@@ -131,6 +179,19 @@ export const createAgreement = async (req, res) => {
 
     // Save the new agreement to the database
     const savedAgreement = await newAgreement.save({ session });
+    
+    const outletIds = outlets.map((outlet) => outlet._id);
+
+    // Update outlets to mark them as invoiced
+    const updateResult = await Proposal.updateMany(
+      { "outlets._id": { $in: outletIds } },
+      { $set: { "outlets.$[elem].is_agreement": true } },
+      { arrayFilters: [{ "elem._id": { $in: outletIds } }], session }
+    );
+
+    if (updateResult.nModified === 0) {
+      throw new Error("Failed to update outlets as invoiced");
+    }
 
     // Commit the transaction
     await session.commitTransaction();
@@ -143,7 +204,7 @@ export const createAgreement = async (req, res) => {
       data: savedAgreement,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error creating agreement:", error);
 
     // Abort the transaction in case of error
     await session.abortTransaction();
@@ -156,6 +217,7 @@ export const createAgreement = async (req, res) => {
     });
   }
 };
+
 
 export const getAgreementById = async (req, res, next) => {
   const { agreementId } = req.params; // Extract the ID from the request parameters

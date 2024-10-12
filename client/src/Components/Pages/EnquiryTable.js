@@ -25,6 +25,7 @@ import toast from "react-hot-toast";
 import GenerateProposalModal from "./GenerateProposalModal";
 import EnquiryForm from "./EnquiryForm";
 import { ExclamationCircleFilled } from "@ant-design/icons";
+import { Link } from 'react-router-dom';
 const { confirm } = Modal;
 
 
@@ -266,7 +267,12 @@ const EnquiryTable = () => {
   const handleMenuClick = (record, { key }) => {
     switch (key) {
       case "generate_proposal":
-        showModal(record._id);
+        if (record.proposalId !== null ) {
+          navigate(`/proposal/view-proposal/${record.proposalId}`);
+        } else {
+          // Show modal to generate proposal
+          showModal(record._id);
+        }
         break;
       case "delete":
         showSingleDeleteConfirm(record._id);
@@ -284,16 +290,16 @@ const EnquiryTable = () => {
       onClick={(e) => handleMenuClick(record, e)}
       style={{ padding: "8px" }}
     >
-      <Menu.Item
-        key="generate_proposal"
-        style={{ margin: "8px 0", backgroundColor: "#E0F7FA" }}
+   <Menu.Item
+      key="generate_proposal"
+      style={{ margin: "8px 0", backgroundColor: "#E0F7FA" }}
+    >
+      <span
+        style={{ color: "#00796B", fontWeight: "bold", fontSize: "12px" }}
       >
-        <span
-          style={{ color: "#00796B", fontWeight: "bold", fontSize: "12px" }}
-        >
-          Generate Proposal
-        </span>
-      </Menu.Item>
+        {record.proposalId !== null ? "View Proposal" : "Generate Proposal"}
+      </span>
+    </Menu.Item>
 
       {/* <Menu.Item
         key="send-mail"

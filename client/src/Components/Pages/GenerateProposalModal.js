@@ -228,10 +228,10 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
     try {
       // Validate form fields before submission
       await form.validateFields();
-
+  
       // Collect form values
       const formData = form.getFieldsValue();
-
+  
       // Prepare data to send
       const proposalData = {
         ...formData,
@@ -239,24 +239,33 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
         proposal_date: proposal_date.format("YYYY-MM-DD"),
         outlets: outletItem,
         email: email,
-        same_state:sameState
+        same_state: sameState
       };
-
-      // Make POST request to server
+  
+      // Make POST request to create proposal
       const response = await axios.post(
         "/api/proposal/createProposalAndOutlet",
         proposalData
       );
-      onOk();
+  
+      // Get proposal ID from response and show mail modal
       setPropsalId(response.data.proposal._id);
-      // console.log(response.data.proposal._id);
       setShowSendMailModal(true);
-
-      message.success("Proposal generated successfully!");
+      
+      // Update enquiry status to mark proposal as done
+      await axios.post("/api/enquiry/updateEnquiryProposalStatus", {
+        equiryId: enquiryId,
+        isProposalDone: true 
+      });
+  
+      // Finalize actions and messages
+      onOk(); // Trigger any OK handling logic (such as closing modals)
+      message.success("Proposal generated and status updated successfully!");
     } catch (error) {
-      message.error("Failed to generate proposal.");
+      message.error("Failed to generate proposal or update status.");
     }
   };
+  
 
   const addItem = () => {
     setItems((prevItems) => {

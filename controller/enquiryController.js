@@ -1,11 +1,8 @@
 import moment from "moment";
 import Business from "../models/bussinessModel.js";
-import Outlet from "../models/outletModel.js";
-import PrivateCompany from "../models/privateModel.js";
-import nodemailer from "nodemailer";
-import mongoose from "mongoose";
 import Enquiry from "../models/enquiryModel.js";
-
+import Proposal from "../models/proposalModel.js";
+import { format } from "morgan";
 
 export const saveEnquiryForm = async (req, res) => {
  // console.log(req.body);
@@ -90,7 +87,20 @@ export const getAllEnquiryDetails = async (req, res) => {
     // Fetch the total count of enquiries
     const totalEnquiries = await Enquiry.countDocuments(enquiryQuery);
 
-    // Format the data as needed
+    // Create an array of enquiry IDs to check for proposals
+    const enquiryIds = enquiries.map(enquiry => enquiry._id);
+
+    // Check for proposals linked to these enquiries
+    const proposals = await Proposal.find({ enquiryId: { $in: enquiryIds } })
+      .select("_id enquiryId");
+
+    // Create a map for quick lookup of proposal IDs by enquiry ID
+    const proposalMap = proposals.reduce((acc, proposal) => {
+      acc[proposal.enquiryId] = proposal._id; // Map enquiryId to proposalId
+      return acc;
+    }, {});
+
+    // Format the data as needed, including proposal ID if exists
     const formattedData = enquiries.map((enquiry) => ({
       _id: enquiry._id,
       name: enquiry.business.name,
@@ -100,7 +110,10 @@ export const getAllEnquiryDetails = async (req, res) => {
       added_by: enquiry.added_by,
       status: enquiry.status,
       enquiry_date: moment(enquiry.created_at).fromNow(), // Human-readable format
+      proposalId: proposalMap[enquiry._id] || null, // Assign proposalId or null if not found
     }));
+
+    console.log(formattedData);
 
     // Respond with the formatted data and pagination info
     res.status(200).json({
@@ -109,9 +122,10 @@ export const getAllEnquiryDetails = async (req, res) => {
       data: formattedData,
     });
   } catch (error) {
+    console.error("Error fetching enquiry details:", error); // Log error for debugging
     res.status(500).json({
       message: "An error occurred while fetching the data",
-      error,
+      error: error.message || "Internal Server Error",
     });
   }
 };
@@ -196,6 +210,38 @@ export const getEnquiryById = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+
+
+export const updateEnquiryProposalStatus = async (req, res) => {
+  console.log(req.body);
+  try {
+    const { equiryId, isProposalDone } = req.body; // Extract the enquiryId and isProposalDone from the request body
+
+    if (!equiryId || typeof isProposalDone !== 'boolean') {
+      return res.status(400).json({ message: 'Invalid data provided' });
+    }
+
+    // Update the enquiry by setting isProposalDone based on the provided value
+    const updatedEnquiry = await Enquiry.findByIdAndUpdate(
+      equiryId,
+      { isProposalDone },
+      { new: true }
+    );
+
+    if (!updatedEnquiry) {
+      return res.status(404).json({ message: 'Enquiry not found' });
+    }
+
+    res.status(200).json({
+      message: 'Enquiry proposal status updated successfully',
+      enquiry: updatedEnquiry
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 
 
 export const updateEnquiryById = async (req, res) => {

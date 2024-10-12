@@ -7,6 +7,7 @@ import {
   deleteFields,
   updateEnquiryById,
   getEnquiryById,
+  updateEnquiryProposalStatus
 } from "../controller/enquiryController.js";
 
 const router = express.Router();
@@ -20,6 +21,8 @@ router.get("/getEnquiryById/:id", getEnquiryById);
 router.delete("/deleteFields", deleteFields);
 
 router.put("/updateEnquiryById/:id", updateEnquiryById);
+
+router.put("/updateEnquiryProposalStatus",updateEnquiryProposalStatus)
 
 
 

@@ -5,7 +5,7 @@ const { Schema, model } = mongoose;
 const outletSchema = new Schema(
   {
     _id: {
-      type: String, 
+      type: String,
     },
     outlet_name: {
       type: String,
@@ -33,7 +33,6 @@ const outletSchema = new Schema(
       type: Number,
       default: 0,
     },
-    
   },
   { _id: false }
 ); // Disable automatic ID creation
@@ -50,8 +49,14 @@ const invoiceSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["Mail not sent", "Unpaid/Mail Sent", "Paid", "Hold"],
-      default: "Mail not sent",
+      enum: [ "Unpaid", "Paid", "Hold","Void"],
+      default: "Unpaid",
+      required: true,
+    },
+    mail_status: {
+      type: String,
+      enum: [ "Mail Sent","Mail Not Sent"],
+      default: "Mail Not Sent",
       required: true,
     },
     proposal_number: {
@@ -104,9 +109,9 @@ const invoiceSchema = new Schema(
     message: {
       type: String,
     },
-    same_state:{
-      type:Boolean,
-      require:true
+    same_state: {
+      type: Boolean,
+      require: true,
     },
     proposalId: {
       type: Schema.Types.ObjectId,

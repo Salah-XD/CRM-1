@@ -52,6 +52,8 @@ const ProposalTable = () => {
   const [selectionType, setSelectionType] = useState("checkbox");
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
+  const [proposalIds,setProposalIds]=useState([]);
+  const  [outletIds,setOutletIds]=useState([]);
   const [tableParams, setTableParams] = useState({
     pagination: {
       current: 1,
@@ -163,10 +165,24 @@ const ProposalTable = () => {
   // Row Selection
   const rowSelection = {
     onChange: (selectedRowKeys, selectedRows) => {
+      // Set selected row keys and rows
       setSelectedRowKeys(selectedRowKeys);
       setSelectedRows(selectedRows);
+  
+      // Extract proposalIds and outletIds from selected rows
+      const selectedProposalIds = selectedRows.map((row) => row.proposalId);
+      const selectedOutletIds = selectedRows.map((row) => row.outlets);
+  
+      // Set the proposalIds and outletIds state
+      setProposalIds(selectedProposalIds);
+      setOutletIds(selectedOutletIds);
+  
+      // Console log the proposalIds and outletIds
+      console.log("Selected Proposal IDs:", selectedProposalIds);
+      console.log("Selected Outlet IDs:", selectedOutletIds);
     },
   };
+  
 
   // Show confirm Delete
   const showDeleteConfirm = () => {
@@ -177,8 +193,14 @@ const ProposalTable = () => {
       okType: "danger",
       cancelText: "No",
       onOk() {
+
+        const requestData = {
+          proposalId: proposalIds,
+          outletId: outletIds,
+          id:selectedRows,
+        };
         axios
-          .delete("/api/invoice/deleteFields", { data: selectedRows })
+          .delete("/api/invoice/deleteFields", { data: requestData })
           .then((response) => {
             const currentPage = tableParams.pagination.current;
             const pageSize = tableParams.pagination.pageSize;
@@ -211,7 +233,7 @@ const ProposalTable = () => {
     });
   };
 
-  const showSingleDeleteConfirm = (id) => {
+  const showSingleDeleteConfirm = (id,proposalId,outletId) => {
     confirm({
       title: "Are you sure delete?",
       icon: <ExclamationCircleFilled />,
@@ -220,7 +242,11 @@ const ProposalTable = () => {
       cancelText: "No",
       onOk() {
         axios
-          .delete("/api/invoice/deleteFields", { data: [id] }) // Send ID as an array
+          .delete("/api/invoice/deleteFields", { data: {
+            id: [id],                   // Single ID to delete
+            proposalId: [proposalId], // Array of proposal IDs
+            outletId: [outletId]      // Array of outlet IDs
+          }}) // Send ID as an array
           .then((response) => {
             const currentPage = tableParams.pagination.current;
             const pageSize = tableParams.pagination.pageSize;
@@ -271,7 +297,7 @@ const ProposalTable = () => {
         break;
 
       case "delete":
-        showSingleDeleteConfirm(record._id);
+        showSingleDeleteConfirm(record._id,record.proposalId,record.outlets);
         break;
 
       default:
@@ -279,10 +305,28 @@ const ProposalTable = () => {
     }
   };
 
+ 
+
+
   const handleStatusChange = (value, record) => {
     axios
-      .put(`/api/invoice//updateInvoieStatus/${record._id}`, {
+      .put(`/api/invoice/updateInvoieStatus/${record._id}`, {
         status: value,
+      })
+      .then((response) => {
+        message.success("Status updated successfully");
+        setShouldFetch(true);
+      })
+      .catch((error) => {
+        console.error("Error updating status:", error);
+        toast.error("Failed to update status");
+      });
+  };
+
+  const handleMailStatus = (value, record) => {
+    axios
+      .put(`/api/invoice/updateInvoieStatus/${record._id}`, {
+        mail_status: value,
       })
       .then((response) => {
         message.success("Status updated successfully");
@@ -391,29 +435,23 @@ const ProposalTable = () => {
       key: "status",
       render: (status, record) => {
         const statusOptions = [
-          "Mail not sent",
-          "Unpaid/Mail Sent",
+          
+          "Unpaid",
           "Paid",
           "Hold",
+          "Void"
         ];
 
         const getTagColor = (option) => {
           switch (option) {
-            case "Mail not sent":
-              return "grey";
-            case "Unpaid/Mail Sent":
+       
+            case "Unpaid":
               return "volcano";
             case "Paid":
               return "green";
             case "Hold":
               return "orange";
-            case "Partial Invoiced":
-              return "blue";
-            case "Sale Closed":
-              return "green";
-            case "Dropped":
-              return "red";
-            case "Pending":
+            case "void":
               return "grey";
             default:
               return "blue";
@@ -445,6 +483,53 @@ const ProposalTable = () => {
         );
       },
     },
+    {
+      title: "MailStatus",
+      dataIndex: "mail_status",
+      key: "mail_status",
+      render: (mail_status, record) => {
+        const statusOptions = [
+          "Mail Sent",
+          "Mail Not Sent",
+        ];
+    
+        const getTagColor = (option) => {
+          switch (option) {
+            case "Mail Sent":
+              return "green"; // Color for Mail Sent
+            case "Mail Not Sent":
+              return "volcano"; // Color for Mail Not Sent
+            default:
+              return "blue"; // Default color
+          }
+        };
+    
+        return (
+          <Select
+            defaultValue={mail_status} // Use mail_status to set the default value
+            style={{
+              width: "auto",
+              minWidth: "120px",
+              border: "none",
+              boxShadow: "none",
+              padding: "0",
+            }}
+            dropdownStyle={{
+              width: "auto",
+              border: "none", // Remove border from dropdown
+            }}
+            onChange={(value) => handleMailStatus(value, record)}
+          >
+            {statusOptions.map((option) => (
+              <Select.Option key={option} value={option}>
+                <Tag color={getTagColor(option)}>{option.toUpperCase()}</Tag>
+              </Select.Option>
+            ))}
+          </Select>
+        );
+      },
+    }
+    ,
 
     {
       title: "Action",

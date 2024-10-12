@@ -38,11 +38,19 @@ const outletSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  is_agreement: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const proposalSchema = new Schema(
   {
-
+    enquiryId: {
+      type: Schema.Types.ObjectId,
+      ref: "Enquiry", // Correct reference to the Enquiry model
+      required: true,
+    },
     assigned_auditor:{
        type: Schema.Types.ObjectId,
       ref: "Auditor",

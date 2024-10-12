@@ -13,8 +13,8 @@ import axios from "axios";
 import "../css/GenerateProposalModal.css";
 import GenreateSuccessSendMailTableModal from "./GenreateSuccessSendMailTableModal";
 import moment from "moment";
-import dayjs from 'dayjs';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 
 // Extend dayjs with customParseFormat
 dayjs.extend(customParseFormat);
@@ -57,6 +57,7 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
 
               // Calculate amount based on quantity, unit cost, and man_days
               const amount = outlet.amount || 0;
+              const is_invoiced = outlet.is_invoiced || 0;
 
               let postfix = "";
               switch (type_of_industry) {
@@ -87,6 +88,7 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
                 unit_cost,
                 amount,
                 _id,
+                is_invoiced ,
                 service: `${unit} ${postfix}`,
               };
             })
@@ -107,7 +109,7 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
             pincode,
             phone,
             email,
-            gst_number
+            gst_number,
           } = response.data;
           setEmail(email);
           setPhone(phone);
@@ -117,13 +119,11 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
             proposal_date: proposal_date ? moment(proposal_date) : null,
             proposal_number,
             pincode,
-            gst_number
+            gst_number,
           });
           setInitialValuesLoaded(true);
 
           const state = address.line2.split(",")[1].trim();
-
-         
 
           if (checkState === state) {
             setSameState(true);
@@ -441,20 +441,18 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
                 Select Outlets
               </div>
               <Table
+                rowSelection={{
+                  type: "checkbox",
+                  onSelect: handleSelect,
+                  onSelectAll: handleSelectAll,
+                  getCheckboxProps: (record) => ({
+                    disabled: record.is_invoiced, // Disable row if 'is_invoiced' is true
+                  }),
+                }}
                 dataSource={outlets}
                 columns={outletsColumns}
+                rowKey="_id" // Ensure each row has a unique key (use _id here)
                 pagination={false}
-                rowKey={(record) => record._id}
-                rowSelection={{
-                  selectedRowKeys: selectedOutlets.map((outlet) => outlet._id),
-                  onSelect: (record, selected) => {
-                    handleSelect(record, selected);
-                  },
-                  onSelectAll: (selected, selectedRows) => {
-                    handleSelectAll(selected, selectedRows);
-                  },
-                }}
-                rowClassName={() => ""}
               />
 
               <div className="text-center mt-4">
@@ -493,13 +491,11 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
                   ]}
                 >
                   {" "}
-                  
                   <DatePicker
                     defaultValue={dayjs()}
                     format="DD/MM/YYYY"
                     className="w-full"
                   />
-            
                 </Form.Item>
                 <Form.Item
                   label="Proposal number (Order Ref No.)"

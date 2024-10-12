@@ -30,6 +30,10 @@ const enquirySchema = new Schema({
       "Mail Sent"
     ]
   },
+  isProposalDone:{
+    type:Boolean,
+    
+  },
   created_at: {
     type: Date,
     default: Date.now,

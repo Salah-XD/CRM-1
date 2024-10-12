@@ -147,7 +147,8 @@ export const createProposalAndOutlet = async (req, res) => {
       email,
       note,
       assigned_auditor,
-      same_state
+      same_state,
+      enquiryId
     });
 
     // Save the Proposal to the database
