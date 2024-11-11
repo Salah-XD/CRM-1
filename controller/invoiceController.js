@@ -451,3 +451,30 @@ export const updateInvoiceStatus = async (req, res) => {
   }
 };
 
+export const getInvoicesByProposalId = async (req, res) => {
+  const { proposalId } = req.params;
+
+  try {
+    // Validate input
+    if (!proposalId) {
+      return res.status(400).json({ error: "Proposal ID is required" });
+    }
+
+    // Find all invoices associated with the given proposalId
+    const invoices = await Invoice.find({ proposalId });
+
+    // Check if any invoices were found
+    if (invoices.length === 0) {
+      return res.status(404).json({ message: "No invoices found for this proposal ID" });
+    }
+
+    // Send a successful response with the found invoices
+    res.status(200).json({
+      message: "Invoices retrieved successfully",
+      invoices,
+    });
+  } catch (error) {
+    // Handle errors
+    res.status(500).json({ error: "Server error", details: error.message });
+  }
+};

@@ -178,8 +178,8 @@ const ProposalTable = () => {
       setOutletIds(selectedOutletIds);
   
       // Console log the proposalIds and outletIds
-      console.log("Selected Proposal IDs:", selectedProposalIds);
-      console.log("Selected Outlet IDs:", selectedOutletIds);
+      // console.log("Selected Proposal IDs:", selectedProposalIds);
+      // console.log("Selected Outlet IDs:", selectedOutletIds);
     },
   };
   
@@ -484,7 +484,7 @@ const ProposalTable = () => {
       },
     },
     {
-      title: "MailStatus",
+      title: "Mail Status",
       dataIndex: "mail_status",
       key: "mail_status",
       render: (mail_status, record) => {

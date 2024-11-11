@@ -13,6 +13,7 @@ import axios from "axios";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import GenreateSuccessSendMailTableModal from "./GenreateSuccessSendMailTableModal";
+import { useNavigate  } from "react-router-dom";
 
 // Extend dayjs with customParseFormat
 dayjs.extend(customParseFormat);
@@ -26,11 +27,28 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
   const [agreementId, setAgreementId] = useState(null);
   const [showSendMailModal, setShowSendMailModal] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+  const [agreements, setAgreements]= useState([]);
   const [form] = Form.useForm();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (visible) {
       setLoading(true);
+
+    
+
+
+      axios
+      .get(`/api/agreement/getAgreementsByProposalId/${proposalId}`)
+      .then((response) => {
+        setAgreements(response.data.agreements); 
+      })
+      .catch((error) => {
+      
+        setLoading(false);
+      });
+      
+
       axios
         .get(`/api/proposal/getOutletsByProposalId/${proposalId}`)
         .then((response) => {
@@ -57,6 +75,10 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
     }
   }, [proposalId, visible, form]);
 
+
+  const handleViewAgreement = (agreementId) => {
+    navigate(`/agreement/view-agreement/${agreementId}`); // Use navigate to redirect
+  };
   const outletsColumns = [
     {
       title: "Outlet name",
@@ -216,6 +238,28 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
                     Next
                   </Button>
                 </div>
+                {agreements.length > 0 && (
+  <div className="mt-4">
+    <div className="text-center font-medium text-xl mb-5 rounded-md">
+      Generated Agreements
+    </div>
+    <ul className="agreement-list">
+      {agreements.map((agreement) => (
+        <li key={agreement._id} className="flex justify-around items-center mb-2">
+          <span>{agreement.fbo_name}</span>
+          <Button
+            type="link"
+            onClick={() => handleViewAgreement(agreement._id)}
+            className="text-blue-600"
+          >
+            View
+          </Button>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
               </div>
             ) : (
               <div className="p-6" style={{ backgroundColor: "#F6FAFB" }}>

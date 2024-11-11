@@ -23,6 +23,8 @@ import ViewProposal from "./Components/Pages/ViewProposal";
 import ViewInvoice from "./Components/Pages/ViewInvoice";
 import ViewAgreement from "./Components/Pages/ViewAgreement";
 import SettingsPage from "./Components/Pages/SettingPage";
+import AuditWorkTable from "./Components/Pages/AuditWorkTable";
+import AuditDetails from "./Components/Pages/AuditDetails";
 import { AccountAdminRoute,AuditAdminRoute} from "./Components/Context/ProtectedRoute";
 
 
@@ -63,7 +65,9 @@ function App() {
         </Route>
 
         <Route element={<AuditAdminRoute />}>
-          <Route path="/audit-plan" element={<AuditPlan />} />
+      
+          <Route path="/audit-work" element={<AuditWorkTable />} />
+          <Route path="/audit-detail" element={<AuditDetails />} />
         </Route>
 
         <Route

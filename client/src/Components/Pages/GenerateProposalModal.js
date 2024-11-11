@@ -16,6 +16,12 @@ import moment from "moment";
 import axios from "axios";
 import GenreateSuccessSendMailTableModal from "./GenreateSuccessSendMailTableModal";
 import "../css/GenerateProposalModal.css";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+
+
+// Extend dayjs with customParseFormat
+dayjs.extend(customParseFormat);
 
 const { Option } = Select;
 
@@ -683,9 +689,25 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
                     className="w-full p-2 border border-gray-300 rounded"
                   />
                 </Form.Item>
-                <Form.Item label="Proposal date" className="flex-1" size="large">
-                  <DatePicker className="w-full" value={proposal_date} disabled />
+
+                <Form.Item
+                  label="Proposal date"
+                  className="flex-1"
+                  size="large"
+                  rules={[
+                    { required: true, message: "Please select invoice date!" },
+                  ]}
+                >
+                  {" "}
+                  <DatePicker
+                    defaultValue={dayjs()}
+                    format="DD/MM/YYYY"
+                    className="w-full"
+                  />
                 </Form.Item>
+                {/* <Form.Item label="Proposal date" className="flex-1" size="large">
+                  <DatePicker className="w-full" value={proposal_date} disabled />
+                </Form.Item> */}
                 <Form.Item
                   label="Proposal number"
                   name="proposal_number"
@@ -737,7 +759,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
                   />
                 </Form.Item>
                 <Form.Item
-                  label="GST Number"
+                  label="IGST Number"
                   name="gst_number"
                   className="flex-1"
                   rules={[

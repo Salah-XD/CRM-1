@@ -209,7 +209,7 @@ const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoic
           postfix = "PD/Line";
           break;
         default:
-          postfix = ""; // or any default value
+          postfix = ""; 
       }
 
       return {

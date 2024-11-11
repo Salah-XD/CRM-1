@@ -320,7 +320,7 @@ const handleRejection = () => {
       key: "name",
     },
     {
-      title: "Contact Number",
+      title: "Contact Person",
       dataIndex: "contact_person",
       key: "contact_person",
     },

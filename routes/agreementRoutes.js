@@ -7,7 +7,8 @@ import {
   getAllAgreementDetails,
   getAgreementById,
   updateAgreement,
-  updateAgreementStatus
+  updateAgreementStatus,
+  getAgreementsByProposalId
 } from "../controller/agreementController.js";
 
 import { generateagreement } from "../controller/agreementGenerationController.js";
@@ -28,6 +29,8 @@ router.put("/updateAgreement/:agreementId",updateAgreement);
 
 
 router.put("/updateAgreementStatus/:agreementId",updateAgreementStatus);
+
+router.get("/getAgreementsByProposalId/:proposalId", getAgreementsByProposalId);
 
 
 

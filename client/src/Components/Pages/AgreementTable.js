@@ -71,6 +71,7 @@ const AgreementTable = () => {
   const [proposalIds,setProposalIds]=useState([]);
   const  [outletIds,setOutletIds]=useState([]);
   const [showSendMailModal, setShowSendMailModal] = useState(false);
+  
   const navigate = useNavigate();
 
   // Toggling
@@ -378,24 +379,7 @@ const AgreementTable = () => {
       key: "no_of_outlets",
     },
 
-    // {
-    //   title: "Status",
-    //   dataIndex: "status",
-    //   key: "status",
-    //   render: (status) => {
-    //     let color;
-    //     if (status === "Unpaid/Mail Sent") {
-    //       color = "volcano";
-    //     } else if (status === "Partial Agreement" && status == "Sale Closed") {
-    //       color = "green";
-    //     } else if (status == "Hold") {
-    //       color = "red";
-    //     } else if (status == "paid") {
-    //       color = "green";
-    //     }
-    //     return <Tag color={color}>{status.toUpperCase()}</Tag>;
-    //   },
-    // },
+   
 
     {
       title: "Status",

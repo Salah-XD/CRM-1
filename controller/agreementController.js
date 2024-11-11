@@ -115,7 +115,7 @@ export const getAllAgreementDetails = async (req, res) => {
     const agreements = await query
       .skip((pageNumber - 1) * sizePerPage)
       .limit(sizePerPage)
-      .select("fbo_name no_of_outlets agreement_date status"); // Select only the required fields
+      .select("fbo_name no_of_outlets agreement_date status proposalId outlets");
 
     // Calculate total outlets and formatted dates for each agreement
     const agreementsWithCounts = agreements.map((agreement) => {
@@ -130,6 +130,9 @@ export const getAllAgreementDetails = async (req, res) => {
         no_of_outlets: agreement.no_of_outlets,
         agreement_date: formattedDate,
         status: agreement.status,
+        proposalId:agreement.proposalId,
+        outlets:agreement.outlets,
+
       };
     });
 
@@ -324,3 +327,32 @@ export const updateAgreementStatus = async (req, res) => {
     res.status(500).json({ error: "Server error", details: error.message });
   }
 };
+
+export const getAgreementsByProposalId = async (req, res) => {
+  const { proposalId } = req.params;
+
+  try {
+    // Validate input
+    if (!proposalId) {
+      return res.status(400).json({ error: "Proposal ID is required" });
+    }
+
+    // Find all agreements associated with the given proposalId
+    const agreements = await Agreement.find({ proposalId });
+
+    // Check if any agreements were found
+    if (agreements.length === 0) {
+      return res.status(404).json({ message: "No agreements found for this proposal ID" });
+    }
+
+    // Send a successful response with the found agreements
+    res.status(200).json({
+      message: "Agreements retrieved successfully",
+      agreements,
+    });
+  } catch (error) {
+    // Handle errors
+    res.status(500).json({ error: "Server error", details: error.message });
+  }
+};
+

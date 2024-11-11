@@ -15,6 +15,7 @@ import GenreateSuccessSendMailTableModal from "./GenreateSuccessSendMailTableMod
 import moment from "moment";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import { useNavigate  } from "react-router-dom";
 
 // Extend dayjs with customParseFormat
 dayjs.extend(customParseFormat);
@@ -36,10 +37,26 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
   const [email, setEmail] = useState("");
   const [checkState, setCheckState] = useState("");
   const [sameState, setSameState] = useState(true);
-
+  const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
   useEffect(() => {
     if (visible) {
       setInvoiceDate(moment());
+
+      const fetchInvoices = async () => {
+        try {
+          const response = await axios.get(`/api/invoice/getInvoicesByProposalId/${proposalId}`);
+          setInvoices(response.data.invoices); // Adjust according to your API response structure
+        } catch (err) {
+          setError(err.message); // Set the error message
+        } finally {
+          setLoading(false); // Set loading to false after request completion
+        }
+      };
+  
+      
 
       // Fetch outlets when the modal is visible
       axios
@@ -155,6 +172,7 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
           console.error("Error is fetching the profile state");
         }
       };
+      fetchInvoices();
       fetchProfileSetting();
       fetchInvoiceId();
     }
@@ -175,7 +193,9 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
       : selectedOutlets.filter((outlet) => outlet._id !== record._id);
     setSelectedOutlets(updatedSelectedOutlets);
   };
-
+  const handleViewInvoice = (invoiceId) => {
+    navigate(`/invoice/view-invoice/${invoiceId}`); // Use navigate to redirect
+  };
   const handleSelectAll = (selected, selectedRows) => {
     const validSelectedRows = selectedRows.filter((row) => row && row._id);
     setSelectedOutlets(selected ? validSelectedRows : []);
@@ -464,6 +484,27 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
                   Next
                 </Button>
               </div>
+              {invoices.length > 0 && (
+            <div className="mt-4">
+              <div className="text-center font-medium text-xl mb-5 rounded-md">
+               Generated Invoices
+              </div>
+              <ul className="invoice-list">
+                {invoices.map((invoice) => (
+                  <li key={invoice._id} className="flex justify-around items-center mb-2">
+                    <span>{invoice.fbo_name}</span>
+                    <Button
+                      type="link"
+                      onClick={() => handleViewInvoice(invoice._id)}
+                      className="text-blue-600"
+                    >
+                      View
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
             </div>
           ) : (
             <div className="p-6" style={{ backgroundColor: "#F6FAFB" }}>
@@ -680,7 +721,7 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
                   </>
                 ) : (
                   <div className="flex justify-between items-center">
-                    <div className="text-sm font-medium">GST [18%]:</div>
+                    <div className="text-sm font-medium">IGST [18%]:</div>
                     <div className="text-sm font-medium">
                       {gst.toLocaleString("en-IN", {
                         style: "currency",

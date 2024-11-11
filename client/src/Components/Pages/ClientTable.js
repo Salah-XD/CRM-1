@@ -323,7 +323,7 @@ useEffect(() => {
       key: "name",
     },
     {
-      title: "Contact Number",
+      title: "Contact Person",
       dataIndex: "contact_person",
       key: "contact_person",
     },
@@ -396,16 +396,6 @@ useEffect(() => {
                 Delete
               </Button>
             </Space>
-            {/* <Button shape="round" icon={<FilterOutlined />} size="default">
-              Filters
-            </Button>
-            <Button
-              shape="round"
-              icon={<CloudDownloadOutlined />}
-              size="default"
-            >
-              Export
-            </Button> */}
             <NavLink to="/client-profile/add-business">
               <Button
                 type="primary"

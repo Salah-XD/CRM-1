@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+                                                      import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   UserOutlined,
@@ -153,12 +153,8 @@ const AdminDashboard = ({ children }) => {
          roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
        },
 
-       {
-         label: "Audit Plan",
-         key: "/audit-plan",
-         link: "/audit-plan",
-         roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
-       },
+       
+        
      ],
    },
    {
@@ -168,28 +164,16 @@ const AdminDashboard = ({ children }) => {
      roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
      children: [
        {
-         label: "All Audits",
-         key: "/all-audits",
-         link: "/all-audits",
+         label: "Audit Work",
+         key: "/audit-work",
+         link: "/audit-work",
          roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
        },
        {
-         label: "New Audit Approvals",
-         key: "/new-approvals",
-         link: "/new-approvals",
+         label: "Audit Detail",
+         key: "/audit-detail",
+         link: "/audit-detail",
          roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
-       },
-       {
-         label: "Audit Report - CRUD",
-         key: "/crud",
-         link: "/crud",
-         roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
-       },
-       {
-         label: "Auditor User Management",
-         key: "/auditor-management",
-         link: "/auditor-management",
-         roles: ["SUPER_ADMIN"],
        },
      ],
    },

@@ -9,7 +9,8 @@ import {
   deleteFields,
   getInvoiceById,
   updateInvoice,
-  updateInvoiceStatus
+  updateInvoiceStatus,
+  getInvoicesByProposalId
 } from "../controller/invoiceController.js";
 
 import {generateInvoice} from "../controller/invoicesGenerationController.js";
@@ -34,6 +35,8 @@ router.put("/updateInvoice/:invoiceId",updateInvoice)
 
 
 router.put("/updateInvoieStatus/:invoiceId", updateInvoiceStatus);
+
+router.get("/getInvoicesByProposalId/:proposalId",getInvoicesByProposalId)
 
 
 
