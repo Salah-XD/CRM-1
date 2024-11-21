@@ -4,10 +4,11 @@ import BusinessDetail from "./BussinessDetail";
 import OutletDetail from "./OutletDetail";
 import QuestionnairesForm from "./QuestionnairesForm";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Helmet } from 'react-helmet';
 
 import axios from "axios";
 
-const AddClientForm = ({ newClientTitle }) => {
+const AddClientForm = ({ newClientTitle,title }) => {
   const [current, setCurrent] = useState(0);
   const [formData, setFormData] = useState({
     businessDetail: {},
@@ -171,6 +172,9 @@ const AddClientForm = ({ newClientTitle }) => {
 
   return (
     <>
+    <Helmet>
+    <title>{title || "Add Client"}</title>
+      </Helmet>
       <div className="top-0 z-50 bg-white">
         <div className="mb-10 border shadow-bottom px-4 py-4 flex items-center">
           {location.pathname !== "/client-onboarding" && (

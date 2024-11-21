@@ -42,6 +42,10 @@ const outletSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  is_assignedAuditor:{
+    type:Boolean,
+    default: false,
+  }
 });
 
 const proposalSchema = new Schema(
@@ -123,6 +127,9 @@ const proposalSchema = new Schema(
       require:true
     },
     note:{
+      type:String
+    },
+    service:{
       type:String
     }
   },

@@ -43,6 +43,7 @@
     "puppeteer": "^22.15.0",
     "puppeteer-core": "^10.4.0",
     "react-frame-component": "^5.2.7",
+    "react-helmet": "^6.1.0",
     "react-image-viewer-zoom": "^1.0.36",
     "react-viewer": "^3.2.2",
     "react-zoom-pan-pinch": "^3.6.1",

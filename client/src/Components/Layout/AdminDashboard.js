@@ -158,25 +158,50 @@ const AdminDashboard = ({ children }) => {
      ],
    },
    {
-     label: "Audit Management",
-     key: "/audit",
-     icon: <FileTextOutlined />,
-     roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
-     children: [
-       {
-         label: "Audit Work",
-         key: "/audit-work",
-         link: "/audit-work",
-         roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
-       },
-       {
-         label: "Audit Detail",
-         key: "/audit-detail",
-         link: "/audit-detail",
-         roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
-       },
-     ],
-   },
+    label: "HR Audit Management",
+    key: "/audit",
+    icon: <FileTextOutlined />,
+    roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+    children: [
+      {
+        label: "Unassigned",
+        key: "/unassigned",
+        link: "/audit-work",
+        roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+      },
+      {
+        label: "Assigned",
+        key: "/assigned",
+        link: "/assigned-audit",
+        roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+      },
+      {
+        label: "Draft",
+        key: "/draft",
+        link: "/draft",
+        roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+      },
+      {
+        label: "Rejected",
+        key: "/rejected",
+        link: "/rejected",
+        roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+      },
+      {
+        label: "Submitted for Approval",
+        key: "/submitted-for-approval",
+        link: "/submitted-for-approval",
+        roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+      },
+      {
+        label: "Approved",
+        key: "/approved",
+        link: "/approved",
+        roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+      },
+    ],
+  }
+,  
    {
      label: "Settings",
      key: "/setting",

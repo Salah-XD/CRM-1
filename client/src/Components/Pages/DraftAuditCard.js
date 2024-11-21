@@ -51,7 +51,7 @@ const debounce = (func, delay) => {
 // Define your debounce delay (e.g., 300ms)
 const debounceDelay = 300;
 
-const AuditDetails = () => {
+const DraftAuditCard = () => {
   const [flattenedTableData, setFlattenedTableData] = useState([]);
   const [sortData, setSortData] = useState("alllist");
   const [selectionType, setSelectionType] = useState("checkbox");
@@ -522,7 +522,7 @@ const AuditDetails = () => {
     <AdminDashboard>
       <div className="bg-blue-50 m-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Audits Work</h2>
+          <h2 className="text-xl font-semibold">Assigned Audit</h2>
           <div className="space-x-2">
             <Space wrap>
               <Button
@@ -534,16 +534,7 @@ const AuditDetails = () => {
                 Delete
               </Button>
             </Space>
-            {/* <Button shape="round" icon={<FilterOutlined />} size="default">
-              Filters
-            </Button>
-            <Button
-              shape="round"
-              icon={<CloudDownloadOutlined />}
-              size="default"
-            >
-              Export
-            </Button> */}
+            
           </div>
         </div>
 
@@ -557,57 +548,12 @@ const AuditDetails = () => {
               },
             }}
           >
-           <Radio.Group
-  value={sortData}
-  onChange={(e) => setSortData(e.target.value)}
->
-  <Radio.Button
-    value="newaudit"
-    style={{
-      backgroundColor: sortData === "newaudit" ? "transparent" : "white",
-      color: "black",
-      padding: "0 16px",
-      height: "32px",
-      lineHeight: "30px",
-      border: "1px solid #d3d3d3",
-      fontWeight: sortData === "newaudit" ? "500" : "normal",
-    }}
-  >
-    New Audit
-  </Radio.Button>
 
-  <Radio.Button
-    value="inprogress"
-    style={{
-      backgroundColor: sortData === "inprogress" ? "transparent" : "white",
-      color: "black",
-      padding: "0 16px",
-      height: "32px",
-      lineHeight: "30px",
-      border: "1px solid #d3d3d3",
-      fontWeight: sortData === "inprogress" ? "500" : "normal",
-    }}
-  >
-    In Progress
-  </Radio.Button>
-
-  <Radio.Button
-    value="approved"
-    style={{
-      backgroundColor: sortData === "approved" ? "transparent" : "white",
-      color: "black",
-      padding: "0 16px",
-      height: "32px",
-      lineHeight: "30px",
-      border: "1px solid #d3d3d3",
-      fontWeight: sortData === "approved" ? "500" : "normal",
-    }}
-  >
-    Approved
-  </Radio.Button>
-</Radio.Group>
 
           </ConfigProvider>
+          <div>
+
+          </div>
 
           <div className="space-x-2">
             <Input
@@ -624,7 +570,7 @@ const AuditDetails = () => {
         <div>
         <div className="flex flex-wrap gap-4 p-4">
       <AuditCard
-        status="New"
+        status="Assigned"
         auditorName="Auditor A"
         fboName="FBO Name 1"
         outletName="Outlet Name 1"
@@ -644,7 +590,7 @@ const AuditDetails = () => {
         auditNumber="2"
       />
       <AuditCard
-        status="Submitted"
+        status="Rejected"
         auditorName="Auditor C"
         fboName="FBO Name 3"
         outletName="Outlet Name 3"
@@ -787,4 +733,4 @@ const AuditDetails = () => {
   );
 };
 
-export default AuditDetails;
+export default DraftAuditCard;

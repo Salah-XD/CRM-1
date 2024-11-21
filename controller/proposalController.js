@@ -128,7 +128,8 @@ export const createProposalAndOutlet = async (req, res) => {
       email,
       note,
       assigned_auditor,
-      same_state
+      same_state,
+      service
     } = req.body;
 
     // Create a new Proposal instance with outlets
@@ -148,7 +149,8 @@ export const createProposalAndOutlet = async (req, res) => {
       note,
       assigned_auditor,
       same_state,
-      enquiryId
+      enquiryId,
+      service
     });
 
     // Save the Proposal to the database

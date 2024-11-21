@@ -66,10 +66,12 @@ const EnquiryTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [selectedEnquiryId, setSelectedEnquiryId] = useState(null);
+  const [service,setService]=useState("");
   const navigate = useNavigate();
 
   // Toggling
-  const showModal = (id) => {
+  const showModal = (id,service) => {
+    setService(service);
     setSelectedId(id);
     setIsModalOpen(true);
     setIsModalVisible(true);
@@ -271,7 +273,7 @@ const EnquiryTable = () => {
           navigate(`/proposal/view-proposal/${record.proposalId}`);
         } else {
           // Show modal to generate proposal
-          showModal(record._id);
+          showModal(record._id,record.service);
         }
         break;
       case "delete":
@@ -566,6 +568,7 @@ const EnquiryTable = () => {
         onOk={handleOk}
         onCancel={handleCancel}
         enquiryId={selectedId}
+        service={service}
       />
       <EnquiryForm
         visible={isEnquiryModalVisible}

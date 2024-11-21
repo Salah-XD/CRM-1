@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-const { Option } = Select;
 
 const indianStatesAndUTs = [
   "Andhra Pradesh",

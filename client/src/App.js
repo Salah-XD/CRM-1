@@ -13,7 +13,6 @@ import AdminHeader from "./Components/Layout/AdminHeader";
 import ProposalTable from "./Components/Pages/ProposalTable";
 import LoginPage from "./Components/Auth/LoginPage";
 import ForgotPasswordPage from "./Components/Auth/ForgotPassword";
-import AuditPlan from "./Components/Pages/AuditPlan";
 import InvoiceTable from "./Components/Pages/InvoiceTable";
 import Dashboard from "./Components/Pages/Dashboard";
 import EnquiryTable from "./Components/Pages/EnquiryTable";
@@ -23,8 +22,13 @@ import ViewProposal from "./Components/Pages/ViewProposal";
 import ViewInvoice from "./Components/Pages/ViewInvoice";
 import ViewAgreement from "./Components/Pages/ViewAgreement";
 import SettingsPage from "./Components/Pages/SettingPage";
-import AuditWorkTable from "./Components/Pages/AuditWorkTable";
-import AuditDetails from "./Components/Pages/AuditDetails";
+import UnassignedAuditTable from "./Components/Pages/UnassignedAuditTable";
+import AssignedAuditCard from "./Components/Pages/AssignedAuditCard";
+import AuditForm from "./Components/Pages/AuditForm";
+import AuditReport from "./Components/Pages/AuditReport";
+import DraftAuditCard from "./Components/Pages/DraftAuditCard";
+import RejectedAuditCard from "./Components/Pages/RejectedAuditCard";
+import ApprovedAuditCard from "./Components/Pages/ApprovedAuditCard";
 import { AccountAdminRoute,AuditAdminRoute} from "./Components/Context/ProtectedRoute";
 
 
@@ -37,7 +41,9 @@ function App() {
         <Route path="/" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
+
         <Route path="/dashboard" element={<Dashboard />} />
+    
 
 
         <Route element={<AccountAdminRoute />}>
@@ -66,8 +72,14 @@ function App() {
 
         <Route element={<AuditAdminRoute />}>
       
-          <Route path="/audit-work" element={<AuditWorkTable />} />
-          <Route path="/audit-detail" element={<AuditDetails />} />
+          <Route path="/audit-work" element={<UnassignedAuditTable />} />
+          <Route path="/assigned-audit" element={<AssignedAuditCard />} />
+          <Route path="/draft" element={<DraftAuditCard/>} />
+          <Route path="/rejected" element={<RejectedAuditCard/>} />
+          <Route path="/approved" element={<ApprovedAuditCard/>} />
+          <Route path="/submittedForApproval" element={<DraftAuditCard/>} />
+          <Route path="/audit-form/:audit_id" element={<AuditForm />} />
+          <Route path="/audit-report/:audit_id" element={<AuditReport />} />
         </Route>
 
         <Route

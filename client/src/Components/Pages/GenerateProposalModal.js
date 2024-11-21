@@ -26,7 +26,7 @@ dayjs.extend(customParseFormat);
 const { Option } = Select;
 
 
-const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
+const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) => {
   const [form] = Form.useForm();
   const [outletItem, setItems] = useState([
     {
@@ -245,7 +245,8 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId }) => {
         proposal_date: proposal_date.format("YYYY-MM-DD"),
         outlets: outletItem,
         email: email,
-        same_state: sameState
+        same_state: sameState,
+        service:service
       };
   
       // Make POST request to create proposal

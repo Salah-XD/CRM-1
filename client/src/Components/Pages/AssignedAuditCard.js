@@ -28,10 +28,12 @@ import AdminDashboard from "../Layout/AdminDashboard";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { ExclamationCircleFilled } from "@ant-design/icons";
-import AuditDateModal from "../Layout/AuditDateModal";
-
+import GenerateProposalSendMail from "./GenerateProposalSendMail";
+import GenerateAgreementModal from "./GenrateAgreementModal";
+import GenrateInvoiceModal from "./GenrateInvoiceModal";
+import UpdateGenerateProposalModal from "./UpdateGenrateProposalModal";
+import AuditCard from "../Layout/AuditCard";
 const { confirm } = Modal;
-const { Option } = Select;
 
 // Debounce function definition
 const debounce = (func, delay) => {
@@ -46,10 +48,17 @@ const debounce = (func, delay) => {
   };
 };
 
+const onChange = (value) => {
+  console.log(`selected ${value}`);
+};
+const onSearch = (value) => {
+  console.log("search:", value);
+};
+
 // Define your debounce delay (e.g., 300ms)
 const debounceDelay = 300;
 
-const AuditWorkTable = () => {
+const AuditDetails = () => {
   const [flattenedTableData, setFlattenedTableData] = useState([]);
   const [sortData, setSortData] = useState("alllist");
   const [selectionType, setSelectionType] = useState("checkbox");
@@ -64,20 +73,34 @@ const AuditWorkTable = () => {
   });
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isModalVisibleInvoice, setIsModalVisibleInvoice] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [shouldFetch, setShouldFetch] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [proposalId, setProposalId] = useState(null);
   const [showSendMailModal, setShowSendMailModal] = useState(false);
-  const [auditModal, setAuditModal] = useState(false);
-  const [auditorName,setAuditorName]=useState("");
-  const [auditorId,setAuditorId]=useState();
-  const [auditors, setAuditors] = useState([]);
+  const [UpdateProposal, setUpdateProposal] = useState(false);
   const navigate = useNavigate();
 
   // Toggling
 
+  const handleOk = () => {
+    setIsModalVisible(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
+
+  const handleInvoiceOk = () => {
+    setIsModalVisibleInvoice(false);
+  };
+
+  const handleInvoiceCancel = () => {
+    fetchData();
+    setIsModalVisibleInvoice(false);
+  };
 
   const showModalInvoice = (proposalId) => {
     console.log(proposalId);
@@ -95,6 +118,22 @@ const AuditWorkTable = () => {
     setShowSendMailModal(true);
   };
 
+  const showCloseSendMail = () => {
+    fetchData();
+    setShowSendMailModal(false);
+    setProposalId(null);
+  };
+
+  const showUpdateProposal = (proposalId) => {
+    setProposalId(proposalId);
+    setUpdateProposal(true);
+  };
+
+  const handleUpdatePropsoalCancel = () => {
+    fetchData();
+    setUpdateProposal(false);
+    setProposalId(null);
+  };
 
   // Fetch data function
   const fetchData = useCallback(() => {
@@ -144,18 +183,7 @@ const AuditWorkTable = () => {
 
   // Fetch initial data on component mount
   useEffect(() => {
-    const fetchAllAuditors = async () => {
-      try {
-        const response = await axios.get("/api/auditor/getAllAuditors"); // Adjust the endpoint as needed
-        setAuditors(response.data);
-        console.log(response.data);
-      } catch (error) {
-        console.error("Error fetching auditors:", error);
-      }
-    };
- 
     fetchData();
-    fetchAllAuditors();
   }, [fetchData]);
 
   // Pagination
@@ -262,21 +290,6 @@ const AuditWorkTable = () => {
     });
   };
 
-  const handleAuditorChange=(auditorName,record)=>{
-    setAuditorName(auditorName);
-    setAuditorId(record._id);
-    setAuditModal(true);
-
-  }
-  const handleCloseModal = () => {
-    
-    setAuditModal(false);
-  }
-
-  const handleConfirm=()=>{
-          
-  }
-  
   // Handle Menu
   const handleMenuClick = (record, { key }) => {
     console.log("Menu clicked for record:", record); // Debugging
@@ -371,19 +384,6 @@ const AuditWorkTable = () => {
       title: "Auditor Name",
       dataIndex: "auditor_name",
       key: "auditor_name",
-      render: (text, record) => (
-        <Select
-          defaultValue={text}
-          style={{ width: 150 }}
-          onChange={(value) => handleAuditorChange(value, record)}
-        >
-          {auditors.map((auditor) => (
-            <Option key={auditor._id} value={auditor.auditor_name}>
-              {auditor.auditor_name}
-            </Option>
-          ))}
-        </Select>
-      ),
     },
     {
       title: "Proposal Number",
@@ -529,7 +529,7 @@ const AuditWorkTable = () => {
     <AdminDashboard>
       <div className="bg-blue-50 m-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Audits Work</h2>
+          <h2 className="text-xl font-semibold">Assigned Audits</h2>
           <div className="space-x-2">
             <Space wrap>
               <Button
@@ -541,20 +541,10 @@ const AuditWorkTable = () => {
                 Delete
               </Button>
             </Space>
-            {/* <Button shape="round" icon={<FilterOutlined />} size="default">
-              Filters
-            </Button>
-            <Button
-              shape="round"
-              icon={<CloudDownloadOutlined />}
-              size="default"
-            >
-              Export
-            </Button> */}
           </div>
         </div>
 
-        <div className="flex justify-between my-4">
+        <div className="flex justify-end my-4">
           <ConfigProvider
             theme={{
               components: {
@@ -563,76 +553,62 @@ const AuditWorkTable = () => {
                 },
               },
             }}
-          >
-            <Radio.Group
-              value={sortData}
-              onChange={(e) => setSortData(e.target.value)}
-            >
-              <Radio.Button
-                value="allaudit"
-                style={{
-                  backgroundColor:
-                    sortData === "allaudit" ? "transparent" : "white",
-                  color: "black",
-                  padding: "0 16px",
-                  height: "32px",
-                  lineHeight: "30px",
-                  border: "1px solid #d3d3d3",
-                  fontWeight: sortData === "allaudit" ? "500" : "normal",
-                }}
-              >
-                All Audit
-              </Radio.Button>
+          ></ConfigProvider>
 
-              <Radio.Button
-                value="newaudit"
-                style={{
-                  backgroundColor:
-                    sortData === "newaudit" ? "transparent" : "white",
-                  color: "black",
-                  padding: "0 16px",
-                  height: "32px",
-                  lineHeight: "30px",
-                  border: "1px solid #d3d3d3",
-                  fontWeight: sortData === "newaudit" ? "500" : "normal",
-                }}
-              >
-                New Audit
-              </Radio.Button>
+          <div className="flex ">
+            <div>
+              <h2 className="text-xl font-semibold">Fitlers</h2>
+            </div>
+            <div className=" ml-5 mr-5 ">
+              <Select
+                showSearch
+                placeholder="Select a Auditors"
+                optionFilterProp="label"
+                onChange={onChange}
+                onSearch={onSearch}
+                options={[
+                  {
+                    value: "jack",
+                    label: "Jack",
+                  },
+                  {
+                    value: "lucy",
+                    label: "Lucy",
+                  },
+                  {
+                    value: "tom",
+                    label: "Tom",
+                  },
+                  {
+                    value: "jack",
+                    label: "Jack",
+                  },
+                  {
+                    value: "lucy",
+                    label: "Lucy",
+                  },
+                  {
+                    value: "tom",
+                    label: "Tom",
+                  },
+                  {
+                    value: "jack",
+                    label: "Jack",
+                  },
+                  {
+                    value: "lucy",
+                    label: "Lucy",
+                  },
+                  {
+                    value: "tom",
+                    label: "Tom",
+                  },
+                ]}
+              />
+            </div>
+          </div>
 
-              <Radio.Button
-                value="onprogress"
-                style={{
-                  backgroundColor:
-                    sortData === "onprogress" ? "transparent" : "white",
-                  color: "black",
-                  padding: "0 16px",
-                  height: "32px",
-                  lineHeight: "30px",
-                  border: "1px solid #d3d3d3",
-                  fontWeight: sortData === "onprogress" ? "500" : "normal",
-                }}
-              >
-                On Progress
-              </Radio.Button>
-
-              <Radio.Button
-                value="completed"
-                style={{
-                  backgroundColor:
-                    sortData === "completed" ? "transparent" : "white",
-                  color: "black",
-                  padding: "0 16px",
-                  height: "32px",
-                  lineHeight: "30px",
-                  border: "1px solid #d3d3d3",
-                  fontWeight: sortData === "completed" ? "500" : "normal",
-                }}
-              >
-                Completed
-              </Radio.Button>
-            </Radio.Group>
-          </ConfigProvider>
+          <div></div>
 
           <div className="space-x-2">
             <Input
@@ -647,44 +623,170 @@ const AuditWorkTable = () => {
         </div>
 
         <div>
-          <ConfigProvider
-            theme={{
-              token: {
-                colorTextHeading: "#4A5568",
-                colorText: "#4A5568",
-                fontWeight: "bold",
-              },
-              components: {
-                Table: {
-                  colorText: "#4A5568",
-                  fontWeight: "bold",
-                },
-              },
-            }}
-          >
-            <Table
-              rowSelection={{
-                type: selectionType,
-                ...rowSelection,
-              }}
-              columns={columns}
-              dataSource={flattenedTableData}
-              rowKey={(record) => record.key}
-              pagination={tableParams.pagination}
-              loading={loading}
-              onChange={handleTableChange}
+          <div className="flex flex-wrap gap-4 p-4">
+            <AuditCard
+              status="Assigned"
+              auditorName="Auditor A"
+              fboName="FBO Name 1"
+              outletName="Outlet Name 1"
+              location="Porur/Gerugambakkam"
+              date="10/08/2024"
+              proposalNumber="PROP 0001"
+              auditNumber="1"
+              id="123"
             />
-          </ConfigProvider>
+            <AuditCard
+              status="Draft"
+              auditorName="Auditor B"
+              fboName="FBO Name 2"
+              outletName="Outlet Name 2"
+              location="Porur/Gerugambakkam"
+              date="10/08/2024"
+              proposalNumber="PROP 0002"
+              auditNumber="2"
+            />
+            <AuditCard
+              status="Rejected"
+              auditorName="Auditor C"
+              fboName="FBO Name 3"
+              outletName="Outlet Name 3"
+              location="Porur/Gerugambakkam"
+              date="10/08/2024"
+              proposalNumber="PROP 0003"
+              auditNumber="3"
+            />
+            <AuditCard
+              status="Submitted"
+              auditorName="Auditor C"
+              fboName="FBO Name 3"
+              outletName="Outlet Name 3"
+              location="Porur/Gerugambakkam"
+              date="10/08/2024"
+              proposalNumber="PROP 0003"
+              auditNumber="3"
+            />
+            <AuditCard
+              status="Submitted"
+              auditorName="Auditor C"
+              fboName="FBO Name 3"
+              outletName="Outlet Name 3"
+              location="Porur/Gerugambakkam"
+              date="10/08/2024"
+              proposalNumber="PROP 0003"
+              auditNumber="3"
+            />
+            <AuditCard
+              status="Submitted"
+              auditorName="Auditor C"
+              fboName="FBO Name 3"
+              outletName="Outlet Name 3"
+              location="Porur/Gerugambakkam"
+              date="10/08/2024"
+              proposalNumber="PROP 0003"
+              auditNumber="3"
+            />
+            <AuditCard
+              status="Submitted"
+              auditorName="Auditor C"
+              fboName="FBO Name 3"
+              outletName="Outlet Name 3"
+              location="Porur/Gerugambakkam"
+              date="10/08/2024"
+              proposalNumber="PROP 0003"
+              auditNumber="3"
+            />
+            <AuditCard
+              status="Submitted"
+              auditorName="Auditor C"
+              fboName="FBO Name 3"
+              outletName="Outlet Name 3"
+              location="Porur/Gerugambakkam"
+              date="10/08/2024"
+              proposalNumber="PROP 0003"
+              auditNumber="3"
+            />
+            <AuditCard
+              status="Submitted"
+              auditorName="Auditor C"
+              fboName="FBO Name 3"
+              outletName="Outlet Name 3"
+              location="Porur/Gerugambakkam"
+              date="10/08/2024"
+              proposalNumber="PROP 0003"
+              auditNumber="3"
+            />
+            <AuditCard
+              status="Submitted"
+              auditorName="Auditor C"
+              fboName="FBO Name 3"
+              outletName="Outlet Name 3"
+              location="Porur/Gerugambakkam"
+              date="10/08/2024"
+              proposalNumber="PROP 0003"
+              auditNumber="3"
+            />
+            <AuditCard
+              status="Submitted"
+              auditorName="Auditor C"
+              fboName="FBO Name 3"
+              outletName="Outlet Name 3"
+              location="Porur/Gerugambakkam"
+              date="10/08/2024"
+              proposalNumber="PROP 0003"
+              auditNumber="3"
+            />
+            <AuditCard
+              status="Submitted"
+              auditorName="Auditor C"
+              fboName="FBO Name 3"
+              outletName="Outlet Name 3"
+              location="Porur/Gerugambakkam"
+              date="10/08/2024"
+              proposalNumber="PROP 0003"
+              auditNumber="3"
+            />
+            <AuditCard
+              status="Submitted"
+              auditorName="Auditor C"
+              fboName="FBO Name 3"
+              outletName="Outlet Name 3"
+              location="Porur/Gerugambakkam"
+              date="10/08/2024"
+              proposalNumber="PROP 0003"
+              auditNumber="3"
+            />
+          </div>
         </div>
       </div>
-        <AuditDateModal 
-        auditorName={auditorName}
-        visible={auditModal}
-        onCancel={handleCloseModal}
-         onConfirm={handleConfirm}
+      <GenerateAgreementModal
+        visible={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        proposalId={proposalId}
+      />
+      <GenrateInvoiceModal
+        proposalId={proposalId}
+        visible={isModalVisibleInvoice}
+        onOk={handleInvoiceOk}
+        onCancel={handleInvoiceCancel}
+      />
+      <UpdateGenerateProposalModal
+        visible={UpdateProposal}
+        onOk={handleOk}
+        onCancel={handleUpdatePropsoalCancel}
+        proposalId={proposalId}
+      />
+      <GenerateProposalSendMail
+        visible={showSendMailModal}
+        onClose={showCloseSendMail}
+        id={proposalId}
+        name="proposal"
+        route="generateProposal"
+        title="Genrate Proposal"
+        buttonTitle="Go to Proposal"
       />
     </AdminDashboard>
   );
 };
 
-export default AuditWorkTable;
+export default AuditDetails;

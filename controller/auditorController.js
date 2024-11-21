@@ -1,3 +1,4 @@
+import Proposal from "../models/proposalModel.js"
 import Auditor from "../models/auditorModel.js";
 
 // Create a new auditor
@@ -79,3 +80,88 @@ export const deleteAuditor = async (req, res) => {
     res.status(500).json({ message: "Error deleting auditor", error });
   }
 };
+
+// Function to send outlet data to an external API
+const sendOutletData = async (outletData) => {
+  try {
+    const response = await axios.post('https://example.com/api/outlet', outletData);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error(`Error sending outlet data for ${outletData.outletName}:`, error.message);
+    return { success: false, error: error.message };
+  }
+};
+
+export const processProposalsWithOutlets = async (req, res) => {
+  try {
+    // Fetch all proposals along with their outlets
+    const proposals = await Proposal.find().populate('enquiryId assigned_auditor');
+    const apiResponses = []; // Collects response status for each outlet
+
+    // Loop through each proposal
+    for (const proposal of proposals) {
+      console.log(`Processing Proposal: ${proposal.proposal_number}`);
+
+     let auditNumber=1;
+
+      // Loop through each outlet in the current proposal
+      for (const outlet of proposal.outlets) {
+        console.log(`Sending data for Outlet: ${outlet.outlet_name}, Proposal: ${proposal.proposal_number}`);
+        
+        
+        // Prepare outlet data to send to external API
+        const outletData = {
+          auditNumber:auditNumber,
+          proposalNumber: proposal.proposal_number,
+          fboName: proposal.fbo_name,
+          outletName: outlet.outlet_name,
+          outletManDays: outlet.man_days,
+          outletType: outlet.type_of_industry,
+          amount: outlet.amount,
+          status:outlet.is_assignedAuditor,
+          dateAndTime:proposal.createdAt,
+        };
+        auditNumber++;
+
+       console.log(outletData);
+      }
+    }
+
+
+
+
+
+    
+
+    // Send a consolidated response with the status of each outlet's data send operation
+    res.status(200).json({ message: 'Processed all proposals and outlets successfully', apiResponses });
+  } catch (error) {
+    console.error('Error processing proposals and outlets:', error);
+    res.status(500).json({ message: 'Error processing proposals and outlets', error });
+  }
+};
+
+
+
+// for (let i = 0; i < proposals.length; i++) {
+//   const proposal = proposals[i];
+//   console.log(`Processing Proposal: ${proposal.proposal_number}`);
+
+//   // Loop through each outlet in the current proposal
+//   for (let j = 0; j < proposal.outlets.length; j++) {
+//     const outlet = proposal.outlets[j];
+//     console.log(`Sending data for Outlet: ${outlet.outlet_name}, Proposal: ${proposal.proposal_number}`);
+    
+//     // Prepare outlet data to send to external API
+//     const outletData = {
+//       proposalNumber: proposal.proposal_number,
+//       fboName: proposal.fbo_name,
+//       outletName: outlet.outlet_name,
+//       outletManDays: outlet.man_days,
+//       outletType: outlet.type_of_industry,
+//       amount: outlet.amount,
+//     };
+
+//     console.log(outletData);
+//   }
+// }

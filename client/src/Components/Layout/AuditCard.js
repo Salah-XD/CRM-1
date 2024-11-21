@@ -1,5 +1,7 @@
 import React from 'react';
 import { EnvironmentOutlined, CalendarOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+
 
 const AuditCard = ({
   status,
@@ -9,15 +11,27 @@ const AuditCard = ({
   location,
   date,
   proposalNumber,
-  auditNumber
+  auditNumber,
+  id
 }) => {
+
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    // Navigate to the desired route, for example, '/audit-details'
+    navigate(`/audit-form/${id}`);
+  };
+
   // Function to determine the color of the status
   const getStatusColor = (status) => {
     switch (status) {
-      case 'New':
+      case 'Assigned':
+        return 'bg-yellow-100 text-yellow-800';
       case 'Submitted':
         return 'bg-green-100 text-green-800';
       case 'Draft':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Rejected':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -25,7 +39,10 @@ const AuditCard = ({
   };
 
   return (
-    <div className="max-w-sm bg-white rounded-lg shadow-lg p-4">
+    <div
+      className="audit-card p-4 bg-white shadow-lg rounded-lg cursor-pointer hover:shadow-xl transition-shadow duration-200"
+      onClick={handleClick}
+    >
       {/* Status */}
       <span className={`px-2 py-1 text-sm font-semibold rounded ${getStatusColor(status)}`}>
         {status}
