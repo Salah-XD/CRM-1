@@ -26,10 +26,12 @@ import UnassignedAuditTable from "./Components/Pages/UnassignedAuditTable";
 import AssignedAuditCard from "./Components/Pages/AssignedAuditCard";
 import AuditForm from "./Components/Pages/AuditForm";
 import AuditReport from "./Components/Pages/AuditReport";
-import DraftAuditCard from "./Components/Pages/DraftAuditCard";
+import SubmittedForApproval from "./Components/Pages/SubmittedForApproval";
 import RejectedAuditCard from "./Components/Pages/RejectedAuditCard";
+import DraftAuditCard from "./Components/Pages/DraftAuditCard";
 import ApprovedAuditCard from "./Components/Pages/ApprovedAuditCard";
 import { AccountAdminRoute,AuditAdminRoute} from "./Components/Context/ProtectedRoute";
+import Check from "./Components/Pages/Check";
 
 
 
@@ -43,6 +45,7 @@ function App() {
 
 
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/check" element={<Check/>} />
     
 
 
@@ -77,7 +80,7 @@ function App() {
           <Route path="/draft" element={<DraftAuditCard/>} />
           <Route path="/rejected" element={<RejectedAuditCard/>} />
           <Route path="/approved" element={<ApprovedAuditCard/>} />
-          <Route path="/submittedForApproval" element={<DraftAuditCard/>} />
+          <Route path="/submittedForApproval" element={<SubmittedForApproval/>} />
           <Route path="/audit-form/:audit_id" element={<AuditForm />} />
           <Route path="/audit-report/:audit_id" element={<AuditReport />} />
         </Route>

@@ -760,7 +760,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
                   />
                 </Form.Item>
                 <Form.Item
-                  label="IGST Number"
+                  label="GST Number"
                   name="gst_number"
                   className="flex-1"
                   rules={[

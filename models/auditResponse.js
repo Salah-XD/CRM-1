@@ -3,16 +3,13 @@ import mongoose from 'mongoose';
 const auditResponseSchema = new mongoose.Schema({
     audit: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Audit',
+        ref: 'AuditMangement',
         required: true
     },
     question: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Question',
         required: true
-    },
-    answer: {
-        type: String, 
     },
     comment: {
         type: String,

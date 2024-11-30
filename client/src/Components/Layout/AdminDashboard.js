@@ -182,17 +182,18 @@ const AdminDashboard = ({ children }) => {
         roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
       },
       {
+        label: "Submitted for Approval",
+        key: "/submittedForApproval",
+        link: "/submittedForApproval",
+        roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+      },
+      {
         label: "Rejected",
         key: "/rejected",
         link: "/rejected",
         roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
       },
-      {
-        label: "Submitted for Approval",
-        key: "/submitted-for-approval",
-        link: "/submitted-for-approval",
-        roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
-      },
+   
       {
         label: "Approved",
         key: "/approved",

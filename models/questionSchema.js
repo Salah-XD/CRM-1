@@ -1,4 +1,3 @@
-
 import mongoose from 'mongoose';
 
 const questionSchema = new mongoose.Schema({
@@ -9,6 +8,10 @@ const questionSchema = new mongoose.Schema({
     },
     question_text: {
         type: String,
+        required: true
+    },
+    marks: {
+        type: Number, // Number of marks assigned to this question
         required: true
     }
 }, {

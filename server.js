@@ -11,6 +11,13 @@ import invoiceRoutes from "./routes/invoiceRoutes.js";
 import agreementRoutes from "./routes/agreementRoutes.js"
 import auditorRoutes from "./routes/auditorRoutes.js"
 import settingRoutes from "./routes/settingRoutes.js"
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET
+});
 
  import path from "path";
  import { fileURLToPath } from "url";

@@ -25,13 +25,13 @@ const AuditCard = ({
   // Function to determine the color of the status
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Assigned':
+      case 'assigned':
         return 'bg-yellow-100 text-yellow-800';
-      case 'Submitted':
+      case 'submitted':
         return 'bg-green-100 text-green-800';
-      case 'Draft':
+      case 'draft':
         return 'bg-yellow-100 text-yellow-800';
-      case 'Rejected':
+      case 'rejected':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -40,12 +40,12 @@ const AuditCard = ({
 
   return (
     <div
-      className="audit-card p-4 bg-white shadow-lg rounded-lg cursor-pointer hover:shadow-xl transition-shadow duration-200"
+      className="audit-card p-4  md:w-64  bg-white shadow-lg rounded-lg cursor-pointer hover:shadow-xl transition-shadow duration-200"
       onClick={handleClick}
     >
       {/* Status */}
       <span className={`px-2 py-1 text-sm font-semibold rounded ${getStatusColor(status)}`}>
-        {status}
+        {status.charAt(0).toUpperCase()+status.slice(1)}
       </span>
 
       {/* Assigned to */}

@@ -6,7 +6,7 @@ import AdminDashboard from "../Layout/AdminDashboard";
 import axios from "axios";
 import AuditCard from "../Layout/AuditCard";
 
-const AuditDetails = () => {
+const SubmittedForApproval = () => {
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [audits, setAudits] = useState([]); // State to store audits
@@ -22,7 +22,7 @@ const AuditDetails = () => {
       // Construct query parameters
       const { searchQuery, userId } = filters;
       const queryParams = new URLSearchParams({
-        status: "assigned",
+        status: "submitted",
         ...(searchQuery && { searchQuery }),
         ...(userId && { userId }),
       }).toString();
@@ -84,7 +84,7 @@ const AuditDetails = () => {
     <AdminDashboard>
       <div className="bg-blue-50 m-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Assigned Audits</h2>
+          <h2 className="text-xl font-semibold">Submitted Audits</h2>
         </div>
 
         <div className="flex justify-end my-4">
@@ -149,4 +149,4 @@ const AuditDetails = () => {
   );
 };
 
-export default AuditDetails;
+export default SubmittedForApproval;
