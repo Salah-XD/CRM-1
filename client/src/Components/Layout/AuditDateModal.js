@@ -4,7 +4,7 @@ import moment from "moment";
 
 const { Title, Text } = Typography;
 
-const AuditDateModal = ({ auditorName, visible, onCancel, onConfirm, auditorId}) => {
+const AuditDateModal = ({ auditorName, visible, onCancel, onConfirm, auditorId }) => {
   const [auditDate, setAuditDate] = useState(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
 
@@ -19,9 +19,17 @@ const AuditDateModal = ({ auditorName, visible, onCancel, onConfirm, auditorId})
   };
 
   const handleConfirmContinue = () => {
-    if (onConfirm && auditDate ) {
-      // Pass the data to the parent component
-      onConfirm({ auditDate,auditorId });
+    if (onConfirm && auditDate) {
+      // Merge current time with the selected audit date
+      const mergedDate = moment(auditDate).set({
+        hour: moment().hour(),
+        minute: moment().minute(),
+        second: moment().second(),
+        millisecond: moment().millisecond(),
+      });
+
+      // Pass the merged date to the parent component
+      onConfirm({ auditDate: mergedDate, auditorId });
     }
   };
 

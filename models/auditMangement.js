@@ -32,19 +32,34 @@ const auditSchema = new mongoose.Schema(
     started_at: {
       type: Date,
     },
+
+    started_at: {
+      type: Date,
+      default: Date.now,
+    },
     statusHistory: [
       {
         status: {
           type: String,
-          enum: ["assigned", "draft", "rejected", "submitted", "approved"],
-          default:"submitted"
+          enum: [
+            "assigned",
+            "draft",
+            "rejected",
+            "submitted",
+            "approved",
+            "started",
+          ],
+          default: "assigned",
         },
         changedAt: {
           type: Date,
           default: Date.now,
         },
         comment: String, // For comment when rejected
-        userId: mongoose.Schema.Types.ObjectId, // Admin who rejected
+        userId: {
+          type: mongoose.Schema.Types.ObjectId, // Admin who rejected or approved
+          ref: "User",
+        },
       },
     ],
     modificationHistory: [
@@ -66,6 +81,12 @@ const auditSchema = new mongoose.Schema(
     proposal_number: {
       type: String,
       required: true,
+    },
+    fssai_number: {
+      type: String,
+    },
+    fssai_image_url: {
+      type: String,
     },
   },
   {

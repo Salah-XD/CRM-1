@@ -30,11 +30,14 @@ const LoginPage = () => {
         userId: values.userID,
         password: values.password,
         role: values.businessType, // Sending role as businessType
+
       });
 
       if (response.data.success) {
         message.success("Login Successful!");
+        console.log("This is the response token",response.data.token);
         login(response.data.token);
+
         navigate("/dashboard");
       } else {
         message.error("Incorrect email or password.");
@@ -86,6 +89,9 @@ const LoginPage = () => {
               </Option>
               <Option className="boldGrey" value="AUDIT_ADMIN">
                 Audit Admin
+              </Option>
+              <Option className="boldGrey" value="AUDITOR">
+               Auditor
               </Option>
             </Select>
           </Form.Item>

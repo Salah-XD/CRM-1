@@ -60,7 +60,6 @@ export const registerUser = async (req, res) => {
 
 //Controller for login
 export const loginUser = async (req, res) => {
-  //console.log(req.body);
   try {
     const { userId, password, role } = req.body;
 
@@ -86,12 +85,13 @@ export const loginUser = async (req, res) => {
         .json({ message: "You are not authorized for this role" });
     }
 
-    // Generate JWT Token
+    // Generate JWT Token with user ObjectId
     const token = jwt.sign(
       {
         userName: user.userName,
         userId: user.userId,
         role: user.role,
+        _id: user._id // Include the actual user ObjectId in the payload
       },
       JWT_SECRET,
       { expiresIn: "1h" } // Token expiry time

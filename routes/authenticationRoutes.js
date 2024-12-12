@@ -27,12 +27,14 @@ router.get("/getUserById/:userId",getUserById);
 router.put("/updateUser/:userId",updateUser);
 
 router.get("/protected", verifyToken,(req, res) => {
+  console.log(req.user);
   res.status(200).json({
     message: "This is a protected route",
     user: {
       userName: req.user.userName,
       userId: req.user.userId,
       role: req.user.role,
+      _id:req.user._id
     },
   });
 });

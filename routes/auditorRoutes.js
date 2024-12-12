@@ -12,14 +12,34 @@ import {
   getAuditById,
   updateAuditById,
   updateStatusHistoryByAuditId,
-  saveLabel,addQuestionToLabel,fetchLabelsWithQuestions,saveAuditResponses,updateAuditResponses,fetchingQuestionAnswer
+  saveLabel,
+  addQuestionToLabel,
+  fetchLabelsWithQuestions,
+  saveAuditResponses,
+  updateAuditResponses,
+  fetchingQuestionAnswer,
+  getUserNameById,
+  updateStartedDate,
 } from "../controller/auditorController.js";
-
-import { v2 as cloudinary } from 'cloudinary';
 import { verifyToken } from "../middleware/auth.js";
 import multer from "multer";
-const upload = multer({ dest: 'uploads/' });
+import path from "path";
 
+import { generateAuditReport } from "../controller/auditReportGenerationController.js";
+
+
+// Configure multer
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // Define where to store the uploaded files
+  },
+  filename: (req, file, cb) => {
+    // Set the file name to be saved in the destination folder
+    cb(null, Date.now() + path.extname(file.originalname)); // Append timestamp to avoid file name conflicts
+  },
+});
+
+const upload = multer({ storage: storage });
 
 const router = express.Router();
 
@@ -53,50 +73,27 @@ router.put(
 );
 
 // Route to save a new label
-router.post('/labels', saveLabel);
+router.post("/labels", saveLabel);
 
 // Route to add a question to a label
-router.post('/labels/:labelId/questions', addQuestionToLabel);
+router.post("/labels/:labelId/questions", addQuestionToLabel);
 
-router.get('/fetchLabelsWithQuestions',fetchLabelsWithQuestions);
+router.get("/fetchLabelsWithQuestions", fetchLabelsWithQuestions);
 
+router.get("/fetchingQuestionAnswer/:auditId", fetchingQuestionAnswer);
 
-router.get('/fetchingQuestionAnswer/:auditId',fetchingQuestionAnswer);
+router.post("/saveAuditResponses", upload.array("files"), saveAuditResponses);
 
+router.post(
+  "/updateAuditResponses",
+  upload.array("files"),
+  updateAuditResponses
+);
 
-router.post("/saveAuditResponses",upload.array('files'),saveAuditResponses);
+router.get("/getUserNameById/:userId", getUserNameById);
 
+router.put("/updateStartedDate/:audit_id", updateStartedDate);
 
-router.put("/updateAuditResponses",upload.array('files'),updateAuditResponses);
-
-
-
-
-
-router.post('/upload', async (req, res) => {
-  try {
-      const { imageUrl } = req.body; // Expecting image URL to be sent in the request body
-
-      if (!imageUrl) {
-          return res.status(400).json({ message: 'No image URL provided' });
-      }
-
-      // Upload the image to Cloudinary
-      const uploadResult = await cloudinary.uploader.upload(imageUrl, {
-          public_id: 'test_image',  // Change this as needed
-          folder: 'test_uploads'  // Optional: specify folder in Cloudinary
-      });
-
-      // Respond with the uploaded image URL
-      res.json({
-          message: 'Image uploaded successfully!',
-          url: uploadResult.url,
-      });
-  } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error uploading image', error: error.message });
-  }
-});
-
+router.get('/generateAuditReport/:audit_id',generateAuditReport);
 
 export default router;

@@ -320,8 +320,8 @@ const tax = proposalData.same_state
           <table class="border-collapse w-full">
             <tr>
               <th class="px-2 py-1 text-center">Outlet Name</th>
-              <th class="px-2 py-1 text-center">Description</th>
               <th class="px-2 py-1 text-center">Service</th>
+              <th class="px-2 py-1 text-center">Criteria</th>
               <th class="px-2 py-1 text-center">Man Days</th>
               <th class="px-2 py-1 text-center">Qty</th>
               <th class="px-2 py-1 text-center">Unit Cost</th>

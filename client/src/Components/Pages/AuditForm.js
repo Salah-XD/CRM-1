@@ -11,30 +11,37 @@ import {
   Modal,
   message,
 } from "antd";
-import { ArrowLeftOutlined, ExclamationCircleFilled } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import moment from "moment";
 import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
+import { useAuth } from "../Context/AuthContext";
+import { useLocation } from "react-router-dom";
 
 const { Title, Text } = Typography;
 
 const AuditForm = () => {
   const navigate = useNavigate();
   const params = useParams();
-  const [approvalModalVisible, setApprovalModalVisible] = useState(false);
+
   const [modalAction, setModalAction] = useState("");
   const [isEditable, setIsEditable] = useState(false);
   const [auditData, setAuditData] = useState({});
+  const [approvalModalVisible, setApprovalModalVisible] = useState(false);
+  const [comment, setComment] = useState(""); // State to capture comments
   const [form] = Form.useForm();
+
+  const location = useLocation();
+  const { user } = useAuth();
 
   const getStatusColor = (status) => {
     switch (status) {
       case "assigned":
         return "bg-yellow-100 text-yellow-800 rounded-full";
       case "submitted":
+        return "bg-green-100 text-green-800 rounded-full";
+      case "approved":
         return "bg-green-100 text-green-800 rounded-full";
       case "draft":
         return "bg-yellow-100 text-yellow-800 rounded-full";
@@ -47,23 +54,110 @@ const AuditForm = () => {
     }
   };
 
-  // Fetch audit details
-  useEffect(() => {
-    const fetchAudit = async () => {
-      try {
-        const response = await axios.get(
-          `/api/auditor/getAuditById/${params.audit_id}`
-        );
-        if (response.data.success) {
-          setAuditData(response.data.data);
-          form.setFieldsValue(response.data.data); // Populate form fields
-        } else {
-          message.error(response.data.message);
-        }
-      } catch (error) {
-        message.error("Failed to fetch audit details.");
+  const handleModalOk = async () => {
+    try {
+      const status = modalAction === "approve" ? "approved" : "rejected";
+      const payload = {
+        status,
+        userId: user._id, // Replace with actual user ID
+      };
+
+      // Include the comment if the action is "reject"
+      if (status === "rejected") {
+        payload.comment = comment;
       }
-    };
+
+      const response = await axios.put(
+        `/api/auditor/updateStatusHistoryByAuditId/${params.audit_id}`,
+        payload
+      );
+
+      if (response.data.success) {
+        message.success(
+          `${
+            modalAction.charAt(0).toUpperCase() + modalAction.slice(1)
+          } successfully!`
+        );
+        setApprovalModalVisible(false);
+        setComment(""); // Clear comment after submission
+        fetchAudit(); // Refresh data
+        navigate("/submittedForApproval");
+      } else {
+        message.error(response.data.message);
+      }
+    } catch (error) {
+      message.error("Failed to update status history.");
+    }
+  };
+
+  const handleModalCancel = () => {
+    setApprovalModalVisible(false);
+    setComment(""); // Reset comment on cancel
+  };
+
+  const handleUpdate = async () => {
+    try {
+      // Call the update function
+      const result = await axios.put(
+        `/api/auditor/updateStartedDate/${params.audit_id}`
+      );
+
+      message.success("Audit Started");
+      const firstSegment = location.pathname.split("/").filter(Boolean)[0]; // 'draft', 'assigned-audit', etc.
+
+      // Ensure the path is absolute by using `/`
+      navigate(`/${firstSegment}/audit-form/audit-report/${params.audit_id}`);
+    } catch (error) {
+      // Handle errors and update the status message
+      message.error("Failed to update audit start date.");
+      console.error(error);
+    }
+  };
+
+  const handleStatusUpdate = async () => {
+    try {
+      const response = await axios.put(
+        `/api/auditor/updateStatusHistoryByAuditId/${params.audit_id}`,
+        {
+          status: "submitted",
+        }
+      );
+
+      if (response.status === 200) {
+        console.log("Status updated successfully:", response.data);
+        message.success("Submitted sucessfully!");
+        navigate("/draft");
+        // Optionally, add any additional actions here, such as updating the UI or notifying the user
+      } else {
+        console.error("Failed to update status. Response:", response);
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
+  };
+
+  const showApprovalModal = (action) => {
+    setModalAction(action);
+    setApprovalModalVisible(true);
+  };
+
+  const fetchAudit = async () => {
+    try {
+      const response = await axios.get(
+        `/api/auditor/getAuditById/${params.audit_id}`
+      );
+      if (response.data.success) {
+        setAuditData(response.data.data);
+        form.setFieldsValue(response.data.data); // Populate form fields
+      } else {
+        message.error(response.data.message);
+      }
+    } catch (error) {
+      message.error("Failed to fetch audit details.");
+    }
+  };
+
+  useEffect(() => {
     fetchAudit();
   }, [params.audit_id, form]);
 
@@ -76,6 +170,7 @@ const AuditForm = () => {
       if (response.data.success) {
         message.success("Audit updated successfully!");
         setIsEditable(false);
+        fetchAudit();
       } else {
         message.error(response.data.message);
       }
@@ -84,24 +179,36 @@ const AuditForm = () => {
     }
   };
 
+  const handleApproveButton = () => {
+    showApprovalModal("approve");
+  };
+
+  const handleRejectButton = () => {
+    showApprovalModal("reject");
+  };
+
+  // Split the pathname by '/' and filter out any empty strings
+  const pathSegments = location.pathname.split("/").filter(Boolean);
+
+  // Extract the first segment, which will be the first meaningful part
+  const firstSegment = pathSegments[0];
+
+  console.log("this is the first segment", firstSegment);
+
   const handleViewAndModify = () => {
-    navigate(`/audit-report/${params.audit_id}`);
-  };
+    // Get the first segment of the current pathname
+    const firstSegment = location.pathname.split("/").filter(Boolean)[0]; // 'draft', 'assigned-audit', etc.
 
-  const handleModalOk = () => {
-    console.log(`${modalAction} action confirmed`);
-    setApprovalModalVisible(false);
-  };
+    // Determine the target path based on the first segment
+    const targetPath =
+        firstSegment === "assigned-audit"
+            ? `/${firstSegment}/audit-report/${params.audit_id}`
+            : `/${firstSegment}/audit-form/updateAuditReport/${params.audit_id}`;
 
-  const handleModalCancel = () => {
-    console.log("Action canceled");
-    setApprovalModalVisible(false);
-  };
+    // Navigate to the target path
+    navigate(targetPath);
+};
 
-  const showApprovalModal = (action) => {
-    setModalAction(action);
-    setApprovalModalVisible(true);
-  };
 
   const handleEditButton = () => {
     setIsEditable(true);
@@ -110,6 +217,39 @@ const AuditForm = () => {
   const handleSubmitButton = () => {
     form.submit(); // Trigger form submission
   };
+
+  //Hiding and showing
+  const isApprovedOrSubmitted =
+    firstSegment === "approved" || firstSegment === "submittedForApproval";
+
+  const isDraftSubmit =
+    firstSegment === "draft" ||
+    (firstSegment === "rejected" && user?.role === "AUDITOR");
+
+  const isStatusHistoryNull =
+    !auditData?.statusHistory || auditData.statusHistory.length === 0;
+
+  const lastStatus =
+    auditData?.statusHistory?.length > 0
+      ? auditData.statusHistory[auditData.statusHistory.length - 1].status
+      : null;
+
+  const isDraftOrRejected = ["draft", "rejected"].includes(lastStatus);
+
+  // Check for conditions
+  const showViewModifyButton =
+    (isStatusHistoryNull && user?.role !== "AUDITOR") || isDraftOrRejected;
+
+  const isButtonDisabled =
+    (isStatusHistoryNull && user?.role !== "AUDITOR") ||
+    lastStatus === "approved" ||
+    lastStatus === "submitted";
+
+  const isUserAuditor = user?.role === "AUDITOR";
+
+  // Create a unique variable for checking if the statusHistory is null or empty and if the user is an AUDITOR
+  const canStartAuditButtonBeVisible =
+    !auditData?.statusHistory || auditData.statusHistory.length === 0;
 
   return (
     <AdminDashboard>
@@ -184,7 +324,7 @@ const AuditForm = () => {
                 </Col>
                 <Col span={12}>
                   <Form.Item label="Proposal Number" name="proposal_number">
-                    <Input placeholder="#PROP 0001" disabled={!isEditable} />
+                    <Input placeholder="#PROP 0001" disabled />
                   </Form.Item>
                 </Col>
                 <Col span={12}>
@@ -194,18 +334,13 @@ const AuditForm = () => {
                 </Col>
                 <Col span={12}>
                   <Form.Item label="Audit Number" name="audit_number">
-                    <Input placeholder="02" disabled={!isEditable} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item label="Auditor Name" name="auditor_name">
-                    <Input placeholder="Auditor Name" disabled={!isEditable} />
+                    <Input placeholder="02" disabled />
                   </Form.Item>
                 </Col>
                 <Col span={24}>
                   <div className="flex mt-4">
                     <div>
-                      <h1 className="mr-5 font-medium">Confirm Date:</h1>
+                      <h1 className="mr-5 ">Audit Date:</h1>
                     </div>
                     <Form.Item
                       name="started_at"
@@ -235,27 +370,104 @@ const AuditForm = () => {
                   marginTop: "24px",
                 }}
               >
-                <Button
-                  type="primary"
-                  style={{ backgroundColor: "#009688", borderColor: "#009688" }}
-                  onClick={handleViewAndModify}
-                >
-                  View/modify
-                </Button>
-                <Button
-                  type="primary"
-                  style={{ backgroundColor: "#009688", borderColor: "#009688" }}
-                  onClick={() => showApprovalModal("Approve")}
-                >
-                  Approve
-                </Button>
-                <Button
-                  type="primary"
-                  style={{ backgroundColor: "#009688", borderColor: "#009688" }}
-                  onClick={() => showApprovalModal("Reject")}
-                >
-                  Reject
-                </Button>
+                {isApprovedOrSubmitted && (
+                  <>
+                    <Button
+                      type="primary"
+                      style={{
+                        backgroundColor: "#009688",
+                        borderColor: "#009688",
+                        color: "#fff",
+                      }}
+                      onClick={handleViewAndModify}
+                    >
+                      View
+                    </Button>
+                    <Button
+                      type="primary"
+                      style={{
+                        backgroundColor: "#009688",
+                        borderColor: "#009688",
+                        color: "#fff",
+                      }}
+                      onClick={handleViewAndModify}
+                    >
+                      Download Report
+                    </Button>
+                  </>
+                )}
+
+                {canStartAuditButtonBeVisible && isUserAuditor && (
+                  <Button
+                    type="primary"
+                    style={{
+                      backgroundColor: "#009688",
+                      borderColor: "#009688",
+                    }}
+                    onClick={handleUpdate}
+                  >
+                    Start Audit
+                  </Button>
+                )}
+
+                {showViewModifyButton && (
+                  <Button
+                    type="primary"
+                    style={{
+                      backgroundColor: isButtonDisabled ? "#d9d9d9" : "#009688",
+                      borderColor: isButtonDisabled ? "#d9d9d9" : "#009688",
+                      color: isButtonDisabled ? "#8c8c8c" : "#fff",
+                    }}
+                    onClick={isButtonDisabled ? undefined : handleViewAndModify}
+                    disabled={isButtonDisabled}
+                  >
+                    View/Modify
+                  </Button>
+                )}
+
+                {isDraftSubmit && (
+                  <Button
+                    type="primary"
+                    style={{
+                      backgroundColor: "#009688",
+                      borderColor: "#009688",
+                      color: "#fff",
+                    }}
+                    onClick={handleStatusUpdate}
+                  >
+                    Submit
+                  </Button>
+                )}
+
+                {user?.role &&
+                  firstSegment === "submittedForApproval" &&
+                  (user.role === "SUPER_ADMIN" ||
+                    user.role === "AUDIT_ADMIN") && (
+                    <>
+                      <Button
+                        type="primary"
+                        style={{
+                          backgroundColor: "#009688",
+                          borderColor: "#009688",
+                          color: "#fff",
+                        }}
+                        onClick={handleApproveButton}
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        type="primary"
+                        style={{
+                          backgroundColor: "#009688",
+                          borderColor: "#009688",
+                          color: "#fff",
+                        }}
+                        onClick={handleRejectButton}
+                      >
+                        Reject
+                      </Button>
+                    </>
+                  )}
               </div>
             </Form>
           </Col>
@@ -296,7 +508,13 @@ const AuditForm = () => {
                             Assigned
                           </span>
                           <br />
-                          <Text type="secondary">{auditData?.started_at}</Text>
+                          <Text type="secondary">
+                            {auditData?.started_at
+                              ? moment(auditData.started_at).format(
+                                  "DD/MM/YYYY HH:mm"
+                                )
+                              : "N/A"}
+                          </Text>
                           <br />
                           <Text type="secondary">
                             {auditData?.status_changed_at}
@@ -316,7 +534,13 @@ const AuditForm = () => {
                             Started
                           </span>
                           <br />
-                          <Text type="secondary">{auditData?.started_at}</Text>
+                          <Text type="secondary">
+                            {auditData?.started_at
+                              ? moment(auditData.started_at).format(
+                                  "DD/MM/YYYY HH:mm"
+                                )
+                              : "N/A"}
+                          </Text>
                         </>
                       ),
                     },
@@ -371,17 +595,23 @@ const AuditForm = () => {
                                 )}
                               </Text>
                               <br />
-                              {/* Conditional rendering based on 'rejected' status */}
-                              {statusHistory.status === "rejected" && (
+                              {/* Conditional rendering based on 'rejected' or 'approved' status */}
+                              {statusHistory.status === "rejected" ||
+                              statusHistory.status === "approved" ? (
                                 <>
-                                  <Text className="font-medium">Khushi</Text>
-                                  <br />
-                                  <Text className="font-medium text-red-600">
-                                    (statusHistory.comment)
+                                  <Text className="font-medium">
+                                    {statusHistory.userName}
                                   </Text>
                                   <br />
+                                  {/* Show comment only for rejected status */}
+                                  {statusHistory.status === "rejected" && (
+                                    <Text className="font-medium text-red-600">
+                                      {statusHistory.comment}
+                                    </Text>
+                                  )}
+                                  <br />
                                 </>
-                              )}
+                              ) : null}
                             </div>
                           ),
                         }))
@@ -392,31 +622,65 @@ const AuditForm = () => {
             </div>
           </Col>
         </Row>
+
         <Modal
           visible={approvalModalVisible}
-          footer={null}
+          onOk={handleModalOk}
           onCancel={handleModalCancel}
+          footer={null} // Custom footer implementation
+          centered // Center the modal vertically
+          className="w-full sm:w-96"
         >
-          <div className="flex items-center mb-4">
-            <ExclamationCircleFilled className="text-yellow-500 text-3xl mr-2" />
-            <p className="text-lg font-semibold text-gray-800">
-              Are you sure you want to {modalAction} this client?
-            </p>
+          {/* Modal Title */}
+          <div className="text-center pb-4 border-b border-gray-200">
+            <h2 className="text-lg font-medium text-black">
+              {modalAction === "approve"
+                ? "Approve Audit"
+                : "Enter Rejection Reason"}
+            </h2>
           </div>
-          <div className="flex justify-end space-x-2">
+
+          {/* Rejection Form (conditional) */}
+          {modalAction === "reject" && (
+            <Form.Item
+              rules={[
+                {
+                  required: true,
+                  message: "Please provide a comment for rejection.",
+                },
+              ]}
+              className="mt-4"
+            >
+              <Input.TextArea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Enter your comment here..."
+                rows={4}
+              />
+            </Form.Item>
+          )}
+
+          {/* Confirmation Message */}
+          <p className="text-center text-gray-600 mt-4">
+            Are you sure you want to{" "}
+            <span className="font-semibold text-black">
+              {modalAction === "approve" ? "approve" : "reject"}
+            </span>{" "}
+            this audit?
+          </p>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-4 mt-6">
+            {/* Cancel Button */}
+            <Button onClick={handleModalCancel}>Cancel</Button>
+
+            {/* Approve/Reject Button */}
             <Button
               type="primary"
               onClick={handleModalOk}
-              className="bg-blue-500 hover:bg-blue-600 text-white"
+              danger={modalAction === "reject"} // Use Ant Design's "danger" style for rejection
             >
-              Confirm
-            </Button>
-            <Button
-              type="default"
-              onClick={handleModalCancel}
-              className="bg-red-500 hover:bg-red-600 text-white"
-            >
-              Cancel
+              {modalAction === "approve" ? "Approve" : "Reject"}
             </Button>
           </div>
         </Modal>

@@ -6,6 +6,7 @@ const userRoles = {
   SUPER_ADMIN: "SUPER_ADMIN",
   ACCOUNT_ADMIN: "ACCOUNT_ADMIN",
   AUDIT_ADMIN: "AUDIT_ADMIN",
+  AUDITOR: "AUDITOR", // Added AUDITOR role
 };
 
 // Defining user schema
@@ -30,6 +31,7 @@ const userSchema = new Schema(
         userRoles.SUPER_ADMIN,
         userRoles.ACCOUNT_ADMIN,
         userRoles.AUDIT_ADMIN,
+        userRoles.AUDITOR, // Added AUDITOR role to enum
       ],
       required: true,
     },
@@ -40,11 +42,11 @@ const userSchema = new Schema(
   },
   {
     timestamps: true,
-    collection: "users", // Changed collection name to users
+    collection: "users", // Collection name remains as users
   }
 );
 
-// Creating User model with specified collection name
-const User = model("User", userSchema); // No need to change model name
+// Creating User model
+const User = model("User", userSchema);
 
-export { User, userRoles }; // Exporting with the name User for consistency
+export { User, userRoles }; // Exporting User and userRoles

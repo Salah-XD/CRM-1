@@ -14,7 +14,7 @@ import {
 import { DeleteOutlined } from "@ant-design/icons";
 import moment from "moment";
 import axios from "axios";
-
+import dayjs from "dayjs";
 const { Option } = Select;
 const { TextArea } = Input;
 
@@ -77,17 +77,15 @@ const UpdateGenerateProposalModal = ({
 
   useEffect(() => {
     if (visible) {
-
       const fetchProfileSetting = async () => {
         try {
           const response = await axios.get("/api/setting/getProfileSetting");
           setCheckState(response.data.profile.company_address.state);
-        //  console.log("This is second check state",checkState);
+          //  console.log("This is second check state",checkState);
         } catch (error) {
           console.error("Error is fetching the profile state");
         }
       };
-
 
       const fetchBusinessDetails = async () => {
         try {
@@ -95,8 +93,8 @@ const UpdateGenerateProposalModal = ({
             `/api/proposal/getProposalById/${proposalId}`
           );
           const businessData = response.data;
-          
-          const{address}=response.data;
+
+          const { address } = response.data;
 
           // Set the form fields with the data fetched from the API, including the nested address object and the select option
           form.setFieldsValue({
@@ -157,18 +155,16 @@ const UpdateGenerateProposalModal = ({
             })
           );
           calculateTotals(outletItem);
-          
 
           const state = address.line2.split(",")[1].trim();
 
-          console.log("This is the state",state);
+          console.log("This is the state", state);
           if (checkState === state) {
             setSameState(true);
           } else {
             setSameState(false);
           }
- //         console.log("the check state is ",checkState);
-
+          //         console.log("the check state is ",checkState);
 
           setInitialValuesLoaded(true);
         } catch (error) {
@@ -185,7 +181,6 @@ const UpdateGenerateProposalModal = ({
         }
       };
 
-  
       fetchProfileSetting();
       fetchBusinessDetails();
       fetchAllAuditors();
@@ -317,12 +312,10 @@ const UpdateGenerateProposalModal = ({
 
           const type_of_industry = selectedOutlet?.type_of_industry || "";
           const unit = selectedOutlet?.unit || 0;
-          const
-            no_of_production_line = selectedOutlet?.
-              no_of_production_line || 0;
+          const no_of_production_line =
+            selectedOutlet?.no_of_production_line || 0;
           let man_days = 0;
-          console.log(unit,
-            no_of_production_line);
+          console.log(unit, no_of_production_line);
 
           if (type_of_industry === "Catering") {
             man_days = calculateManDays(unit);
@@ -331,8 +324,10 @@ const UpdateGenerateProposalModal = ({
           } else if (type_of_industry === "Trade and Retail") {
             man_days = calculateStorageManDays(unit);
           } else {
-            man_days = calculateManufacturingManDays(unit,
-              no_of_production_line);
+            man_days = calculateManufacturingManDays(
+              unit,
+              no_of_production_line
+            );
           }
 
           newItems[index] = {
@@ -377,7 +372,6 @@ const UpdateGenerateProposalModal = ({
   }, [outletItem]);
 
   const calculateTotals = (items) => {
-
     if (!Array.isArray(items) || items.length === 0) {
       setSubTotal(0);
       if (sameState) {
@@ -402,23 +396,17 @@ const UpdateGenerateProposalModal = ({
 
       setSgst(calculatedIgst);
       setCgst(calculatedCgst);
-      const calculatedTotal = calculatedSubTotal + calculatedIgst + calculatedCgst;
+      const calculatedTotal =
+        calculatedSubTotal + calculatedIgst + calculatedCgst;
       setTotal(calculatedTotal);
-    }
-    else {
+    } else {
       const calculatedGst = calculatedSubTotal * 0.18;
 
       setIgst(calculatedGst);
       const calculatedTotal = calculatedSubTotal + calculatedGst;
       setTotal(calculatedTotal);
     }
-
-
-
-
-
   };
-
 
   const columns = [
     {
@@ -441,7 +429,7 @@ const UpdateGenerateProposalModal = ({
       ),
     },
     {
-      title: "Description",
+      title: "Services",
       dataIndex: "description",
       render: (text, record, index) => {
         const isOthers = record.outlet_name === "Others";
@@ -474,7 +462,7 @@ const UpdateGenerateProposalModal = ({
       },
     },
     {
-      title: "Services",
+      title: "Criteria",
       dataIndex: "unit",
       render: (text, record, index) => {
         const isOthers = record.outlet_name === "Others";
@@ -631,8 +619,20 @@ const UpdateGenerateProposalModal = ({
                   className="w-full p-2 border border-gray-300 rounded"
                 />
               </Form.Item>
-              <Form.Item label="Proposal date" className="flex-1" size="large">
-                <DatePicker className="w-full" value={proposal_date} disabled />
+              <Form.Item
+                label="Proposal date"
+                name="proposal_date"
+                className="flex-1"
+                size="large"
+                getValueProps={(i) => ({ value: dayjs(i) })}
+                rules={[
+                  {
+                    required: true,
+                    message: "Please select the start date!",
+                  },
+                ]}
+              >
+                <DatePicker className="w-full"   format="DD/MM/YYYY" />
               </Form.Item>
               <Form.Item
                 label="Proposal number"

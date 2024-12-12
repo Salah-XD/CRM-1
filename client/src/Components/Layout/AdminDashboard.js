@@ -85,6 +85,8 @@ const AdminDashboard = ({ children }) => {
         return "ACCOUNT ADMIN";
       case "AUDIT_ADMIN":
         return "AUDIT ADMIN";
+      case "AUDITOR":
+        return "Auditor";
       default:
         return "User";
     }
@@ -161,7 +163,7 @@ const AdminDashboard = ({ children }) => {
     label: "HR Audit Management",
     key: "/audit",
     icon: <FileTextOutlined />,
-    roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+    roles: ["SUPER_ADMIN", "AUDIT_ADMIN","AUDITOR"],
     children: [
       {
         label: "Unassigned",
@@ -173,32 +175,32 @@ const AdminDashboard = ({ children }) => {
         label: "Assigned",
         key: "/assigned",
         link: "/assigned-audit",
-        roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+        roles: ["SUPER_ADMIN", "AUDIT_ADMIN","AUDITOR"],
       },
       {
         label: "Draft",
         key: "/draft",
         link: "/draft",
-        roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+        roles: ["SUPER_ADMIN", "AUDIT_ADMIN","AUDITOR"],
       },
       {
         label: "Submitted for Approval",
         key: "/submittedForApproval",
         link: "/submittedForApproval",
-        roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+        roles: ["SUPER_ADMIN", "AUDIT_ADMIN","AUDITOR"],
       },
       {
         label: "Rejected",
         key: "/rejected",
         link: "/rejected",
-        roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+        roles: ["SUPER_ADMIN", "AUDIT_ADMIN","AUDITOR"],
       },
    
       {
         label: "Approved",
         key: "/approved",
         link: "/approved",
-        roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+        roles: ["SUPER_ADMIN", "AUDIT_ADMIN","AUDITOR"],
       },
     ],
   }
@@ -215,7 +217,7 @@ const AdminDashboard = ({ children }) => {
      key: "logout",
      icon: <LogoutOutlined />,
      action: handleLogout,
-     roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN", "AUDIT_ADMIN"],
+     roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN", "AUDIT_ADMIN","AUDITOR"],
    },
  ];
 

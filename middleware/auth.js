@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET || "arun@321";
 
 export const verifyToken = (req, res, next) => {
+  console.log(req.body)
   const authHeader = req.header("Authorization");
 
   if (!authHeader) {
@@ -25,6 +26,7 @@ export const verifyToken = (req, res, next) => {
       userName: verified.userName,
       userId: verified.userId,
       role: verified.role,
+      _id:verified._id
     };
     next();
   } catch (error) {

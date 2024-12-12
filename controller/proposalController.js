@@ -3,14 +3,12 @@ import Outlet from "../models/outletModel.js";
 import Enquiry from "../models/enquiryModel.js";
 import Proposal from "../models/proposalModel.js";
 import ProposalCounter from "../models/proposalCounter.js";
-import moment from "moment"; 
+import moment from "moment";
 import mongoose from "mongoose";
-
-
 
 export const getOutletDetailsById = async (req, res) => {
   try {
-    const { enquiryId } = req.params; 
+    const { enquiryId } = req.params;
 
     // Find the enquiry that matches the enquiry ID and select the business ID
     const enquiry = await Enquiry.findById(enquiryId).select("business");
@@ -18,7 +16,7 @@ export const getOutletDetailsById = async (req, res) => {
       return res.status(404).json({ message: "Enquiry not found" });
     }
 
-    const { business } = enquiry; 
+    const { business } = enquiry;
 
     // Find outlets that match the business ID and select only branch name and outlet ID
     const outlets = await Outlet.find(
@@ -34,43 +32,41 @@ export const getOutletDetailsById = async (req, res) => {
   }
 };
 
+export const saveProposal = async (req, res) => {
+  const { enquiryId, proposal_date, status, proposal_number, outlets } =
+    req.body;
 
- export const saveProposal = async (req, res) => {
-   const { enquiryId, proposal_date, status, proposal_number, outlets } =
-     req.body;
+  try {
+    //Find the enquiry using the provided enquiryId
+    const enquiry = await Enquiry.findById(enquiryId).populate("business");
 
-   try {
-      //Find the enquiry using the provided enquiryId
-     const enquiry = await Enquiry.findById(enquiryId).populate("business");
+    if (!enquiry) {
+      return res.status(404).json({ message: "Enquiry not found" });
+    }
 
-     if (!enquiry) {
-       return res.status(404).json({ message: "Enquiry not found" });
-     }
+    //Get the business ID from the enquiry
+    const businessId = enquiry.business._id;
 
-      //Get the business ID from the enquiry
-     const businessId = enquiry.business._id;
+    //Create the proposal
+    const proposal = new Proposal({
+      business: businessId,
+      proposal_date,
+      status,
+      proposal_number,
+      outlets,
+    });
 
-      //Create the proposal
-     const proposal = new Proposal({
-       business: businessId,
-       proposal_date,
-       status,
-       proposal_number,
-       outlets,
-     });
+    //Save the proposal to the database
+    await proposal.save();
 
-      //Save the proposal to the database
-     await proposal.save();
-
-     return res
-       .status(201)
-       .json({ message: "Proposal saved successfully", proposal });
-   } catch (error) {
-     console.error(error);
-     return res.status(500).json({ message: "Error saving proposal", error });
-   }
- };
-
+    return res
+      .status(201)
+      .json({ message: "Proposal saved successfully", proposal });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Error saving proposal", error });
+  }
+};
 
 export const getBusinessDetailsByEnquiryId = async (req, res) => {
   const { enquiryId } = req.params;
@@ -102,9 +98,6 @@ export const getBusinessDetailsByEnquiryId = async (req, res) => {
   }
 };
 
-
-
-
 // Controller function to save data
 export const createProposalAndOutlet = async (req, res) => {
   console.log(req.body);
@@ -127,9 +120,9 @@ export const createProposalAndOutlet = async (req, res) => {
       pincode,
       email,
       note,
-      assigned_auditor,
+      representative,
       same_state,
-      service
+      service,
     } = req.body;
 
     // Create a new Proposal instance with outlets
@@ -147,10 +140,10 @@ export const createProposalAndOutlet = async (req, res) => {
       message: "Proposal Created",
       email,
       note,
-      assigned_auditor,
+      representative,
       same_state,
       enquiryId,
-      service
+      service,
     });
 
     // Save the Proposal to the database
@@ -189,21 +182,18 @@ export const createProposalAndOutlet = async (req, res) => {
   }
 };
 
-
-
 //Controller funtion to update the data
 export const updateProposalAndOutlet = async (req, res) => {
   console.log(req.body);
   const session = await mongoose.startSession();
   session.startTransaction();
 
-   // Extract proposalId from route params
-   const { proposalId } = req.params;
+  // Extract proposalId from route params
+  const { proposalId } = req.params;
 
   try {
     // Extract data from req.body
     const {
-
       fbo_name,
       proposal_date,
       status,
@@ -217,7 +207,7 @@ export const updateProposalAndOutlet = async (req, res) => {
       pincode,
       email,
       note,
-      assigned_auditor,
+      representative,
     } = req.body;
 
     // Find and update the existing Proposal by ID
@@ -237,7 +227,7 @@ export const updateProposalAndOutlet = async (req, res) => {
         message: "Proposal Updated", // Update the message to reflect the update
         email,
         note,
-        assigned_auditor,
+        representative,
       },
       { new: true, session } // Return the updated document and use the session
     );
@@ -274,8 +264,6 @@ export const updateProposalAndOutlet = async (req, res) => {
   }
 };
 
-
-
 // Generate unique proposal number
 export const generateProposalNumber = async (req, res) => {
   try {
@@ -303,9 +291,6 @@ export const generateProposalNumber = async (req, res) => {
     res.status(500).json({ error: "Error generating proposal number" });
   }
 };
-
-
-
 
 //Get all the proposal Details
 export const getAllProposalDetails = async (req, res) => {
@@ -362,7 +347,9 @@ export const getAllProposalDetails = async (req, res) => {
       .skip((pageNumber - 1) * sizePerPage)
       .limit(sizePerPage)
       .sort(sortQuery)
-      .select("fbo_name outlets proposal_date status message createdAt updatedAt"); // Select required fields
+      .select(
+        "fbo_name outlets proposal_date status message createdAt updatedAt"
+      ); // Select required fields
 
     // Calculate total outlets and invoiced outlets for each proposal
     const proposalsWithCounts = proposals.map((proposal) => {
@@ -397,10 +384,6 @@ export const getAllProposalDetails = async (req, res) => {
   }
 };
 
-
-
-
-
 //Controller to get all the all the outlets
 export const getOutletsByProposalId = async (req, res) => {
   const { proposalId } = req.params; // Get the proposal ID from the request parameters
@@ -420,7 +403,6 @@ export const getOutletsByProposalId = async (req, res) => {
     return res.status(500).json({ message: "Server error" });
   }
 };
-
 
 export const deleteFields = async (req, res) => {
   try {
@@ -449,11 +431,10 @@ export const deleteFields = async (req, res) => {
   }
 };
 
-
 export const updateProposalStatus = async (req, res) => {
   console.log(req.body);
-  const { proposalId } = req.params; 
-  const { status } = req.body; 
+  const { proposalId } = req.params;
+  const { status } = req.body;
   try {
     // Validate input
     if (!proposalId || !status) {
@@ -466,7 +447,7 @@ export const updateProposalStatus = async (req, res) => {
     const updatedProposal = await Proposal.findByIdAndUpdate(
       proposalId,
       { $set: { status, message: "Updated Status" } },
-      { new: true, runValidators: true } 
+      { new: true, runValidators: true }
     );
 
     // Check if the proposal was found and updated
@@ -483,7 +464,6 @@ export const updateProposalStatus = async (req, res) => {
     res.status(500).json({ error: "Server error", details: error.message });
   }
 };
-
 
 export const getProposalById = async (req, res, next) => {
   const { proposalId } = req.params; // Extract the ID from the request parameters

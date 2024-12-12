@@ -22,11 +22,10 @@ import {
 import AdminDashboard from "../Layout/AdminDashboard";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import ConfirmationModal from "../Layout/ConfirmationModal";
 const { Step } = Steps;
 const { TextArea } = Input;
 const { Option } = Select;
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 function AuditReport() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -35,36 +34,69 @@ function AuditReport() {
   const [fileLists, setFileLists] = useState([]);
   const navigate = useNavigate();
   const params = useParams();
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [status, setStatus] = useState("");
-  const [fssaiNumber, setFssaiNumber] = useState('');
+  const [fssaiNumber, setFssaiNumber] = useState("");
   const [fssaiFile, setFssaiFile] = useState(null);
-  
+  const [formData, setFormData] = useState({});
+  const [sections, setSections] = useState([]);
+  const [fileList, setFileList] = useState([]);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [form] = Form.useForm();
 
+  const handleFileChange = ({ fileList: newFileList }) => {
+    const file = newFileList[0]?.originFileObj;
+
+    // Generate preview if a file is uploaded
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => setPreviewUrl(e.target.result);
+      reader.readAsDataURL(file);
+    } else {
+      setPreviewUrl(null); // Clear preview if no file
+    }
+
+    setFileList(newFileList); // Update file list
+  };
+
+  const handleRemove = () => {
+    setFileList([]); // Clear file list
+    setPreviewUrl(null); // Clear image preview
+  };
+
+  useEffect(() => {
+    const fetchSections = async () => {
+      try {
+        setLoading(true);
+        const { data } = await axios.get(
+          "/api/auditor/fetchLabelsWithQuestions"
+        );
+        setSections(data);
+      } catch (error) {
+        message.error("Failed to fetch section data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSections();
+  }, []);
 
   const handleSubmit = () => {
-    // Show the confirmation modal
-    setIsModalVisible(true);
-  };
+    form
+      .validateFields()
+      .then((values) => {
+        console.log("Form values:", values);
+        handleNextFormSubmit(values, currentStep);
+      })
+      .catch((errorInfo) => {
+        console.log("Validation failed:", errorInfo);
+      });
 
-  const handleSaveAsDraft = () => {
-    // Update the status to 'draft' and close the modal
-    setStatus("draft");
-    setIsModalVisible(false);
-    form.submit();
-  };
-
-  const handleSubmitFinal = () => {
-    // Update the status to 'submitted' and close the modal
-    setStatus("submitted");
-    setIsModalVisible(false);
-    form.submit();
+    handleFormSubmit("draft");
   };
 
   const goBack = () => {
-    navigate(-1); // Go back to the previous page
+    navigate(-1);
   };
-  const [form] = Form.useForm();
 
   useEffect(() => {
     const fetchAuditItems = async () => {
@@ -84,24 +116,35 @@ function AuditReport() {
     fetchAuditItems();
   }, []);
 
-  const handleChange = (index, { fileList: newFileList }) => {
-    // Process the files before setting them in the state
-    newFileList = newFileList.map((file) => {
-      if (file.originFileObj) {
-        file.url = URL.createObjectURL(file.originFileObj); // Generate preview URL
-      }
-      return file;
-    });
+  const handleChange = (questionId, info) => {
+    const updatedFileLists = { ...fileLists };
+    // Store the file and generate a preview URL
+    const file = info.file.originFileObj;
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updatedFileLists[questionId] = [
+          {
+            url: reader.result, // Use FileReader result as URL
+          },
+        ];
+        setFileLists(updatedFileLists);
+      };
+      reader.readAsDataURL(file); // Read the file as data URL
+    } else {
+      updatedFileLists[questionId] = [];
+      setFileLists(updatedFileLists);
+    }
+  };
 
-    // Update the file list for the current question
-    setFileLists((prev) => ({
-      ...prev,
-      [index]: newFileList, // Store file list for specific question index
-    }));
+  const handleRemoveImage = (questionId) => {
+    const updatedFileLists = { ...fileLists };
+    updatedFileLists[questionId] = [];
+    setFileLists(updatedFileLists);
   };
 
   const handleBeforeUpload = (file) => {
-    const isValidType = file.type === "image/jpeg" || file.type === "image/png";
+    const isValidType = file.type === "image/jpg" || file.type === "image/png";
     const isValidSize = file.size / 1024 / 1024 < 2; // Limit file size to 2MB
 
     if (!isValidType) {
@@ -127,131 +170,111 @@ function AuditReport() {
         .then((values) => {
           console.log("Validation successful:", values); // Optional: Log validated values
           onFinish(values); // Manually call the onFinish handler
-          setCurrentStep(currentStep + 1);
+          setCurrentStep(currentStep + 1); // Move to the next step after validation
         })
         .catch((errorInfo) => {
           // Handle validation failure
           console.log("Validation failed:", errorInfo);
         });
     } else {
-      // For other steps, directly move to the next step
-      setCurrentStep(currentStep + 1);
+      // For other steps, trigger form submission for the current section
+      form
+        .validateFields()
+        .then((values) => {
+          console.log("this is the value", values);
+          handleNextFormSubmit(values, currentStep);
+          setCurrentStep(currentStep + 1); // Move to the next step after submission
+        })
+        .catch((errorInfo) => {
+          // Handle validation failure
+          console.log("Validation failed:", errorInfo);
+        });
     }
   };
-  
+
   const prev = () => setCurrentStep(currentStep - 1);
 
   const onFinish = (values) => {
-    // Update state with submitted values
+    // Log the FSSAI License number
     setFssaiNumber(values.fssaiLicense);
-    setFssaiFile(values.mediaUpload);
-  
-    // Notify the user and proceed to the next step
-    message.success("FSSAI License submitted successfully!");
-    console.log("Submitted Values:", values);
-  
-  };
-  
 
-  const uploadProps = {
-    beforeUpload: (file) => {
-      const isAllowedType =
-        file.type === "image/jpeg" ||
-        file.type === "image/png" ||
-        file.type === "image/svg+xml" ||
-        file.type === "application/zip";
-      if (!isAllowedType) {
-        message.error("Only .jpg, .png, .svg, and .zip files are allowed.");
-        return Upload.LIST_IGNORE;
-      }
-      const isSizeValid = file.size / 1024 / 1024 < 2;
-      if (!isSizeValid) {
-        message.error("File size must be smaller than 2MB.");
-        return Upload.LIST_IGNORE;
-      }
-      return isAllowedType && isSizeValid;
-    },
+    // Log the uploaded file (if any)
+    if (fileList.length > 0) {
+      setFssaiFile(fileList[0].originFileObj);
+    }
   };
 
-  const handleRemoveImage = (questionId) => {
-    // Remove image for the specific question
-    setFileLists((prevFileLists) => {
-      const updatedFileLists = { ...prevFileLists };
-      delete updatedFileLists[questionId];
-      return updatedFileLists;
-    });
-  };
-
-  const handleFormSubmit = async (values, questions, params) => {
-    message.success(fssaiNumber);
-    const auditId = params.audit_id;
-
+  const handleFormSubmit = async (status) => {
     try {
-      // Create FormData to handle both file and JSON data
-      const formData = new FormData();
+      setLoading(true);
+      const responses = [];
 
-      // Map through the questions and structure the response
-      const responsesWithIds = questions.map((question, index) => {
-        const response = values.responses?.[currentStep]?.[index] || {};
-        const file = response.file?.[0]?.originFileObj || null; // Extract the uploaded file object
-
-        if (file) {
-          formData.append("files", file); // Append file to FormData
+      // Loop through the formData to extract responses
+      Object.entries(formData.responses).forEach(
+        ([questionId, questionData]) => {
+          // Default handling for other questions
+          const file = questionData.file ? questionData.file : null;
+          const response = {
+            questionId,
+            comment: questionData.comment || "",
+            marks: questionData.selectedMark || 0,
+            file: file ? file.name : "",
+          };
+          responses.push(response);
         }
+      );
 
-        return {
-          questionId: question.questionId,
-          comment: response.comment || "", // Default to empty string if no comment
-          marks: response.selectedMark || 0, // Default to 0 if no mark selected
-          file: file ? file.name : "", // Add the file name to response
-        };
-      });
-
-
-        // Dynamically add the FSSAI data to the responsesWithIds array
-    // const fssaiResponse = {
-    //   questionId: "FSSAI_LICENCE", // This should be dynamically set based on your structure
-    //   comment: null, // FSSAI doesn't need a comment, it's part of the form data
-    //   marks: 0, // You can set marks as required or leave as 0
-    //   file: fssaiFile ? fssaiFile.name : "", // Add the file name (image URL) for FSSAI
-    //   fssaiNumber: fssaiNumber, // Add the FSSAI number to the response
-    // };
-
-    // responsesWithIds.push(fssaiResponse); // Append the FSSAI response to the array
-    
-      // Add the structured JSON data to FormData
-      formData.append(
+      // Prepare FormData for the submission
+      const form = new FormData();
+      form.append(
         "data",
         JSON.stringify({
-          auditId: auditId, // Include the audit_id
-          responses: responsesWithIds, // Include the mapped response data
-          status: status,
+          auditId: params.audit_id, // Example auditId
+          responses,
+          status: status, // Add status
+          fssai_number: fssaiNumber,
+          fssai_file: fssaiFile ? fssaiFile.name : "",
         })
       );
 
-      // // Log the response data for debugging
-      // console.log("Submitting Data:", responsesWithIds);
+      // Append the response files to the FormData
+      responses.forEach((response) => {
+        const file = formData.responses[response.questionId]?.file;
+        if (file && file.originFileObj) {
+          const fileObject = file.originFileObj;
+          form.append("files", fileObject, file.name);
+        }
+      });
 
-      // Make Axios POST request to save the data
+      // If fssai_file exists, append it directly (no need for .originFileObj)
+      if (fssaiFile) {
+        form.append("files", fssaiFile, fssaiFile.name);
+      }
+
+      // Send the FormData using Axios
       const response = await axios.post(
         "/api/auditor/saveAuditResponses",
-        formData, // Send FormData instead of JSON
+        form,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
+            "Content-Type": "multipart/form-data", // Ensure the request is set to multipart
           },
         }
       );
 
-      // Handle success response
       message.success("Questions submitted successfully!");
-      // console.log("Server Response:", data);
-
-      navigate(-1);
+      setLoading(false);
+      navigate("/assigned-audit");
     } catch (error) {
       console.error("Error submitting responses:", error);
       message.error("Failed to submit responses. Please try again.");
     }
+  };
+
+  const handleNextFormSubmit = (values) => {
+    const updatedData = { ...formData };
+    updatedData.responses = values.responses; // Assuming you want to keep the responses updated
+    setFormData(updatedData);
   };
 
   const renderFssaiUI = () => (
@@ -287,30 +310,64 @@ function AuditReport() {
               },
             ]}
           >
-            <Input.OTP formatter={(str) => str.toUpperCase()} />
+            <Input.OTP length={13} formatter={(str) => str.toUpperCase()} />
           </Form.Item>
         </div>
+
         <div className="flex justify-center w-[300px] mx-auto">
-          <Form.Item
-            name="mediaUpload"
-            label="Media Upload"
-            valuePropName="fileList"
-            getValueFromEvent={(e) => (Array.isArray(e) ? e : e?.fileList)}
-          >
-            <Upload.Dragger {...uploadProps}>
-              <p className="ant-upload-drag-icon">
-                <InboxOutlined />
-              </p>
-              <p className="ant-upload-text">
-                Drag your file(s) here, or click to browse
-              </p>
-              <p className="ant-upload-hint">
-                Max 2 MB files are allowed. Only support .jpg, .png, .svg, and
-                .zip files.
-              </p>
-            </Upload.Dragger>
-          </Form.Item>
+          {fileList.length === 0 ? (
+            // Show upload option when no file is uploaded
+            <Form.Item
+              name="mediaUpload"
+              label="Media Upload"
+              valuePropName="fileList"
+              getValueFromEvent={(e) => (Array.isArray(e) ? e : e?.fileList)}
+            >
+              <Upload.Dragger
+                accept=".jpg,.png,.svg"
+                maxCount={1}
+                fileList={fileList} // Controlled fileList
+                onChange={handleFileChange}
+                listType="text" // Removes the default image preview UI
+              >
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">
+                  Drag your file(s) here, or click to browse
+                </p>
+                <p className="ant-upload-hint">
+                  Max 2 MB files are allowed. Only support .jpg, .png, and .svg
+                  files.
+                </p>
+              </Upload.Dragger>
+            </Form.Item>
+          ) : (
+            // Show custom image preview and remove button when a file is uploaded
+            <div className="flex flex-col items-center">
+              {previewUrl && (
+                <Image
+                  src={previewUrl}
+                  alt="Preview"
+                  width={200}
+                  style={{ marginBottom: "16px", borderRadius: "8px" }}
+                  preview={{
+                    mask: "Click to preview",
+                  }}
+                />
+              )}
+              <Button
+                type="primary"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={handleRemove}
+              >
+                Remove
+              </Button>
+            </div>
+          )}
         </div>
+
         <div className="flex justify-center">
           <Text
             type="secondary"
@@ -320,84 +377,135 @@ function AuditReport() {
             it, you will not be able to proceed to the next section."
           </Text>
         </div>
-
       </Form>
     </div>
   );
 
-  const renderQuestionsUI = (questions, params, status) => (
-    <Form
-      layout="vertical"
-      form={form}
-      onFinish={(values) => handleFormSubmit(values, questions, params, status)}
-    >
-      {questions?.map((question, index) => (
-        <div key={index} className="mt-8 p-6 rounded-lg shadow-lg bg-white">
-          <div className="ml-2 border text-center rounded-lg p-2 w-[10%]">
-            <label className="text-md text-gray-800">
-              Mark: {question.mark}
-            </label>
-          </div>
-          <p className="text-gray-800 text-lg p-2">{question.description}</p>
-          <div className="mt-4 flex items-center justify-around">
-            <Form.Item
-              name={["responses", currentStep, index, "comment"]}
-              className="mt-2 w-1/2 "
-            >
-              <TextArea rows={3} placeholder="Comments..." />
-            </Form.Item>
+  const renderQuestionsUI = () => (
+    <>
+      {sections.map((section, sectionIndex) => (
+        <div
+          key={sectionIndex}
+          style={{
+            display: sectionIndex === currentStep - 1 ? "block" : "none",
+          }} // Ensure correct step
+        >
+          <Form
+            layout="vertical"
+            form={form}
+            onFinish={(values) => handleNextFormSubmit(values, sectionIndex)}
+            initialValues={{
+              responses: section.questions.reduce((acc, question) => {
+                acc[question.questionId] = {
+                  comment: "",
+                  selectedMark: undefined,
+                };
+                return acc;
+              }, {}),
+            }}
+          >
+            {section.questions.map((question, questionIndex) => (
+              <div
+                key={questionIndex}
+                className="mt-8 p-6 rounded-lg shadow-lg bg-white"
+              >
+                <div className="ml-2 border text-center rounded-lg p-2 w-[10%]">
+                  <label className="text-md text-gray-800">
+                    Mark: {question.mark}
+                  </label>
+                </div>
+                <p className="text-gray-800 text-lg p-2">
+                  {question.description}
+                </p>
+                <div className="mt-4 flex items-center justify-around">
+                  {/* Comment Field */}
+                  <Form.Item
+                    name={["responses", question.questionId, "comment"]}
+                    className="mt-2 w-1/2 "
+                  >
+                    <TextArea rows={3} placeholder="Observation..." />
+                  </Form.Item>
 
-            <Form.Item name={["responses", currentStep, index, "selectedMark"]}>
-              <Select placeholder="Select mark" style={{ width: 120 }}>
-                {Array.from({ length: question.mark + 1 }, (_, idx) => (
-                  <Option key={idx} value={idx}>
-                    {idx}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-            {/* Upload Image */}
-            <Form.Item
-              name={["responses", currentStep, index, "file"]}
-              valuePropName="file"
-              getValueFromEvent={(e) => e?.file}
-            >
-              {!fileLists[question.questionId]?.length && (
-                <Upload
-                  beforeUpload={handleBeforeUpload}
-                  fileList={fileLists[question.questionId] || []}
-                  onChange={(info) => handleChange(question.questionId, info)}
-                  showUploadList={false}
-                >
-                  <Button icon={<UploadOutlined />}>Upload</Button>
-                </Upload>
-              )}
-            </Form.Item>
+                  {/* Select Mark */}
+                  <Form.Item
+                    name={["responses", question.questionId, "selectedMark"]}
+                  >
+                    <Select placeholder="Select a mark" style={{ width: 120 }}>
+                      {question.mark === 2
+                        ? [
+                            // Generate options for 0, 1, 2
+                            <Option key="N/A" value="N/A">
+                              N/A
+                            </Option>,
+                            ...Array.from({ length: 3 }, (_, idx) => (
+                              <Option key={idx} value={idx}>
+                                {idx}
+                              </Option>
+                            )),
+                          ]
+                        : question.mark === 4
+                        ? [
+                            // Generate options for 0 and 4
+                            <Option key="N/A" value="N/A">
+                              N/A
+                            </Option>,
+                            ...[0, 4].map((value) => (
+                              <Option key={value} value={value}>
+                                {value}
+                              </Option>
+                            )),
+                          ]
+                        : null}
+                    </Select>
+                  </Form.Item>
 
-            {/* Image Preview */}
-            {fileLists[question.questionId]?.length > 0 && (
-              <div className="flex flex-col items-center">
-                <Image
-                  src={fileLists[question.questionId][0]?.url}
-                  alt="Preview"
-                  width={100}
-                  height={100}
-                  style={{ objectFit: "fit" }}
-                />
-                <Button
-                  danger
-                  className="mt-2"
-                  icon={<DeleteOutlined />}
-                  onClick={() => handleRemoveImage(question.questionId)}
-                >
-                  Remove Image
-                </Button>
+                  {/* Upload Section */}
+                  <Form.Item
+                    name={["responses", question.questionId, "file"]}
+                    valuePropName="file"
+                    getValueFromEvent={(e) => e?.file}
+                  >
+                    {!fileLists[question.questionId]?.length && (
+                      <Upload
+                        beforeUpload={handleBeforeUpload}
+                        fileList={fileLists[question.questionId] || []}
+                        onChange={(info) =>
+                          handleChange(question.questionId, info)
+                        }
+                        showUploadList={false}
+                      >
+                        <Button icon={<UploadOutlined />}>Upload</Button>
+                      </Upload>
+                    )}
+                  </Form.Item>
+
+                  {/* Image Preview */}
+                  {fileLists[question.questionId]?.length > 0 && (
+                    <div className="flex flex-col items-center">
+                      <Image
+                        src={fileLists[question.questionId][0]?.url}
+                        alt="Preview"
+                        width={100}
+                        height={100}
+                        style={{ objectFit: "fit" }}
+                      />
+                      <Button
+                        danger
+                        className="mt-2"
+                        icon={<DeleteOutlined />}
+                        onClick={() => handleRemoveImage(question.questionId)}
+                      >
+                        Remove Image
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
-            )}
-          </div>
+            ))}
+          </Form>
         </div>
       ))}
-    </Form>
+    </>
   );
 
   return (
@@ -408,10 +516,12 @@ function AuditReport() {
         </div>
 
         <Steps current={currentStep}>
+          <Step title="FSSAI License" />
           {auditItems.map((item, index) => (
             <Step key={index} title={item.title} />
           ))}
         </Steps>
+
         {loading ? (
           <div className="flex justify-center mt-8">
             <Spin size="medium" />
@@ -419,7 +529,9 @@ function AuditReport() {
         ) : (
           <div className="flex justify-between mt-8">
             <h2 className="text-lg text-gray-600">
-              {auditItems[currentStep]?.title}
+              {currentStep === 0
+                ? "FSSAI License"
+                : auditItems[currentStep - 1]?.title}
             </h2>
             <div>
               <Button
@@ -437,7 +549,7 @@ function AuditReport() {
                 icon={<HomeOutlined />}
               ></Button>
               {/* Next Button (ArrowRightOutlined) */}
-              {currentStep < auditItems.length - 1 && (
+              {currentStep < auditItems.length && (
                 <Button
                   type="link"
                   icon={<ArrowRightOutlined />}
@@ -448,7 +560,7 @@ function AuditReport() {
               )}
 
               {/* Submit Button (Only shown on the last step) */}
-              {currentStep === auditItems.length - 1 && (
+              {currentStep === auditItems.length && (
                 <Button type="primary" onClick={handleSubmit}>
                   Submit
                 </Button>
@@ -457,17 +569,10 @@ function AuditReport() {
           </div>
         )}
 
-        {auditItems[currentStep]?.title === "FSSAI liscence"
+        {currentStep === 0
           ? renderFssaiUI()
-          : renderQuestionsUI(auditItems[currentStep]?.questions, params)}
+          : renderQuestionsUI(auditItems[currentStep - 1]?.questions, params)}
       </div>
-
-      <ConfirmationModal
-        visible={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
-        onSubmit={handleSubmitFinal}
-        onSaveAsDraft={handleSaveAsDraft}
-      />
     </AdminDashboard>
   );
 }

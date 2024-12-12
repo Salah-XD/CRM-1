@@ -20,7 +20,6 @@ const UpdateGenerateAgreementModal = ({
   agreementIds,
 }) => {
   const [selectedOutlets, setSelectedOutlets] = useState([]);
-  const [agreementOutlets, setAgreementOutlets] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [totalAmount, setTotalAmount] = useState(0);
   const [outlets, setOutlets] = useState([]);
@@ -253,16 +252,7 @@ const UpdateGenerateAgreementModal = ({
               >
                 <Input />
               </Form.Item>
-              <Form.Item
-                label="Period (Months)"
-                name="period"
-                rules={[{ required: true, message: "Please enter period!" }]}
-              >
-                <Input
-                  type="number"
-                  onChange={(e) => handlePeriodChange(e.target.value)}
-                />
-              </Form.Item>
+             
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Form.Item
                   label="From date"
@@ -289,6 +279,16 @@ const UpdateGenerateAgreementModal = ({
                   <DatePicker className="w-full" disabled />
                 </Form.Item>
               </div>
+              <Form.Item
+                label="Period (Months)"
+                name="period"
+                rules={[{ required: true, message: "Please enter period!" }]}
+              >
+                <Input
+                  type="number"
+                  onChange={(e) => handlePeriodChange(e.target.value)}
+                />
+              </Form.Item>
               <Form.Item
                 label="FBO Address"
                 name="address"

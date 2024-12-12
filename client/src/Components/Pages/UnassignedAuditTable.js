@@ -1,12 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Table,
-  Radio,
-  Input,
-  ConfigProvider,
-  Select,
-  message,
-} from "antd";
+import { Table, Radio, Input, ConfigProvider, Select, message } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminDashboard from "../Layout/AdminDashboard";
@@ -56,7 +49,7 @@ const UnassignedAuditTable = () => {
   const [fboName, setFboName] = useState("");
   const [auditNumber, setAuditNumber] = useState("");
   const [selectedAuditor, setSelectedAuditor] = useState(null);
-  const [proposalNumber,setProposalNumber]=useState("");
+  const [proposalNumber, setProposalNumber] = useState("");
   const params = useParams();
   const navigate = useNavigate();
 
@@ -139,7 +132,7 @@ const UnassignedAuditTable = () => {
     setOutletId(record.outlet_id);
     setProposalId(record.proposal_id);
     setLocation(record.location);
-    setOutletName(record.location);
+    setOutletName(record.outlet_name);
     setFboName(record.fbo_name);
     setAuditNumber(record.audit_number);
     setProposalNumber(record.proposal_number);
@@ -153,8 +146,7 @@ const UnassignedAuditTable = () => {
   };
 
   const handleConfirm = async ({ auditorId, auditDate, record }) => {
-
-    console.log("this is the proposal number",proposalNumber);
+    console.log("this is the proposal number", proposalNumber);
     // // Prepare the request payload
     const requestData = {
       proposalId,
@@ -165,7 +157,7 @@ const UnassignedAuditTable = () => {
       started_at: auditDate,
       audit_number: auditNumber,
       status: "assigned",
-      proposal_number:proposalNumber,
+      proposal_number: proposalNumber,
       location,
     };
 
@@ -173,11 +165,20 @@ const UnassignedAuditTable = () => {
       const response = await axios.post(
         "/api/auditor/saveAuditRecord",
         requestData
-      ); 
+      );
       message.success("The auditor has been allocated");
       fetchData();
+      setAuditorName("");
+      setAuditorId("");
+      setOutletId("");
+      setProposalId("");
+      setLocation("");
+      setOutletName("");
+      setFboName("");
+      setAuditNumber("");
+      setProposalNumber("");
       setAuditModal(false);
-    
+
       console.log("Audit record saved successfully:", response.data);
     } catch (error) {
       console.error(
@@ -195,17 +196,13 @@ const UnassignedAuditTable = () => {
       render: (text, record) => {
         return (
           <Select
-            defaultValue={text}
+            value={record.auditor_name} // Use individual row's auditor_name
             style={{ width: 150 }}
             onChange={(value) => {
               const [auditorName, auditorId] = value.split("|"); // Decode value
               handleAuditorChange(
                 auditorName,
-                {
-                  auditor_id: auditorId,
-                  ...record,
-                },
-                record
+                { auditor_id: auditorId, ...record } // Pass the row's data
               ); // Construct the desired record
             }}
           >

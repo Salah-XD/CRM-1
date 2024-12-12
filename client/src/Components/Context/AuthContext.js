@@ -12,10 +12,10 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const login = async (token, userId, role) => {
+  const login = async (token, userId, role, userName, _id) => {
     try {
       localStorage.setItem("authToken", token);
-      setUser({ userId, role });
+      setUser({ userId, role, userName, _id });
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       await checkAuth();
     } catch (err) {
@@ -36,11 +36,12 @@ export const AuthProvider = ({ children }) => {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       try {
         const response = await axios.get("/api/auth/protected");
-        console.log("this is response",response);
+        console.log("API Response:", response); // Debugging response
         setUser({
           userId: response.data.user.userId,
           role: response.data.user.role,
           userName: response.data.user.userName,
+          _id: response.data.user._id, // Ensure _id exists in the API response
         });
         setError(null);
       } catch (error) {

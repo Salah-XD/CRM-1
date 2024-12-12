@@ -78,7 +78,7 @@ const businessSchema = new Schema({
   },
   place_of_supply: {
     type: String,
-    required: true,
+
   },
 });
 

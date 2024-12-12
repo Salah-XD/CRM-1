@@ -12,14 +12,15 @@ const AuditCard = ({
   date,
   proposalNumber,
   auditNumber,
-  id
+  id,
+  route
 }) => {
 
   const navigate = useNavigate();
 
   const handleClick = () => {
     // Navigate to the desired route, for example, '/audit-details'
-    navigate(`/audit-form/${id}`);
+    navigate(`/${route}/audit-form/${id}`);
   };
 
   // Function to determine the color of the status
@@ -28,6 +29,8 @@ const AuditCard = ({
       case 'assigned':
         return 'bg-yellow-100 text-yellow-800';
       case 'submitted':
+        return 'bg-green-100 text-green-800';
+      case 'approved':
         return 'bg-green-100 text-green-800';
       case 'draft':
         return 'bg-yellow-100 text-yellow-800';
@@ -40,7 +43,7 @@ const AuditCard = ({
 
   return (
     <div
-      className="audit-card p-4  md:w-64  bg-white shadow-lg rounded-lg cursor-pointer hover:shadow-xl transition-shadow duration-200"
+      className="audit-card p-4  md:w-72  bg-white shadow-lg rounded-lg cursor-pointer hover:shadow-xl transition-shadow duration-200"
       onClick={handleClick}
     >
       {/* Status */}

@@ -11,6 +11,7 @@ import {
   Dropdown,
   Menu,
   ConfigProvider,
+  Typography
 } from "antd";
 import {
   DeleteOutlined,
@@ -19,8 +20,9 @@ import {
   CloudDownloadOutlined,
   MoreOutlined,
   SearchOutlined,
-  EyeOutlined ,
-  CopyOutlined
+  EyeOutlined,
+  CopyOutlined,
+  CheckOutlined
 } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
 import { useNavigate } from "react-router-dom";
@@ -66,14 +68,28 @@ const ClientTable = () => {
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [shouldFetch, setShouldFetch] = useState(false);
+  const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
+  const [sentMailId, setSentMailId] = useState("");
+  const [formLink, setFormLink] = useState("");
+  const closeSendMailModal = () => setIsModalVisible(false);
   const navigate = useNavigate();
 
   // Toggling
- const toggleModal = () => {
-   setIsModalVisible(!isModalVisible);
-   setIsModalOpen(!isModalOpen);
- };
+  const toggleModal = () => {
+    setIsModalVisible(!isModalVisible);
+    setIsModalOpen(!isModalOpen);
+  };
 
+  const handleSuccess = (mailId, formLink) => {
+    setSentMailId(mailId);
+    setFormLink(formLink);
+    setIsSuccessModalVisible(true);
+  };
+
+  const handleSuccessModalClose = () => {
+    setIsSuccessModalVisible(false);
+    closeSendMailModal();
+  };
 
   // Fetch data function
   const fetchData = useCallback(() => {
@@ -143,7 +159,6 @@ const ClientTable = () => {
     }
   }, [shouldFetch, fetchData]);
 
-
   // Pagination
   const handleTableChange = (pagination, filters, sorter) => {
     setTableParams({
@@ -165,105 +180,103 @@ const ClientTable = () => {
   };
 
   // Show confirm Delete
-   const showDeleteConfirm = () => {
-     confirm({
-       title: "Are you sure delete?",
-       icon: <ExclamationCircleFilled />,
-       okText: "Yes",
-       okType: "danger",
-       cancelText: "No",
-       onOk() {
-         axios
-           .delete("/api/deleteSelectedFields", { data: selectedRows })
-           .then((response) => {
-             const currentPage = tableParams.pagination.current;
-             const pageSize = tableParams.pagination.pageSize;
-             const newTotal =
-               tableParams.pagination.total - selectedRows.length;
-             const newCurrentPage = Math.min(
-               currentPage,
-               Math.ceil(newTotal / pageSize)
-             );
+  const showDeleteConfirm = () => {
+    confirm({
+      title: "Are you sure delete?",
+      icon: <ExclamationCircleFilled />,
+      okText: "Yes",
+      okType: "danger",
+      cancelText: "No",
+      onOk() {
+        axios
+          .delete("/api/deleteSelectedFields", { data: selectedRows })
+          .then((response) => {
+            const currentPage = tableParams.pagination.current;
+            const pageSize = tableParams.pagination.pageSize;
+            const newTotal = tableParams.pagination.total - selectedRows.length;
+            const newCurrentPage = Math.min(
+              currentPage,
+              Math.ceil(newTotal / pageSize)
+            );
 
-             setTableParams((prevState) => ({
-               ...prevState,
-               pagination: {
-                 ...prevState.pagination,
-                 total: newTotal,
-                 current: newCurrentPage,
-               },
-             }));
+            setTableParams((prevState) => ({
+              ...prevState,
+              pagination: {
+                ...prevState.pagination,
+                total: newTotal,
+                current: newCurrentPage,
+              },
+            }));
 
-             setSelectedRows([]);
-             setShouldFetch(true); // Trigger data fetch
-             toast.success("Successfully Deleted");
-           })
-           .catch((error) => {
-             console.error("Error deleting rows:", error);
-           });
-       },
-       onCancel() {
-         console.log("Cancel");
-       },
-     });
-   };
+            setSelectedRows([]);
+            setShouldFetch(true); // Trigger data fetch
+            toast.success("Successfully Deleted");
+          })
+          .catch((error) => {
+            console.error("Error deleting rows:", error);
+          });
+      },
+      onCancel() {
+        console.log("Cancel");
+      },
+    });
+  };
 
+  //const single delete
+  const showSingleDeleteConfirm = (id) => {
+    confirm({
+      title: "Are you sure delete?",
+      icon: <ExclamationCircleFilled />,
+      okText: "Yes",
+      okType: "danger",
+      cancelText: "No",
+      onOk() {
+        axios
+          .delete("/api/deleteSelectedFields", { data: [id] }) // Send ID as an array
+          .then((response) => {
+            const currentPage = tableParams.pagination.current;
+            const pageSize = tableParams.pagination.pageSize;
+            const newTotal = tableParams.pagination.total - 1; // Only one row is deleted
+            const newCurrentPage = Math.min(
+              currentPage,
+              Math.ceil(newTotal / pageSize)
+            );
 
-   //const single delete
-const showSingleDeleteConfirm = (id) => {
-  confirm({
-    title: "Are you sure delete?",
-    icon: <ExclamationCircleFilled />,
-    okText: "Yes",
-    okType: "danger",
-    cancelText: "No",
-    onOk() {
-      axios
-        .delete("/api/deleteSelectedFields", { data: [id] }) // Send ID as an array
-        .then((response) => {
-          const currentPage = tableParams.pagination.current;
-          const pageSize = tableParams.pagination.pageSize;
-          const newTotal = tableParams.pagination.total - 1; // Only one row is deleted
-          const newCurrentPage = Math.min(
-            currentPage,
-            Math.ceil(newTotal / pageSize)
-          );
+            setTableParams((prevState) => ({
+              ...prevState,
+              pagination: {
+                ...prevState.pagination,
+                total: newTotal,
+                current: newCurrentPage,
+              },
+            }));
 
-          setTableParams((prevState) => ({
-            ...prevState,
-            pagination: {
-              ...prevState.pagination,
-              total: newTotal,
-              current: newCurrentPage,
-            },
-          }));
+            setShouldFetch(true); // Trigger data fetch
+            toast.success("Successfully Deleted");
+          })
+          .catch((error) => {
+            console.error("Error deleting row:", error);
+          });
+      },
+      onCancel() {
+        console.log("Cancel");
+      },
+    });
+  };
 
-          setShouldFetch(true); // Trigger data fetch
-          toast.success("Successfully Deleted");
-        })
-        .catch((error) => {
-          console.error("Error deleting row:", error);
-        });
-    },
-    onCancel() {
-      console.log("Cancel");
-    },
-  });
-};
-
-// Updated handleMenuClick function
-const handleMenuClick = (record, { key }) => {
-  switch (key) {
-    case "view":
-      navigate(`/client-profile/update-client/id/${record._id}`);
-      break;
-    case "delete":
-      showSingleDeleteConfirm(record._id); // Pass the correct record ID
-      break;
-    default:
-      break;
-  }
-};
+  // Updated handleMenuClick function
+  const handleMenuClick = (record, { key }) => {
+    switch (key) {
+      case "view":
+        navigate(`/client-profile/update-client/id/${record._id}`);
+        break;
+      case "delete":
+        showSingleDeleteConfirm(record._id); // Pass the correct record ID
+        break;
+      default:
+        break;
+    }
+  };
 
   const menu = (record) => (
     <Menu
@@ -280,7 +293,7 @@ const handleMenuClick = (record, { key }) => {
           <EyeOutlined /> View/Update
         </span>
       </Menu.Item>
-       <Menu.Item
+      <Menu.Item
         key="delete"
         style={{ margin: "8px 0", backgroundColor: "#FFCDD2" }}
       >
@@ -293,28 +306,22 @@ const handleMenuClick = (record, { key }) => {
     </Menu>
   );
 
+  const handleInputChange = (event) => {
+    if (isModalOpen) return;
 
+    const { value } = event.target;
+    setSearchKeyword(value);
+  };
 
-
-const handleInputChange = (event) => {
-  if (isModalOpen) return;
-
-  const { value } = event.target;
-  setSearchKeyword(value);
-};
-
-useEffect(() => {
-  if (searchKeyword.trim()) {
-    fetchDataWithDebounce();
-  } else {
-    // Reset fields to normal state
-    // Your code to reset fields here
-    console.log("Resetting fields to normal state");
-  }
-}, [searchKeyword, fetchDataWithDebounce]);
-
-
-
+  useEffect(() => {
+    if (searchKeyword.trim()) {
+      fetchDataWithDebounce();
+    } else {
+      // Reset fields to normal state
+      // Your code to reset fields here
+      console.log("Resetting fields to normal state");
+    }
+  }, [searchKeyword, fetchDataWithDebounce]);
 
   const columns = [
     {
@@ -474,7 +481,6 @@ useEffect(() => {
               value={searchKeyword}
               onChange={handleInputChange}
               style={{ width: 300 }}
-              
             />
           </div>
         </div>
@@ -510,7 +516,37 @@ useEffect(() => {
           </ConfigProvider>
         </div>
       </div>
-      <SendMailModal visible={isModalVisible} onCancel={toggleModal} />
+      <SendMailModal
+        visible={isModalVisible}
+        onCancel={closeSendMailModal}
+        onSuccess={handleSuccess}
+      />
+      <Modal
+        visible={isSuccessModalVisible}
+        onCancel={handleSuccessModalClose}
+        footer={null}
+      >
+        <div className="flex items-center justify-center">
+          <CheckOutlined className="text-green-500 text-4xl" />
+        </div>
+        <div className="text-center mb-4">
+          <Typography.Text strong>Mail Sent To:</Typography.Text>
+          <Typography.Text className="block my-2">{sentMailId}</Typography.Text>
+        </div>
+        <div className="text-center mb-4">
+          <Typography.Text strong>
+            Copy form link:{" "}
+            <Typography.Link
+              href={formLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:underline"
+            >
+              {formLink}
+            </Typography.Link>
+          </Typography.Text>
+        </div>
+      </Modal>
     </AdminDashboard>
   );
 };

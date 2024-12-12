@@ -12,18 +12,25 @@ import {
 import axios from "axios";
 import "../css/GenerateProposalModal.css";
 import moment from "moment";
-import "../css/view.css"
+import "../css/view.css";
+import dayjs from "dayjs";
 
 const { Option } = Select;
 
-const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoiceId}) => {
+const UpdateGenerateInvoiceModal = ({
+  visible,
+  onOk,
+  onCancel,
+  proposalId,
+  invoiceId,
+}) => {
   const [form] = Form.useForm();
   const [showForm, setShowForm] = useState(false);
   const [showSendMailModal, setShowSendMailModal] = useState(false);
   const [selectedOutlets, setSelectedOutlets] = useState([]);
   const [items, setItems] = useState([]);
   const [outlets, setOutlets] = useState([]);
-  const [invoicedOutlets,setInvoicedOutlets]=useState([]);
+  const [invoicedOutlets, setInvoicedOutlets] = useState([]);
   const [invoiceNumber, setInvoiceNumber] = useState([]);
   const [InvoiceId, setInvoiceId] = useState([]);
   const [initialValuesLoaded, setInitialValuesLoaded] = useState(false);
@@ -31,11 +38,10 @@ const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoic
   const [checkState, setCheckState] = useState("");
   const [sameState, setSameState] = useState(true);
 
-
   useEffect(() => {
     if (visible) {
       setInvoiceDate(moment());
-  
+
       // Fetch outlets when the modal is visible
       axios
         .get(`/api/proposal/getOutletsByProposalId/${proposalId}`)
@@ -48,9 +54,9 @@ const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoic
             const quantity = outlet.quantity || 0;
             const unit_cost = outlet.unit_cost || 0;
             const description = outlet.description || 0;
-  
+
             const amount = outlet.amount || 0;
-  
+
             let postfix = "";
             switch (type_of_industry) {
               case "Transportation":
@@ -68,7 +74,7 @@ const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoic
               default:
                 postfix = "";
             }
-  
+
             return {
               outletId: outlet._id || "",
               outlet_name: outlet.outlet_name || "",
@@ -84,9 +90,9 @@ const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoic
               is_invoiced: outlet.is_invoiced,
             };
           });
-  
+
           setOutlets(fetchedOutlets);
-  
+
           // Fetch proposal data to initialize the form
           axios
             .get(`/api/invoice/getInvoiceById/${invoiceId}`)
@@ -101,11 +107,11 @@ const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoic
                 field_executive_name,
                 team_leader_name,
                 outlets: invoicedOutlets,
-                gst_number
+                gst_number,
               } = response.data;
-  
+
               setInvoicedOutlets(invoicedOutlets);
-  
+
               form.setFieldsValue({
                 address,
                 fbo_name,
@@ -115,11 +121,11 @@ const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoic
                 place_of_supply,
                 field_executive_name,
                 team_leader_name,
-                gst_number
+                gst_number,
               });
-  
+
               setInitialValuesLoaded(true);
-  
+
               // Select outlets that match with invoicedOutlets
               const selected = fetchedOutlets.filter((outlet) =>
                 invoicedOutlets.some(
@@ -127,7 +133,7 @@ const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoic
                 )
               );
               setSelectedOutlets(selected);
-  
+
               const state = address.line2.split(",")[1].trim();
               setSameState(checkState === state);
             })
@@ -138,17 +144,19 @@ const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoic
         .catch((error) => {
           console.error("Error fetching outlets:", error);
         });
-  
+
       // Fetch invoice number
       const fetchInvoiceId = async () => {
         try {
-          const response = await axios.get("/api/invoice/generateInvoiceNumber");
+          const response = await axios.get(
+            "/api/invoice/generateInvoiceNumber"
+          );
           setInvoiceNumber(response.data.invoice_number);
         } catch (error) {
           console.error("Error fetching InvoiceId", error);
         }
       };
-  
+
       const fetchProfileSetting = async () => {
         try {
           const response = await axios.get("/api/setting/getProfileSetting");
@@ -157,7 +165,7 @@ const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoic
           console.error("Error is fetching the profile state");
         }
       };
-  
+
       fetchProfileSetting();
       fetchInvoiceId();
     }
@@ -171,11 +179,6 @@ const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoic
     setSelectedOutlets([]);
     setShowForm(false);
   };
-
-
-
-
-
 
   const handleSelect = (record, selected) => {
     const updatedSelectedOutlets = selected
@@ -209,7 +212,7 @@ const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoic
           postfix = "PD/Line";
           break;
         default:
-          postfix = ""; 
+          postfix = "";
       }
 
       return {
@@ -242,8 +245,8 @@ const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoic
         ...formData,
         outlets: items,
         invoice_number: invoiceNumber,
-        invoice_date: invoiceDate,
-        same_state:sameState
+      
+        same_state: sameState,
       };
 
       // Send the request and wait for the response
@@ -258,7 +261,6 @@ const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoic
         form.resetFields();
         setShowForm(false);
         onCancel();
-     
       } else {
         message.error("Failed to update invoice");
       }
@@ -274,33 +276,30 @@ const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoic
   };
   const calculateTotals = () => {
     const subTotal = items.reduce((sum, item) => sum + item.amount, 0);
-  
+
     let tax = 0;
     let cgst = 0;
     let sgst = 0;
     let gst = 0;
-  
+
     if (sameState) {
       // Calculate CGST and SGST (9% each)
       cgst = subTotal * 0.09;
       sgst = subTotal * 0.09;
       tax = cgst + sgst;
-      console.log(1)
+      console.log(1);
     } else {
       // Calculate GST (18%)
       gst = subTotal * 0.18;
       tax = gst;
-      console.log(2)
+      console.log(2);
     }
-  
+
     const total = subTotal + tax;
     return { subTotal, cgst, sgst, gst, total };
   };
-  
+
   const { subTotal, cgst, sgst, gst, total } = calculateTotals();
-  
-
-
 
   const outletsColumns = [
     {
@@ -493,15 +492,19 @@ const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoic
               </Form.Item>
               <div className="flex space-x-4">
                 <Form.Item
-                  label="Invoice date"
+                  label="Proposal date"
+                  name="invoice_date"
                   className="flex-1"
                   size="large"
+                  getValueProps={(i) => ({ value: dayjs(i) })}
                   rules={[
-                    { required: true, message: "Please select invoice date!" },
+                    {
+                      required: true,
+                      message: "Please select the start date!",
+                    },
                   ]}
                 >
-                  {" "}
-                  <DatePicker value={invoiceDate} className="w-full" />
+                  <DatePicker className="w-full" format="DD/MM/YYYY" />
                 </Form.Item>
                 <Form.Item
                   label="Proposal number (Order Ref No.)"
@@ -590,24 +593,24 @@ const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoic
                 </Form.Item>
               </div>
               <Form.Item
-                  name="place_of_supply"
-                  label="Place of Supply"
-                  className="flex-1"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please select place of supply!",
-                    },
-                  ]}
-                >
-                  <Select placeholder="Select place of supply">
-                    {statesAndUTs.map((state) => (
-                      <Option key={state} value={state}>
-                        {state}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
+                name="place_of_supply"
+                label="Place of Supply"
+                className="flex-1"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please select place of supply!",
+                  },
+                ]}
+              >
+                <Select placeholder="Select place of supply">
+                  {statesAndUTs.map((state) => (
+                    <Option key={state} value={state}>
+                      {state}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
               <div className="flex space-x-4">
                 <Form.Item
                   label="Field Executive Name"
@@ -711,18 +714,15 @@ const UpdateGenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId,invoic
                   className="bg-buttonModalColor px-4 py-2 text-white rounded"
                   htmlType="submit"
                 >
-                  Generate
+                 Update
                 </button>
               </div>
             </div>
           )}
         </Form>
       </Modal>
-
-      
     </>
   );
 };
 
 export default UpdateGenerateInvoiceModal;
-

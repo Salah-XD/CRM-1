@@ -9,13 +9,11 @@ const userRoles = {
   SUPER_ADMIN: "SUPER_ADMIN",
   ACCOUNT_ADMIN: "ACCOUNT_ADMIN",
   AUDIT_ADMIN: "AUDIT_ADMIN",
+  AUDITOR: "AUDITOR",
 };
 
 const ProtectedRoute = ({ roles }) => {
   const { user, loading } = useAuth();
-
-  // console.log("User:", user);
-  // console.log("Roles required:", roles);
 
   if (loading) {
     return (
@@ -37,9 +35,7 @@ const ProtectedRoute = ({ roles }) => {
   }
 
   const hasRequiredRole =
-    user?.role === userRoles.SUPER_ADMIN || roles.includes(user?.role);
-
-  console.log("Has required role:", hasRequiredRole);
+    user?.role === userRoles.SUPER_ADMIN || user?.role === userRoles.AUDITOR || roles.includes(user?.role);
 
   return user && hasRequiredRole ? (
     <Outlet />
@@ -48,10 +44,11 @@ const ProtectedRoute = ({ roles }) => {
   );
 };
 
-export const SuperAdminRoute = () => <ProtectedRoute roles={[]} />;
-export const AccountAdminRoute = () => (
-  <ProtectedRoute roles={[userRoles.ACCOUNT_ADMIN]} />
-);
-export const AuditAdminRoute = () => (
-  <ProtectedRoute roles={[userRoles.AUDIT_ADMIN]} />
-);
+// Dynamic role-based route component generator
+export const createRoleRoute = (roles) => () => <ProtectedRoute roles={roles} />;
+
+// Define your routes
+export const SuperAdminRoute = createRoleRoute([]); // SUPER_ADMIN has access to all routes
+export const AccountAdminRoute = createRoleRoute([userRoles.ACCOUNT_ADMIN]);
+export const AuditAdminRoute = createRoleRoute([userRoles.AUDIT_ADMIN]);
+export const AuditorRoute = createRoleRoute([userRoles.AUDITOR]);

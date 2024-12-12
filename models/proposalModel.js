@@ -55,7 +55,7 @@ const proposalSchema = new Schema(
       ref: "Enquiry", // Correct reference to the Enquiry model
       required: true,
     },
-    assigned_auditor:{
+    representative:{
        type: Schema.Types.ObjectId,
       ref: "Auditor",
       required: true,

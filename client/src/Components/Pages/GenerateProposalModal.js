@@ -9,7 +9,7 @@ import {
   Table,
   Button,
   message,
-  Spin
+  Spin,
 } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 import moment from "moment";
@@ -19,14 +19,18 @@ import "../css/GenerateProposalModal.css";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 
-
 // Extend dayjs with customParseFormat
 dayjs.extend(customParseFormat);
 
 const { Option } = Select;
 
-
-const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) => {
+const GenerateProposalModal = ({
+  visible,
+  onOk,
+  onCancel,
+  enquiryId,
+  service,
+}) => {
   const [form] = Form.useForm();
   const [outletItem, setItems] = useState([
     {
@@ -39,10 +43,10 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
       description: "",
       amount: 0,
 
-      no_of_production_line: 0
+      no_of_production_line: 0,
     },
   ]);
-  const [proposal_date, setProposalDate] = useState(moment());
+  const [proposal_date, setProposalDate] = useState("");
   const [proposal_number, setProposalNumber] = useState("");
   const [outlets, setOutlets] = useState([]);
   const [initialValuesLoaded, setInitialValuesLoaded] = useState(false);
@@ -54,7 +58,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
   const [total, setTotal] = useState(0);
   const [email, setEmail] = useState(0);
   const [prosposalId, setPropsalId] = useState();
-  const [auditors, setAuditors] = useState([]);
+  const [representaive, setRepesentaive] = useState([]);
   const [isFetching, setIsFetching] = useState(true);
   const [checkState, setCheckState] = useState("");
   const [sameState, setSameState] = useState(true);
@@ -68,7 +72,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
         man_days: 0,
         description: "",
         amount: 0,
-        no_of_production_line: 0
+        no_of_production_line: 0,
       },
     ]);
     setSubTotal(0);
@@ -83,7 +87,6 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
   useEffect(() => {
     if (visible) {
       setProposalDate(moment());
-
 
       const fetchProposalNumber = async () => {
         try {
@@ -112,9 +115,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
             outletData.map((outlet) => {
               const type_of_industry = outlet.type_of_industry || "";
               const unit = outlet.unit || 0;
-              const
-                no_of_production_line = outlet?.
-                  no_of_production_line || 0;
+              const no_of_production_line = outlet?.no_of_production_line || 0;
 
               let man_days = 0;
 
@@ -125,8 +126,10 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
               } else if (type_of_industry === "Trade and Retail") {
                 man_days = calculateStorageManDays(unit);
               } else {
-                man_days = calculateManufacturingManDays(unit,
-                  no_of_production_line);
+                man_days = calculateManufacturingManDays(
+                  unit,
+                  no_of_production_line
+                );
               }
 
               return {
@@ -139,23 +142,20 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
               };
             })
           );
-
         } catch (error) {
           console.error("Error fetching outlets", error);
         }
       };
-
 
       const fetchProfileSetting = async () => {
         try {
           const response = await axios.get("/api/setting/getProfileSetting");
           console.log("here", response.data.profile.company_address.state);
           setCheckState(response.data.profile.company_address.state);
-
         } catch (error) {
           console.error("Error is fetching the profile state");
         }
-      }
+      };
 
       const fetchBusinessDetails = async () => {
         try {
@@ -175,8 +175,6 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
           const city = businessData.address?.city || "";
           const state = businessData.address?.state || "";
 
-
-
           // Concatenate city and state if both exist
           const line2 = [city, state].filter(Boolean).join(", ");
 
@@ -191,80 +189,71 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
             contact_person: businessData.contact_person,
           });
 
-
           setInitialValuesLoaded(true);
-
 
           if (checkState === state) {
             setSameState(true);
           } else {
             setSameState(false);
           }
-
-
-
         } catch (error) {
           console.error("Error fetching business details", error);
         } finally {
           setIsFetching(false);
-
         }
       };
 
-      const fetchAllAuditors = async () => {
+      const fetchAllrepresentaive = async () => {
         try {
           const response = await axios.get("/api/auditor/getAllAuditors"); // Adjust the endpoint as needed
-          setAuditors(response.data);
+          setRepesentaive(response.data);
         } catch (error) {
           console.error("Error fetching auditors:", error);
         }
       };
 
-
-
       fetchOutlets();
       fetchProposalNumber();
-      fetchAllAuditors();
+      fetchAllrepresentaive();
       fetchProfileSetting();
       fetchBusinessDetails();
     }
-  }, [visible, enquiryId, form,checkState]);
+  }, [visible, enquiryId, form, checkState]);
 
   const handleSubmit = async () => {
     try {
       // Validate form fields before submission
       await form.validateFields();
-  
+
       // Collect form values
       const formData = form.getFieldsValue();
-  
+
       // Prepare data to send
       const proposalData = {
         ...formData,
         enquiryId: enquiryId,
-        proposal_date: proposal_date.format("YYYY-MM-DD"),
         outlets: outletItem,
         email: email,
         same_state: sameState,
-        service:service
+        service: service,
       };
-  
+
       // Make POST request to create proposal
       const response = await axios.post(
         "/api/proposal/createProposalAndOutlet",
         proposalData
       );
-  
+
       // Get proposal ID from response and show mail modal
       setPropsalId(response.data.proposal._id);
       setShowSendMailModal(true);
-      
+
       // Update enquiry status to mark proposal as done
       await axios.post("/api/enquiry/updateEnquiryProposalStatus", {
         equiryId: enquiryId,
-        isProposalDone: true 
+        isProposalDone: true,
       });
-  
+
       // Finalize actions and messages
       onOk(); // Trigger any OK handling logic (such as closing modals)
       message.success("Proposal generated and status updated successfully!");
@@ -272,7 +261,6 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
       message.error("Failed to generate proposal or update status.");
     }
   };
-  
 
   const addItem = () => {
     setItems((prevItems) => {
@@ -356,8 +344,6 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
     return Math.max(manDaysFoodHandlers, manDaysProductionLine);
   };
 
-
-
   const handleInputChange = (index, field, value) => {
     setItems((prevItems) => {
       const newItems = [...prevItems];
@@ -378,12 +364,10 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
 
           const type_of_industry = selectedOutlet?.type_of_industry || "";
           const unit = selectedOutlet?.unit || 0;
-          const
-            no_of_production_line = selectedOutlet?.
-              no_of_production_line || 0;
+          const no_of_production_line =
+            selectedOutlet?.no_of_production_line || 0;
           let man_days = 0;
-          console.log(unit,
-            no_of_production_line);
+          console.log(unit, no_of_production_line);
 
           if (type_of_industry === "Catering") {
             man_days = calculateManDays(unit);
@@ -392,8 +376,10 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
           } else if (type_of_industry === "Trade and Retail") {
             man_days = calculateStorageManDays(unit);
           } else {
-            man_days = calculateManufacturingManDays(unit,
-              no_of_production_line);
+            man_days = calculateManufacturingManDays(
+              unit,
+              no_of_production_line
+            );
           }
 
           newItems[index] = {
@@ -433,10 +419,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
     });
   };
 
-
-
   const calculateTotals = (items) => {
-
     if (!Array.isArray(items) || items.length === 0) {
       setSubTotal(0);
       if (sameState) {
@@ -461,23 +444,17 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
 
       setSgst(calculatedIgst);
       setCgst(calculatedCgst);
-      const calculatedTotal = calculatedSubTotal + calculatedIgst + calculatedCgst;
+      const calculatedTotal =
+        calculatedSubTotal + calculatedIgst + calculatedCgst;
       setTotal(calculatedTotal);
-    }
-    else {
+    } else {
       const calculatedGst = calculatedSubTotal * 0.18;
 
       setIgst(calculatedGst);
       const calculatedTotal = calculatedSubTotal + calculatedGst;
       setTotal(calculatedTotal);
     }
-
-
-
-
-
   };
-
 
   const columns = [
     {
@@ -500,7 +477,7 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
       ),
     },
     {
-      title: "Description",
+      title: "Services",
       dataIndex: "description",
       render: (text, record, index) => {
         const isOthers = record.outletId === "others";
@@ -533,14 +510,13 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
       },
     },
     {
-      title: "Services",
+      title: "Criteria",
       dataIndex: "unit",
       render: (text, record, index) => {
         const isOthers = record.outletId === "others";
         let postfix = "none";
 
         switch (record.type_of_industry) {
-
           case "Transportation":
             postfix = "VH";
             break;
@@ -649,7 +625,6 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
 
   return (
     <>
-
       <Modal
         visible={visible}
         onCancel={handleCancel}
@@ -694,18 +669,24 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
                 <Form.Item
                   label="Proposal date"
                   className="flex-1"
-                  size="large"
+                  name="invoice_date"
                   rules={[
-                    { required: true, message: "Please select invoice date!" },
+                    {
+                      required: true,
+                      message: "Please select the Proposal Date!",
+                    },
                   ]}
                 >
-                  {" "}
                   <DatePicker
-                    defaultValue={dayjs()}
                     format="DD/MM/YYYY"
                     className="w-full"
+                    onChange={(date) => {
+                      // Ensure the date is being set correctly in the form
+                      form.setFieldValue("proposal_date", date);
+                    }}
                   />
                 </Form.Item>
+
                 {/* <Form.Item label="Proposal date" className="flex-1" size="large">
                   <DatePicker className="w-full" value={proposal_date} disabled />
                 </Form.Item> */}
@@ -808,27 +789,20 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
                 </Form.Item>
               </div>
               <Form.Item
-                name="assigned_auditor"
-                label="Assigned Auditor"
-                rules={[{ required: true, message: "Please select an auditor!" }]}
+                name="representative"
+                label="Representative"
+                rules={[
+                  { required: true, message: "Please select an auditor!" },
+                ]}
               >
                 <Select placeholder="Select an auditor">
-                  {auditors.map((auditor) => (
-                    <Option key={auditor._id} value={auditor._id}>
-                      {auditor.auditor_name}
+                  {representaive.map((representaive) => (
+                    <Option key={representaive._id} value={representaive._id}>
+                      {representaive.auditor_name}
                     </Option>
                   ))}
                 </Select>
               </Form.Item>
-
-              {/* <div>
-              <Form.Item label="Note" name="note" className="flex-1">
-                <TextArea
-                  className="w-full p-2 border border-gray-300 rounded"
-                  defaultValue="This is note"
-                />
-              </Form.Item>
-            </div> */}
 
               <div className="my-4">
                 <h3 className="text-lg font-semibold mb-2">Items table</h3>
@@ -923,7 +897,6 @@ const GenerateProposalModal = ({ visible, onOk, onCancel, enquiryId,service }) =
         visible={showSendMailModal}
         buttonTitle="Go to Proposal"
       />
-
     </>
   );
 };

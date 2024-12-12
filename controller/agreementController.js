@@ -159,7 +159,7 @@ export const createAgreement = async (req, res) => {
   try {
     const { fbo_name, from_date, to_date, total_cost, no_of_outlets, address, period,  proposalId, outlets } = req.body;
 
-    if (!fbo_name ||  !to_date || !total_cost || !no_of_outlets || !address || !period || ! proposalId || !outlets) {
+    if (!fbo_name ||  !to_date ||  !no_of_outlets || !address || !period || ! proposalId || !outlets) {
       throw new Error("Missing required fields");
     }
 

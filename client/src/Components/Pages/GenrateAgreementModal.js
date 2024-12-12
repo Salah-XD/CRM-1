@@ -275,16 +275,7 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
                 >
                   <Input />
                 </Form.Item>
-                <Form.Item
-                  label="Period (Months)"
-                  name="period"
-                  rules={[{ required: true, message: "Please enter period!" }]}
-                >
-                  <Input
-                    type="number"
-                    onChange={(e) => handlePeriodChange(e.target.value)} // Call handlePeriodChange
-                  />
-                </Form.Item>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Form.Item label="From date" name="from_date">
                     <DatePicker
@@ -311,6 +302,16 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
                     />
                   </Form.Item>
                 </div>
+                <Form.Item
+                  label="Period (Months)"
+                  name="period"
+                  rules={[{ required: true, message: "Please enter period!" }]}
+                >
+                  <Input
+                    type="number"
+                    onChange={(e) => handlePeriodChange(e.target.value)} // Call handlePeriodChange
+                  />
+                </Form.Item>
                 <Form.Item
                   label="FBO Address"
                   name="address"

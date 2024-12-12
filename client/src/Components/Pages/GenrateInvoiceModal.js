@@ -255,7 +255,6 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
         proposalId,
         outlets: items,
         invoice_number: invoiceNumber,
-        invoice_date: invoiceDate,
         email: email,
         phone: phone,
         same_state: sameState,
@@ -321,12 +320,12 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
       key: "outlet_name",
     },
     {
-      title: "Description",
+      title: "Service",
       dataIndex: "description",
       key: "description",
     },
     {
-      title: "Service",
+      title: "Criteria",
       dataIndex: "service",
       key: "service",
     },
@@ -355,13 +354,13 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
       render: (value) => <span className=" block">{value}</span>,
     },
     {
-      title: "Description",
+      title: "Service",
       dataIndex: "description",
       key: "description",
       render: (value) => <span className=" block">{value}</span>,
     },
     {
-      title: "Service",
+      title: "Criteria",
       dataIndex: "service",
       key: "service",
       render: (value) => <span className=" block">{value}</span>,
@@ -523,19 +522,24 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
                 />
               </Form.Item>
               <div className="flex space-x-4">
-                <Form.Item
+              <Form.Item
                   label="Invoice date"
                   className="flex-1"
-                  size="large"
+                  name="invoice_date"
                   rules={[
-                    { required: true, message: "Please select invoice date!" },
+                    {
+                      required: true,
+                      message: "Please select the Proposal Date!",
+                    },
                   ]}
                 >
-                  {" "}
                   <DatePicker
-                    defaultValue={dayjs()}
                     format="DD/MM/YYYY"
                     className="w-full"
+                    onChange={(date) => {
+                      // Ensure the date is being set correctly in the form
+                      form.setFieldValue("proposal_date", date);
+                    }}
                   />
                 </Form.Item>
                 <Form.Item
