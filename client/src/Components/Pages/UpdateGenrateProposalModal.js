@@ -109,7 +109,7 @@ const UpdateGenerateProposalModal = ({
             phone: businessData.phone,
             proposal_number: businessData.proposal_number,
             proposal_date: businessData.proposal_date,
-            assigned_auditor: businessData.assigned_auditor, // Populate the select option
+            assigned_auditor: businessData.representative, // Populate the select option
           });
 
           // Set the outlets state
@@ -734,7 +734,7 @@ const UpdateGenerateProposalModal = ({
             </div>
             <Form.Item
               name="assigned_auditor"
-              label="Assigned Auditor"
+              label="Representative"
               rules={[{ required: true, message: "Please select an auditor!" }]}
             >
               <Select placeholder="Select an auditor">

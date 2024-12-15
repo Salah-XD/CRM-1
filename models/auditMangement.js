@@ -26,14 +26,14 @@ const auditSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["assigned", "draft", "rejected", "submitted", "approved"],
+      enum: ["assigned", "draft", "modified", "submitted", "approved"],
       default: "assigned",
     },
     started_at: {
       type: Date,
     },
 
-    started_at: {
+    assigned_date: {
       type: Date,
       default: Date.now,
     },
@@ -44,7 +44,7 @@ const auditSchema = new mongoose.Schema(
           enum: [
             "assigned",
             "draft",
-            "rejected",
+            "modified",
             "submitted",
             "approved",
             "started",

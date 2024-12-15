@@ -10,6 +10,7 @@ import {
   Col,
   Modal,
   message,
+  Spin,
 } from "antd";
 import AdminDashboard from "../Layout/AdminDashboard";
 import { useNavigate, useParams } from "react-router-dom";
@@ -31,6 +32,7 @@ const AuditForm = () => {
   const [approvalModalVisible, setApprovalModalVisible] = useState(false);
   const [comment, setComment] = useState(""); // State to capture comments
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
 
   const location = useLocation();
   const { user } = useAuth();
@@ -45,25 +47,60 @@ const AuditForm = () => {
         return "bg-green-100 text-green-800 rounded-full";
       case "draft":
         return "bg-yellow-100 text-yellow-800 rounded-full";
-      case "rejected":
+      case "modified":
         return "bg-red-100 text-red-800 rounded-full";
-      case "in-progress": // New status for blue color
+      case "in-progress":
         return "bg-blue-100 text-blue-800 rounded-full";
       default:
         return "bg-gray-100 text-gray-800 rounded-full";
     }
   };
 
+  const handleDownload = async () => {
+    setLoading(true); // Start loading
+    try {
+      const response = await axios.get(
+        `/api/auditor/generateAuditReport/${params.audit_id}`,
+        {
+          responseType: "blob", // Specify the response is a file (PDF)
+        }
+      );
+
+      console.log("This is the response");
+
+      // Create a Blob from the PDF Stream
+      const file = new Blob([response.data], { type: "application/pdf" });
+
+      // Create a link element
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(file);
+
+      // Set the file name for the download
+      link.download = "audit-report.pdf";
+
+      // Append the link to the body and trigger a click event to download the file
+      document.body.appendChild(link);
+      link.click();
+
+      // Clean up
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("Error downloading the audit report:", error);
+    } finally {
+      setLoading(false); // Stop loading
+    }
+  };
+
   const handleModalOk = async () => {
     try {
-      const status = modalAction === "approve" ? "approved" : "rejected";
+      const status = modalAction === "approve" ? "approved" : "modified";
       const payload = {
         status,
         userId: user._id, // Replace with actual user ID
       };
 
       // Include the comment if the action is "reject"
-      if (status === "rejected") {
+      if (status === "modified") {
         payload.comment = comment;
       }
 
@@ -86,7 +123,7 @@ const AuditForm = () => {
         message.error(response.data.message);
       }
     } catch (error) {
-      message.error("Failed to update status history.");
+      message.error("Failed to update the status.");
     }
   };
 
@@ -95,7 +132,7 @@ const AuditForm = () => {
     setComment(""); // Reset comment on cancel
   };
 
-  const handleUpdate = async () => {
+  const handleStartedDate = async () => {
     try {
       // Call the update function
       const result = await axios.put(
@@ -183,8 +220,8 @@ const AuditForm = () => {
     showApprovalModal("approve");
   };
 
-  const handleRejectButton = () => {
-    showApprovalModal("reject");
+  const handleModifyButton = () => {
+    showApprovalModal("modified");
   };
 
   // Split the pathname by '/' and filter out any empty strings
@@ -193,7 +230,7 @@ const AuditForm = () => {
   // Extract the first segment, which will be the first meaningful part
   const firstSegment = pathSegments[0];
 
-  console.log("this is the first segment", firstSegment);
+  // console.log("this is the first segment", firstSegment);
 
   const handleViewAndModify = () => {
     // Get the first segment of the current pathname
@@ -201,14 +238,13 @@ const AuditForm = () => {
 
     // Determine the target path based on the first segment
     const targetPath =
-        firstSegment === "assigned-audit"
-            ? `/${firstSegment}/audit-report/${params.audit_id}`
-            : `/${firstSegment}/audit-form/updateAuditReport/${params.audit_id}`;
+      firstSegment === "assigned-audit"
+        ? `/${firstSegment}/audit-report/${params.audit_id}`
+        : `/${firstSegment}/audit-form/updateAuditReport/${params.audit_id}`;
 
     // Navigate to the target path
     navigate(targetPath);
-};
-
+  };
 
   const handleEditButton = () => {
     setIsEditable(true);
@@ -224,32 +260,26 @@ const AuditForm = () => {
 
   const isDraftSubmit =
     firstSegment === "draft" ||
-    (firstSegment === "rejected" && user?.role === "AUDITOR");
+    (firstSegment === "modified" && user?.role === "AUDITOR");
 
-  const isStatusHistoryNull =
-    !auditData?.statusHistory || auditData.statusHistory.length === 0;
+  const shouldRenderViewModifyButton =
+    firstSegment === "draft" ||
+    firstSegment === "modified" ||
+    firstSegment === "assigned-audit";
 
-  const lastStatus =
-    auditData?.statusHistory?.length > 0
-      ? auditData.statusHistory[auditData.statusHistory.length - 1].status
-      : null;
+  const isViewModifyButtonDisabled = firstSegment === "assigned-audit";
 
-  const isDraftOrRejected = ["draft", "rejected"].includes(lastStatus);
-
-  // Check for conditions
-  const showViewModifyButton =
-    (isStatusHistoryNull && user?.role !== "AUDITOR") || isDraftOrRejected;
-
-  const isButtonDisabled =
-    (isStatusHistoryNull && user?.role !== "AUDITOR") ||
-    lastStatus === "approved" ||
-    lastStatus === "submitted";
+  const viewModifyButtonStyles = {
+    backgroundColor: isViewModifyButtonDisabled ? "#d9d9d9" : "#009688",
+    borderColor: isViewModifyButtonDisabled ? "#d9d9d9" : "#009688",
+    color: isViewModifyButtonDisabled ? "#8c8c8c" : "#fff",
+  };
 
   const isUserAuditor = user?.role === "AUDITOR";
 
-  // Create a unique variable for checking if the statusHistory is null or empty and if the user is an AUDITOR
-  const canStartAuditButtonBeVisible =
-    !auditData?.statusHistory || auditData.statusHistory.length === 0;
+  // Check if the user role is 'Auditor' and firstSegment is 'assigned_audit'
+  const shouldShowStartAuditButton =
+    isUserAuditor && firstSegment === "assigned-audit";
 
   return (
     <AdminDashboard>
@@ -390,41 +420,41 @@ const AuditForm = () => {
                         borderColor: "#009688",
                         color: "#fff",
                       }}
-                      onClick={handleViewAndModify}
+                      onClick={handleDownload}
+                      loading={loading}
+                      disabled={loading}
                     >
                       Download Report
                     </Button>
                   </>
                 )}
 
-                {canStartAuditButtonBeVisible && isUserAuditor && (
+                {shouldShowStartAuditButton && (
                   <Button
                     type="primary"
                     style={{
                       backgroundColor: "#009688",
                       borderColor: "#009688",
                     }}
-                    onClick={handleUpdate}
+                    onClick={handleStartedDate}
                   >
                     Start Audit
                   </Button>
                 )}
-
-                {showViewModifyButton && (
+                {shouldRenderViewModifyButton && (
                   <Button
                     type="primary"
-                    style={{
-                      backgroundColor: isButtonDisabled ? "#d9d9d9" : "#009688",
-                      borderColor: isButtonDisabled ? "#d9d9d9" : "#009688",
-                      color: isButtonDisabled ? "#8c8c8c" : "#fff",
-                    }}
-                    onClick={isButtonDisabled ? undefined : handleViewAndModify}
-                    disabled={isButtonDisabled}
+                    style={viewModifyButtonStyles}
+                    onClick={
+                      !isViewModifyButtonDisabled
+                        ? handleViewAndModify
+                        : undefined
+                    }
+                    disabled={isViewModifyButtonDisabled}
                   >
                     View/Modify
                   </Button>
                 )}
-
                 {isDraftSubmit && (
                   <Button
                     type="primary"
@@ -438,7 +468,6 @@ const AuditForm = () => {
                     Submit
                   </Button>
                 )}
-
                 {user?.role &&
                   firstSegment === "submittedForApproval" &&
                   (user.role === "SUPER_ADMIN" ||
@@ -462,9 +491,9 @@ const AuditForm = () => {
                           borderColor: "#009688",
                           color: "#fff",
                         }}
-                        onClick={handleRejectButton}
+                        onClick={handleModifyButton}
                       >
-                        Reject
+                        Modify
                       </Button>
                     </>
                   )}
@@ -556,7 +585,7 @@ const AuditForm = () => {
                                     "in-progress"
                                   )}`}
                                 >
-                                  Last Modify
+                                  Last Edited
                                 </span>
                                 <br />
                                 <Text type="secondary">
@@ -596,7 +625,7 @@ const AuditForm = () => {
                               </Text>
                               <br />
                               {/* Conditional rendering based on 'rejected' or 'approved' status */}
-                              {statusHistory.status === "rejected" ||
+                              {statusHistory.status === "modified" ||
                               statusHistory.status === "approved" ? (
                                 <>
                                   <Text className="font-medium">
@@ -604,7 +633,7 @@ const AuditForm = () => {
                                   </Text>
                                   <br />
                                   {/* Show comment only for rejected status */}
-                                  {statusHistory.status === "rejected" && (
+                                  {statusHistory.status === "modified" && (
                                     <Text className="font-medium text-red-600">
                                       {statusHistory.comment}
                                     </Text>
@@ -636,17 +665,17 @@ const AuditForm = () => {
             <h2 className="text-lg font-medium text-black">
               {modalAction === "approve"
                 ? "Approve Audit"
-                : "Enter Rejection Reason"}
+                : "Enter Modification Reason"}
             </h2>
           </div>
 
           {/* Rejection Form (conditional) */}
-          {modalAction === "reject" && (
+          {modalAction === "modified" && (
             <Form.Item
               rules={[
                 {
                   required: true,
-                  message: "Please provide a comment for rejection.",
+                  message: "Please provide a comment.",
                 },
               ]}
               className="mt-4"
@@ -664,7 +693,7 @@ const AuditForm = () => {
           <p className="text-center text-gray-600 mt-4">
             Are you sure you want to{" "}
             <span className="font-semibold text-black">
-              {modalAction === "approve" ? "approve" : "reject"}
+              {modalAction === "approve" ? "approve" : "modify"}
             </span>{" "}
             this audit?
           </p>
@@ -678,9 +707,9 @@ const AuditForm = () => {
             <Button
               type="primary"
               onClick={handleModalOk}
-              danger={modalAction === "reject"} // Use Ant Design's "danger" style for rejection
+              danger={modalAction === "modify"} // Use Ant Design's "danger" style for rejection
             >
-              {modalAction === "approve" ? "Approve" : "Reject"}
+              {modalAction === "approve" ? "Approve" : "Modify"}
             </Button>
           </div>
         </Modal>

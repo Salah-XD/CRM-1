@@ -201,9 +201,10 @@ export const processProposalsWithOutlets = async (req, res) => {
     const totalPages = Math.ceil(totalOutlets / sizePerPage);
 
     res.status(200).json({
+
       message: "Processed all proposals and outlets successfully",
-      totalOutlets,
-      total: totalPages, // Correct total pages
+      total:totalOutlets,
+      totalpages: totalPages, // Correct total pages
       currentPage: pageNumber,
       data: paginatedOutlets,
     });
@@ -289,7 +290,7 @@ export const saveAuditRecord = async (req, res) => {
       fbo_name,
       outlet_name,
       status,
-      started_at,
+      assigned_date,
       location,
       audit_number,
       proposal_number,
@@ -323,7 +324,8 @@ export const saveAuditRecord = async (req, res) => {
       fbo_name,
       outlet_name,
       status,
-      started_at,
+      assigned_date,
+      started_at : null,
       location,
       audit_number,
       user,
@@ -556,7 +558,7 @@ export const updateStatusHistoryByAuditId = async (req, res) => {
   try {
     // Validate the status field
     if (
-      !["assigned", "draft", "rejected", "submitted", "approved"].includes(
+      !["assigned", "draft", "modified", "submitted", "approved"].includes(
         status
       )
     ) {
@@ -578,7 +580,7 @@ export const updateStatusHistoryByAuditId = async (req, res) => {
       status,
       changedAt: new Date(), // Set the current time
       // Only add comment and userId if the status is 'rejected' or 'approved'
-      ...(status === "rejected" || status === "approved"
+      ...(status === "modified" || status === "approved"
         ? { comment, userId }
         : {}),
     };

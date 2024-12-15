@@ -484,3 +484,23 @@ export const getProposalById = async (req, res, next) => {
     next(error);
   }
 };
+export const proposalCount = async (req, res) => {
+  try {
+    // Count the number of proposals in the Proposal collection
+    const count = await Proposal.countDocuments();
+
+    // Send the count as the response
+    return res.status(200).json({
+      success: true,
+      count,
+    });
+  } catch (error) {
+    // Handle errors
+    console.error("Error counting proposals:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to count proposals",
+      error: error.message,
+    });
+  }
+};

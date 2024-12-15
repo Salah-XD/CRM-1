@@ -10,7 +10,7 @@ import {
   getInvoiceById,
   updateInvoice,
   updateInvoiceStatus,
-  getInvoicesByProposalId
+  getInvoicesByProposalId,invoiceCount
 } from "../controller/invoiceController.js";
 
 import {generateInvoice} from "../controller/invoicesGenerationController.js";
@@ -38,7 +38,7 @@ router.put("/updateInvoieStatus/:invoiceId", updateInvoiceStatus);
 
 router.get("/getInvoicesByProposalId/:proposalId",getInvoicesByProposalId)
 
-
+router.get("/invoiceCount",invoiceCount);
 
 
 

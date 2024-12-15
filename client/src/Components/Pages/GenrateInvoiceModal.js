@@ -15,7 +15,7 @@ import GenreateSuccessSendMailTableModal from "./GenreateSuccessSendMailTableMod
 import moment from "moment";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-import { useNavigate  } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 // Extend dayjs with customParseFormat
 dayjs.extend(customParseFormat);
@@ -41,13 +41,16 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+
   useEffect(() => {
     if (visible) {
       setInvoiceDate(moment());
 
       const fetchInvoices = async () => {
         try {
-          const response = await axios.get(`/api/invoice/getInvoicesByProposalId/${proposalId}`);
+          const response = await axios.get(
+            `/api/invoice/getInvoicesByProposalId/${proposalId}`
+          );
           setInvoices(response.data.invoices); // Adjust according to your API response structure
         } catch (err) {
           setError(err.message); // Set the error message
@@ -55,8 +58,6 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
           setLoading(false); // Set loading to false after request completion
         }
       };
-  
-      
 
       // Fetch outlets when the modal is visible
       axios
@@ -105,7 +106,7 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
                 unit_cost,
                 amount,
                 _id,
-                is_invoiced ,
+                is_invoiced,
                 service: `${unit} ${postfix}`,
               };
             })
@@ -152,17 +153,6 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
           console.error("Error fetching proposal data:", error);
         });
 
-      // Fetch invoice number
-      const fetchInvoiceId = async () => {
-        try {
-          const response = await axios.get(
-            "/api/invoice/generateInvoiceNumber"
-          );
-          setInvoiceNumber(response.data.invoice_number);
-        } catch (error) {
-          console.error("Error fetching InvoiceId", error);
-        }
-      };
       const fetchProfileSetting = async () => {
         try {
           const response = await axios.get("/api/setting/getProfileSetting");
@@ -174,11 +164,24 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
       };
       fetchInvoices();
       fetchProfileSetting();
-      fetchInvoiceId();
     }
   }, [visible, proposalId, form, checkState]);
 
+  // Separate useEffect for fetchInvoiceId
+  useEffect(() => {
+    const fetchInvoiceId = async () => {
+      try {
+        const response = await axios.get("/api/invoice/generateInvoiceNumber");
+        setInvoiceNumber(response.data.invoice_number);
+      } catch (error) {
+        console.error("Error fetching InvoiceId", error);
+      }
+    };
+    fetchInvoiceId();
+  }, [visible, form]);
+
   const handleCancel = () => {
+    setInvoices([]);
     onCancel();
     form.resetFields();
     setItems([]);
@@ -484,26 +487,29 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
                 </Button>
               </div>
               {invoices.length > 0 && (
-            <div className="mt-4">
-              <div className="text-center font-medium text-xl mb-5 rounded-md">
-               Generated Invoices
-              </div>
-              <ul className="invoice-list">
-                {invoices.map((invoice) => (
-                  <li key={invoice._id} className="flex justify-around items-center mb-2">
-                    <span>{invoice.fbo_name}</span>
-                    <Button
-                      type="link"
-                      onClick={() => handleViewInvoice(invoice._id)}
-                      className="text-blue-600"
-                    >
-                      View
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+                <div className="mt-4">
+                  <div className="text-center font-medium text-xl mb-5 rounded-md">
+                    Generated Invoices
+                  </div>
+                  <ul className="invoice-list">
+                    {invoices.map((invoice) => (
+                      <li
+                        key={invoice._id}
+                        className="flex justify-around items-center mb-2"
+                      >
+                        <span>{invoice.fbo_name}</span>
+                        <Button
+                          type="link"
+                          onClick={() => handleViewInvoice(invoice._id)}
+                          className="text-blue-600"
+                        >
+                          View
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           ) : (
             <div className="p-6" style={{ backgroundColor: "#F6FAFB" }}>
@@ -522,7 +528,7 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
                 />
               </Form.Item>
               <div className="flex space-x-4">
-              <Form.Item
+                <Form.Item
                   label="Invoice date"
                   className="flex-1"
                   name="invoice_date"

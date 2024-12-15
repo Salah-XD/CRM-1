@@ -16,54 +16,53 @@ const AuditDetails = () => {
   const [hasMore, setHasMore] = useState(true);
   const { user } = useAuth();
 
-  
+  // Fetch audit data
+  const fetchAudits = useCallback(
+    (filters = {}, page = 1, perPage = 9) => {
+      setLoading(true); // Set loading to true when fetching more data
 
-// Fetch audit data
-const fetchAudits = useCallback(
-  (filters = {}, page = 1, perPage = 9) => {
-    setLoading(true); // Set loading to true when fetching more data
+      const isAdmin =
+        user.role === "SUPER_ADMIN" || user.role === "AUDIT_ADMIN";
 
-    const isAdmin =
-      user.role === "SUPER_ADMIN" || user.role === "AUDIT_ADMIN";
+      const queryParams = new URLSearchParams({
+        status: "draft",
+        ...(filters.searchQuery && { searchQuery: filters.searchQuery }),
+        ...(filters.userId &&
+          filters.userId !== "none" && { userId: filters.userId }),
+        ...(isAdmin ? {} : { userId: user._id }), // If not admin, filter by user ID
+        page,
+        perPage,
+      }).toString();
 
-    const queryParams = new URLSearchParams({
-      status: "draft",
-      ...(filters.searchQuery && { searchQuery: filters.searchQuery }),
-      ...(filters.userId &&
-        filters.userId !== "none" && { userId: filters.userId }),
-      ...(isAdmin ? {} : { userId: user._id }), // If not admin, filter by user ID
-      page,
-      perPage,
-    }).toString();
+      const url = `/api/auditor/getAllAudits?${queryParams}`;
 
-    const url = `/api/auditor/getAllAudits?${queryParams}`;
+      axios
+        .get(url)
+        .then((response) => {
+          // Ensure the structure of the response is correct
+          if (response && response.data && response.data.success) {
+            if (page === 1) {
+              setAudits(response.data.data); // Set the audits data for the first page
+            } else {
+              setAudits((prev) => [...prev, ...response.data.data]); // Append the new data for pagination
+            }
 
-    axios
-      .get(url)
-      .then((response) => {
-        // Ensure the structure of the response is correct
-        if (response && response.data && response.data.success) {
-          if (page === 1) {
-            setAudits(response.data.data); // Set the audits data for the first page
-          } else {
-            setAudits((prev) => [...prev, ...response.data.data]); // Append the new data for pagination
+            // Determine if more pages exist and update `hasMore`
+            setHasMore(
+              response.data.pagination.page <
+                response.data.pagination.totalPages
+            );
           }
-
-          // Determine if more pages exist and update `hasMore`
-          setHasMore(
-            response.data.pagination.page < response.data.pagination.totalPages
-          );
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching audits:", error); // Log the error if the API call fails
-      })
-      .finally(() => {
-        setLoading(false); // Set loading to false once data fetching is complete
-      });
-  },
-  [user.role, user._id]
-);
+        })
+        .catch((error) => {
+          console.error("Error fetching audits:", error); // Log the error if the API call fails
+        })
+        .finally(() => {
+          setLoading(false); // Set loading to false once data fetching is complete
+        });
+    },
+    [user.role, user._id]
+  );
 
   // Fetch auditors
   const fetchAuditors = useCallback(() => {
@@ -137,30 +136,30 @@ const fetchAudits = useCallback(
 
         <div className="flex justify-end my-4">
           <div className="flex items-center space-x-4">
-          {(user.role === "SUPER_ADMIN" || user.role === "AUDIT_ADMIN") && (
-                <>
-                  <div>
-                    <h2 className="text-xl font-semibold">Filters</h2>
-                  </div>
-                  <div className="ml-5">
-                    <Select
-                      showSearch
-                      placeholder="Select an Auditor"
-                      optionFilterProp="label"
-                      options={[
-                        { value: "none", label: "None" },
-                        ...auditors.map((auditor) => ({
-                          value: auditor._id,
-                          label: auditor.userName,
-                        })),
-                      ]}
-                      value={selectedAuditor}
-                      onChange={handleAuditorChange}
-                      style={{ width: 200 }}
-                    />
-                  </div>
-                </>
-              )}
+            {(user.role === "SUPER_ADMIN" || user.role === "AUDIT_ADMIN") && (
+              <>
+                <div>
+                  <h2 className="text-xl font-semibold">Filters</h2>
+                </div>
+                <div className="ml-5">
+                  <Select
+                    showSearch
+                    placeholder="Select an Auditor"
+                    optionFilterProp="label"
+                    options={[
+                      { value: "none", label: "None" },
+                      ...auditors.map((auditor) => ({
+                        value: auditor._id,
+                        label: auditor.userName,
+                      })),
+                    ]}
+                    value={selectedAuditor}
+                    onChange={handleAuditorChange}
+                    style={{ width: 200 }}
+                  />
+                </div>
+              </>
+            )}
             <Input
               size="default"
               placeholder="Search"
@@ -171,24 +170,23 @@ const fetchAudits = useCallback(
             />
           </div>
         </div>
-
-        <div>
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4"
-            style={{
-              minHeight: "400px",
-              maxHeight: "calc(100vh - 200px)", // Adjust this based on your layout
-              overflowY: "auto", // Ensure the container is scrollable
-            }}
-            onScroll={handleScroll}
-          >
-            {audits.length === 0 ? (
-              <div className="flex flex-col justify-center items-center text-center text-xl font-semibold text-gray-500 h-screen">
-                <FileOutlined style={{ fontSize: 40, marginBottom: 8 }} />
-                <div>No data available</div>
-              </div>
-            ) : (
-              audits.map((audit) => (
+        {audits.length === 0 ? (
+          <div className="flex flex-col justify-center items-center text-center text-xl font-semibold text-gray-500 h-screen">
+            <FileOutlined style={{ fontSize: 40, marginBottom: 8 }} />
+            <div>No data available</div>
+          </div>
+        ) : (
+          <div>
+            <div
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4"
+              style={{
+                minHeight: "400px",
+                maxHeight: "calc(100vh - 200px)", // Adjust this based on your layout
+                overflowY: "auto", // Ensure the container is scrollable
+              }}
+              onScroll={handleScroll}
+            >
+              {audits.map((audit) => (
                 <div key={audit._id}>
                   <AuditCard
                     status={audit.status}
@@ -203,16 +201,16 @@ const fetchAudits = useCallback(
                     route="draft"
                   />
                 </div>
-              ))
-            )}
+              ))}
 
-            {loading && (
-              <div className="flex justify-center items-center py-4 col-span-4">
-                <Spin size="medium" />
-              </div>
-            )}
+              {loading && (
+                <div className="flex justify-center items-center py-4 col-span-4">
+                  <Spin size="medium" />
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </AdminDashboard>
   );

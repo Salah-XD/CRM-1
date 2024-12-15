@@ -16,8 +16,8 @@ const auditResponseSchema = new mongoose.Schema({
         default: ''
     },
     marks: {
-        type: Number,
-        default: 0
+        type: String,
+        
     },
     image_url: {
         type: String, 

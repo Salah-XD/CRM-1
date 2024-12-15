@@ -478,3 +478,27 @@ export const getInvoicesByProposalId = async (req, res) => {
     res.status(500).json({ error: "Server error", details: error.message });
   }
 };
+
+
+
+
+export const invoiceCount = async (req, res) => {
+  try {
+    // Count the number of invoices in the Invoice collection
+    const count = await Invoice.countDocuments();
+
+    // Send the count as the response
+    return res.status(200).json({
+      success: true,
+      count,
+    });
+  } catch (error) {
+    // Handle errors
+    console.error("Error counting invoices:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to count invoices",
+      error: error.message,
+    });
+  }
+};

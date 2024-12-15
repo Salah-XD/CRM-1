@@ -27,7 +27,7 @@ const fetchAudits = useCallback(
       user.role === "SUPER_ADMIN" || user.role === "AUDIT_ADMIN";
 
     const queryParams = new URLSearchParams({
-      status: "rejected",
+      status: "modified",
       ...(filters.searchQuery && { searchQuery: filters.searchQuery }),
       ...(filters.userId &&
         filters.userId !== "none" && { userId: filters.userId }),
@@ -172,47 +172,48 @@ const fetchAudits = useCallback(
           </div>
         </div>
 
-        <div>
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4"
-            style={{
-              minHeight: "400px",
-              maxHeight: "calc(100vh - 200px)", // Adjust this based on your layout
-              overflowY: "auto", // Ensure the container is scrollable
-            }}
-            onScroll={handleScroll}
-          >
-            {audits.length === 0 ? (
-              <div className="flex flex-col justify-center items-center text-center text-xl font-semibold text-gray-500 h-screen">
-                <FileOutlined style={{ fontSize: 40, marginBottom: 8 }} />
-                <div>No data available</div>
-              </div>
-            ) : (
-              audits.map((audit) => (
-                <div key={audit._id}>
-                  <AuditCard
-                    status={audit.status}
-                    auditorName={audit.userName}
-                    fboName={audit.fbo_name}
-                    outletName={audit.outlet_name}
-                    location={audit.location}
-                    date={new Date(audit.started_at).toLocaleDateString()}
-                    proposalNumber={audit.proposal_number}
-                    auditNumber={audit.audit_number}
-                    id={audit._id}
-                    route="rejected"
-                  />
-                </div>
-              ))
-            )}
-
-            {loading && (
-              <div className="flex justify-center items-center py-4 col-span-4">
-                <Spin size="medium" />
-              </div>
-            )}
-          </div>
+        {audits.length === 0 ? (
+  <div className="flex flex-col justify-center items-center text-center text-xl font-semibold text-gray-500 h-screen">
+    <FileOutlined style={{ fontSize: 40, marginBottom: 8 }} />
+    <div>No data available</div>
+  </div>
+) : (
+  <div>
+    <div
+      className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4"
+      style={{
+        minHeight: "400px",
+        maxHeight: "calc(100vh - 200px)", // Adjust this based on your layout
+        overflowY: "auto", // Ensure the container is scrollable
+      }}
+      onScroll={handleScroll}
+    >
+      {audits.map((audit) => (
+        <div key={audit._id}>
+          <AuditCard
+            status={audit.status}
+            auditorName={audit.userName}
+            fboName={audit.fbo_name}
+            outletName={audit.outlet_name}
+            location={audit.location}
+            date={new Date(audit.started_at).toLocaleDateString()}
+            proposalNumber={audit.proposal_number}
+            auditNumber={audit.audit_number}
+            id={audit._id}
+            route="modified"
+          />
         </div>
+      ))}
+
+      {loading && (
+        <div className="flex justify-center items-center py-4 col-span-4">
+          <Spin size="medium" />
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
       </div>
     </AdminDashboard>
   );

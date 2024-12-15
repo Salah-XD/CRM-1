@@ -16,8 +16,9 @@ const AuditDateModal = ({ auditorName, visible, onCancel, onConfirm, auditorId }
     if (auditDate) {
       setIsConfirmed(true);
     }
-  };
 
+  };
+  
   const handleConfirmContinue = () => {
     if (onConfirm && auditDate) {
       // Merge current time with the selected audit date
@@ -31,6 +32,8 @@ const AuditDateModal = ({ auditorName, visible, onCancel, onConfirm, auditorId }
       // Pass the merged date to the parent component
       onConfirm({ auditDate: mergedDate, auditorId });
     }
+    setAuditDate(null);
+    setIsConfirmed(false);
   };
 
   return (

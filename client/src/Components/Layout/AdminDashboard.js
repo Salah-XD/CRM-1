@@ -48,25 +48,46 @@ const AdminDashboard = ({ children }) => {
 
   useEffect(() => {
     const currentPath = location.pathname;
-    setSelectedKey(currentPath);
-    Cookies.set("selectedKey", currentPath, { expires: 7 });
-
-    // Check if the current path matches any of the parent keys or their children
-    const openKeys = menuItems.reduce((acc, item) => {
-      if (item.children) {
-        const isChildActive = item.children.some((subItem) =>
-          currentPath.startsWith(subItem.link)
-        );
-        if (isChildActive) {
-          acc.push(item.key);
+    const firstSegment = `/${currentPath.split("/")[1]}`; // Get the first segment of the path
+  
+    // Find the matching menu key based on the first segment
+    const findSelectedKey = (items, segment) => {
+      for (const item of items) {
+        if (item.link && item.link.startsWith(segment)) {
+          return item.key;
         }
-      } else if (currentPath.startsWith(item.link)) {
-        acc.push(item.key);
+        if (item.children) {
+          const childKey = findSelectedKey(item.children, segment);
+          if (childKey) return childKey;
+        }
       }
-      return acc;
-    }, []);
-    setOpenKeys(openKeys);
+      return null;
+    };
+  
+    const matchedKey = findSelectedKey(menuItems, firstSegment);
+    if (matchedKey) {
+      setSelectedKey(matchedKey);
+      Cookies.set("selectedKey", matchedKey, { expires: 7 });
+    }
+  
+    // Determine openKeys for parent items
+    const getOpenKeys = (items, segment) => {
+      return items.reduce((acc, item) => {
+        if (item.children) {
+          const isChildActive = item.children.some((subItem) =>
+            subItem.link.startsWith(segment)
+          );
+          if (isChildActive) acc.push(item.key);
+        }
+        return acc;
+      }, []);
+    };
+  
+    const newOpenKeys = getOpenKeys(menuItems, firstSegment);
+    setOpenKeys(newOpenKeys);
   }, [location.pathname]);
+  
+  
 
   const handleMenuItemClick = (key) => {
     setSelectedKey(key);
@@ -190,9 +211,9 @@ const AdminDashboard = ({ children }) => {
         roles: ["SUPER_ADMIN", "AUDIT_ADMIN","AUDITOR"],
       },
       {
-        label: "Rejected",
-        key: "/rejected",
-        link: "/rejected",
+        label: "Modified",
+        key: "/modified",
+        link: "/modified",
         roles: ["SUPER_ADMIN", "AUDIT_ADMIN","AUDITOR"],
       },
    
@@ -285,56 +306,57 @@ const AdminDashboard = ({ children }) => {
                   </div>
                 </div>
               )}
-              <Menu
-                mode="inline"
-                selectedKeys={[selectedKey]}
-                openKeys={openKeys}
-                onOpenChange={onOpenChange}
-                theme="light"
-                className="custom-menu"
-              >
-                {filteredMenuItems.map((item) =>
-                  item.children ? (
-                    <Menu.SubMenu
-                      key={item.key}
-                      icon={item.icon}
-                      title={item.label}
-                    >
-                      {item.children.map((subItem) => (
-                        <Menu.Item key={subItem.key}>
-                          <NavLink
-                            to={subItem.link}
-                            className="custom-menu-item"
-                            activeClassName="custom-selected"
-                            onClick={() => handleMenuItemClick(subItem.key)}
-                          >
-                            {subItem.label}
-                          </NavLink>
-                        </Menu.Item>
-                      ))}
-                    </Menu.SubMenu>
-                  ) : (
-                    <Menu.Item
-                      key={item.key}
-                      icon={item.icon}
-                      onClick={
-                        item.action
-                          ? item.action
-                          : () => handleMenuItemClick(item.key)
-                      }
-                    >
-                      <NavLink
-                        to={item.link}
-                        className="custom-menu-item"
-                        activeClassName="custom-selected"
-                        onClick={() => handleMenuItemClick(item.key)}
-                      >
-                        {item.label}
-                      </NavLink>
-                    </Menu.Item>
-                  )
-                )}
-              </Menu>
+             <Menu
+  mode="inline"
+  selectedKeys={[selectedKey]} // Ensure it is wrapped in an array
+  openKeys={openKeys}
+  onOpenChange={onOpenChange}
+  theme="light"
+  className="custom-menu"
+>
+  {filteredMenuItems.map((item) =>
+    item.children ? (
+      <Menu.SubMenu
+        key={item.key}
+        icon={item.icon}
+        title={item.label}
+      >
+        {item.children.map((subItem) => (
+          <Menu.Item key={subItem.key}>
+            <NavLink
+              to={subItem.link}
+              className="custom-menu-item"
+              activeClassName="custom-selected"
+              onClick={() => handleMenuItemClick(subItem.key)}
+            >
+              {subItem.label}
+            </NavLink>
+          </Menu.Item>
+        ))}
+      </Menu.SubMenu>
+    ) : (
+      <Menu.Item
+        key={item.key}
+        icon={item.icon}
+        onClick={
+          item.action
+            ? item.action
+            : () => handleMenuItemClick(item.key)
+        }
+      >
+        <NavLink
+          to={item.link}
+          className="custom-menu-item"
+          activeClassName="custom-selected"
+          onClick={() => handleMenuItemClick(item.key)}
+        >
+          {item.label}
+        </NavLink>
+      </Menu.Item>
+    )
+  )}
+</Menu>
+
             </div>
             <div className="sider-menu-bottom">
               <Button

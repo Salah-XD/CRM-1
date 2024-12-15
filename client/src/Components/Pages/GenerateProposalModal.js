@@ -669,7 +669,7 @@ const GenerateProposalModal = ({
                 <Form.Item
                   label="Proposal date"
                   className="flex-1"
-                  name="invoice_date"
+                  name="proposal_date"
                   rules={[
                     {
                       required: true,

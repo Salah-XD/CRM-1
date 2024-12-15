@@ -154,7 +154,7 @@ const UnassignedAuditTable = () => {
       outlet_name: outletName,
       user: auditorId,
       fbo_name: fboName,
-      started_at: auditDate,
+      assigned_date: auditDate,
       audit_number: auditNumber,
       status: "assigned",
       proposal_number: proposalNumber,
@@ -167,6 +167,7 @@ const UnassignedAuditTable = () => {
         requestData
       );
       message.success("The auditor has been allocated");
+      
       fetchData();
       setAuditorName("");
       setAuditorId("");
@@ -196,25 +197,31 @@ const UnassignedAuditTable = () => {
       render: (text, record) => {
         return (
           <Select
-            value={record.auditor_name} // Use individual row's auditor_name
-            style={{ width: 150 }}
-            onChange={(value) => {
+          value={record.auditor_name || "not-selected"} // Set default value if none is selected
+          style={{ width: 150 }}
+          onChange={(value) => {
+            if (value === "not-selected") {
+              handleAuditorChange("", { auditor_id: null, ...record }); // Handle "Not Selected"
+            } else {
               const [auditorName, auditorId] = value.split("|"); // Decode value
               handleAuditorChange(
                 auditorName,
                 { auditor_id: auditorId, ...record } // Pass the row's data
-              ); // Construct the desired record
-            }}
-          >
-            {auditors.map((auditor) => (
-              <Option
-                key={auditor._id}
-                value={`${auditor.userName}|${auditor._id}`}
-              >
-                {auditor.userName}
-              </Option>
-            ))}
-          </Select>
+              );
+            }
+          }}
+        >
+          <Option value="not-selected">Not Selected</Option> {/* Add Not Selected option */}
+          {auditors.map((auditor) => (
+            <Option
+              key={auditor._id}
+              value={`${auditor.userName}|${auditor._id}`}
+            >
+              {auditor.userName}
+            </Option>
+          ))}
+        </Select>
+        
         );
       },
     },
