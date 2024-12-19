@@ -20,78 +20,68 @@ import {
   updateBusinessStatus,
   saveQuestionary,
   getQuestionaryByBusiness,
-  updateQuestionary
+  updateQuestionary,
 } from "../controller/clinetController.js";
+
 const router = express.Router();
- 
 
 // Route to save Client data
-router.post("/saveClientData", saveBusiness);
+router.post("/saveClientData", verifyToken, saveBusiness);
 
-router.post("/saveQuestionary", saveQuestionary);
+router.post("/saveQuestionary", verifyToken, saveQuestionary);
 
-router.get("/getQuestionaryByBusiness/:businessId", getQuestionaryByBusiness);
+router.get("/getQuestionaryByBusiness/:businessId", verifyToken, getQuestionaryByBusiness);
 
-router.put("/updateQuestionary/:businessId", updateQuestionary);
+router.put("/updateQuestionary/:businessId", verifyToken, updateQuestionary);
 
 // Route to save Client data
-router.put("/updateClientData", updateBusiness);
+router.put("/updateClientData", verifyToken, updateBusiness);
 
-//Route to get the bussiness name
-router.get("/getAllBussinessName",getBusinesses);
+// Route to get the business name
+router.get("/getAllBussinessName", verifyToken, getBusinesses);
 
-//Route to get all Bussiness deatils
-router.get("/getAllBussinesDetails", getAllBusinessDetails);
-
-
-
-
+// Route to get all Business details
+router.get("/getAllBussinesDetails", verifyToken, getAllBusinessDetails);
 
 // Route to fetch business details by form ID
-router.get("/getBusinessDataByFormId/:formId", getBusinessDetailsById);
+router.get("/getBusinessDataByFormId/:formId", verifyToken, getBusinessDetailsById);
 
 // Route to fetch business details by ID
-router.get("/getBusinessDataById/:id", getBusinessDetailsById);
+router.get("/getBusinessDataById/:id", verifyToken, getBusinessDetailsById);
 
+// Route to delete Business details
+router.delete("/deleteSelectedFields", verifyToken, deleteFields);
 
-//Route to get delete Bussiness details
-router.delete("/deleteSelectedFields", deleteFields);
+// Route to delete the outlet
+router.delete("/deleteOutletFields", verifyToken, deleteOutlets);
 
-//Route to delete the outlet 
-router.delete("/deleteOutletFields", deleteOutlets);
+// Route to send the mail
+router.post("/sendFormlink", verifyToken, sendEmail);
 
-//Route to send the mail
-router.post("/sendFormlink", sendEmail);
+// Route to get total outlet
+router.get("/getTotalOutlet", verifyToken, countOutletsForBusinesses);
 
+// Route to save outlet
+router.post("/saveOutlet", verifyToken, saveOutlet);
 
-//Route to get total outlet
-router.get("/getTotalOutlet",countOutletsForBusinesses);
+// Route to update outlet
+router.put("/updateOutlet/:outletId", verifyToken, updateOutlet);
 
-//Route to save outlet
-router.post("/saveOutlet", saveOutlet);
+// Route to get Outlet Detail
+router.get("/getOutletDetails/:businessId", verifyToken, getOutletDetailsById);
 
+// Route to get particular outlet details
+router.get("/getParticularOutletDetails/:id", verifyToken, getParticularOutletDetails);
 
-//Route to save outlet
-router.put("/updateOutlet/:outletId", updateOutlet);
-
-//Route to get Outlet Detail
-router.get("/getOutletDetails/:businessId", getOutletDetailsById);
-
-//Route to get particular outelet details
-router.get("/getParticularOutletDetails/:id",getParticularOutletDetails);
-
-
-//Route to get all the client name
+// Route to get all the client name
 router.get(
   "/getBranchNamesByBussinessId/:businessId",
+  verifyToken,
   getBranchNamesByBusinessId
 );
 
+router.get("/getAllClientDetail", verifyToken, getAllClientDetails);
 
-router.get("/getAllClientDetail", getAllClientDetails);
-
-
-router.put("/updateBusinessStatus/:id", updateBusinessStatus);
-
+router.put("/updateBusinessStatus/:id", verifyToken, updateBusinessStatus);
 
 export default router;

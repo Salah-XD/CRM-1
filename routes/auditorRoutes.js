@@ -20,13 +20,14 @@ import {
   fetchingQuestionAnswer,
   getUserNameById,
   updateStartedDate,
+  deleteAuditById,updateFssaiDetails,
+  auditorCount
 } from "../controller/auditorController.js";
 import { verifyToken } from "../middleware/auth.js";
 import multer from "multer";
 import path from "path";
 
 import { generateAuditReport } from "../controller/auditReportGenerationController.js";
-
 
 // Configure multer
 const storage = multer.diskStorage({
@@ -39,7 +40,19 @@ const storage = multer.diskStorage({
   },
 });
 
+
+
+const storage2 = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // Specify the folder to store the uploaded files
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname); // Specify the file name
+  },
+});
+
 const upload = multer({ storage: storage });
+const upload2 = multer({ storage: storage }).single("file")
 
 const router = express.Router();
 
@@ -94,6 +107,12 @@ router.get("/getUserNameById/:userId", getUserNameById);
 
 router.put("/updateStartedDate/:audit_id", updateStartedDate);
 
-router.get('/generateAuditReport/:audit_id',generateAuditReport);
+router.get("/generateAuditReport/:audit_id", generateAuditReport);
+
+router.delete("/deleteAuditById/:id", deleteAuditById);
+
+router.put("/updateFssaiDetails", upload2, updateFssaiDetails);
+
+router.get("/approvedAuditCount",auditorCount)
 
 export default router;

@@ -29,16 +29,33 @@ const LoginPage = () => {
       const response = await axios.post("/api/auth/login", {
         userId: values.userID,
         password: values.password,
-        role: values.businessType, // Sending role as businessType
-
+        role: values.businessType,
       });
-
+  
       if (response.data.success) {
         message.success("Login Successful!");
-        console.log("This is the response token",response.data.token);
         login(response.data.token);
-
-        navigate("/dashboard");
+  
+        console.log("this is the ",values.businessType);
+        // Switch statement for role-based navigation
+        switch (values.businessType) {
+          case "SUPER_ADMIN":
+            navigate("/dashboard");
+            break;
+          case "ACCOUNT_ADMIN":
+            navigate("/client-profile");
+            break;
+          case "AUDIT_ADMIN":
+            navigate("/audit-work");
+            break;
+          case "AUDITOR":
+            navigate("/assigned-audit");
+            break;
+          default:
+            console.error("Invalid business type:", values.businessType);
+            message.error("Invalid role selected. Please try again.");
+            break;
+        }
       } else {
         message.error("Incorrect email or password.");
       }
@@ -46,10 +63,12 @@ const LoginPage = () => {
       if (error.response && error.response.status === 403) {
         message.error("You are not authorized for this role.");
       } else {
-        message.error("Some error occurred.");
+        console.error("Login error:", error); // Debugging log
+        message.error("An error occurred. Please try again.");
       }
     }
   };
+  
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">

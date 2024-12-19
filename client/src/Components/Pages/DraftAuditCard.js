@@ -14,7 +14,10 @@ const AuditDetails = () => {
   const [selectedAuditor, setSelectedAuditor] = useState("none");
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [intialLoading, setIntialLoading] = useState(true);
   const { user } = useAuth();
+
+  
 
   // Fetch audit data
   const fetchAudits = useCallback(
@@ -73,7 +76,10 @@ const AuditDetails = () => {
           setAuditors(response.data.data);
         }
       })
-      .catch((error) => console.error("Error fetching auditors:", error));
+      .catch((error) => console.error("Error fetching auditors:", error))
+      .finally(() => {
+        setIntialLoading(false); // Reset the loading state here
+      });
   }, []);
 
   useEffect(() => {
@@ -133,84 +139,85 @@ const AuditDetails = () => {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Assigned Audits</h2>
         </div>
-
-        <div className="flex justify-end my-4">
-          <div className="flex items-center space-x-4">
-            {(user.role === "SUPER_ADMIN" || user.role === "AUDIT_ADMIN") && (
-              <>
-                <div>
-                  <h2 className="text-xl font-semibold">Filters</h2>
-                </div>
-                <div className="ml-5">
-                  <Select
-                    showSearch
-                    placeholder="Select an Auditor"
-                    optionFilterProp="label"
-                    options={[
-                      { value: "none", label: "None" },
-                      ...auditors.map((auditor) => ({
-                        value: auditor._id,
-                        label: auditor.userName,
-                      })),
-                    ]}
-                    value={selectedAuditor}
-                    onChange={handleAuditorChange}
-                    style={{ width: 200 }}
-                  />
-                </div>
-              </>
-            )}
-            <Input
-              size="default"
-              placeholder="Search"
-              prefix={<SearchOutlined />}
-              value={searchKeyword}
-              onChange={handleInputChange}
-              style={{ width: 300 }}
-            />
-          </div>
-        </div>
-        {audits.length === 0 ? (
-          <div className="flex flex-col justify-center items-center text-center text-xl font-semibold text-gray-500 h-screen">
-            <FileOutlined style={{ fontSize: 40, marginBottom: 8 }} />
-            <div>No data available</div>
-          </div>
-        ) : (
-          <div>
-            <div
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4"
-              style={{
-                minHeight: "400px",
-                maxHeight: "calc(100vh - 200px)", // Adjust this based on your layout
-                overflowY: "auto", // Ensure the container is scrollable
-              }}
-              onScroll={handleScroll}
-            >
-              {audits.map((audit) => (
-                <div key={audit._id}>
-                  <AuditCard
-                    status={audit.status}
-                    auditorName={audit.userName}
-                    fboName={audit.fbo_name}
-                    outletName={audit.outlet_name}
-                    location={audit.location}
-                    date={new Date(audit.started_at).toLocaleDateString()}
-                    proposalNumber={audit.proposal_number}
-                    auditNumber={audit.audit_number}
-                    id={audit._id}
-                    route="draft"
-                  />
-                </div>
-              ))}
-
-              {loading && (
-                <div className="flex justify-center items-center py-4 col-span-4">
-                  <Spin size="medium" />
-                </div>
+        <Spin spinning={intialLoading}>
+          <div className="flex justify-end my-4">
+            <div className="flex items-center space-x-4">
+              {(user.role === "SUPER_ADMIN" || user.role === "AUDIT_ADMIN") && (
+                <>
+                  <div>
+                    <h2 className="text-xl font-semibold">Filters</h2>
+                  </div>
+                  <div className="ml-5">
+                    <Select
+                      showSearch
+                      placeholder="Select an Auditor"
+                      optionFilterProp="label"
+                      options={[
+                        { value: "none", label: "None" },
+                        ...auditors.map((auditor) => ({
+                          value: auditor._id,
+                          label: auditor.userName,
+                        })),
+                      ]}
+                      value={selectedAuditor}
+                      onChange={handleAuditorChange}
+                      style={{ width: 200 }}
+                    />
+                  </div>
+                </>
               )}
+              <Input
+                size="default"
+                placeholder="Search"
+                prefix={<SearchOutlined />}
+                value={searchKeyword}
+                onChange={handleInputChange}
+                style={{ width: 300 }}
+              />
             </div>
           </div>
-        )}
+          {audits.length === 0 ? (
+            <div className="flex flex-col justify-center items-center text-center text-xl font-semibold text-gray-500 h-screen">
+              <FileOutlined style={{ fontSize: 40, marginBottom: 8 }} />
+              <div>No data available</div>
+            </div>
+          ) : (
+            <div>
+              <div
+                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4"
+                style={{
+                  minHeight: "400px",
+                  maxHeight: "calc(100vh - 200px)", // Adjust this based on your layout
+                  overflowY: "auto", // Ensure the container is scrollable
+                }}
+                onScroll={handleScroll}
+              >
+                {audits.map((audit) => (
+                  <div key={audit._id}>
+                    <AuditCard
+                      status={audit.status}
+                      auditorName={audit.userName}
+                      fboName={audit.fbo_name}
+                      outletName={audit.outlet_name}
+                      location={audit.location}
+                      date={new Date(audit.started_at).toLocaleDateString()}
+                      proposalNumber={audit.proposal_number}
+                      auditNumber={audit.audit_number}
+                      id={audit._id}
+                      route="draft"
+                    />
+                  </div>
+                ))}
+
+                {loading && (
+                  <div className="flex justify-center items-center py-4 col-span-4">
+                    <Spin size="medium" />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </Spin>
       </div>
     </AdminDashboard>
   );

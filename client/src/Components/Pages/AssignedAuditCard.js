@@ -14,7 +14,10 @@ const AuditDetails = () => {
   const [selectedAuditor, setSelectedAuditor] = useState("none");
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [intialLoading,setIntialLoading]=useState(true);
   const { user } = useAuth();
+
+ 
 
   // Fetch audit data
   const fetchAudits = useCallback(
@@ -66,6 +69,7 @@ const AuditDetails = () => {
 
   // Fetch auditors
   const fetchAuditors = useCallback(() => {
+ 
     axios
       .get("/api/auditor/getAuditAdmins")
       .then((response) => {
@@ -73,8 +77,12 @@ const AuditDetails = () => {
           setAuditors(response.data.data);
         }
       })
-      .catch((error) => console.error("Error fetching auditors:", error));
+      .catch((error) => console.error("Error fetching auditors:", error))
+      .finally(() => {
+        setIntialLoading(false); // Reset the loading state here
+      });
   }, []);
+  
 
   useEffect(() => {
     fetchAudits();
@@ -129,11 +137,13 @@ const AuditDetails = () => {
 
   return (
     <AdminDashboard>
+
       <div className="bg-blue-50 m-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold">Assigned Audits</h2>
         </div>
 
+  <Spin spinning={intialLoading}>
         <div className="flex justify-end my-4">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-4">
@@ -215,7 +225,9 @@ const AuditDetails = () => {
             </div>
           </div>
         )}
+        </Spin>
       </div>
+      
     </AdminDashboard>
   );
 };

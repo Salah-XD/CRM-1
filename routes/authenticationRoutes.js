@@ -21,7 +21,7 @@ router.post("/login", loginUser);
 router.post("/forgotPassword", forgotPassword);
 router.post("/verifyOtp", verifyOTP);
 router.post("/setNewPassword", setNewPassword);
-router.get("/getAllUsers", fetchAllUsers);
+router.get("/getAllUsers",verifyToken, fetchAllUsers);
 router.delete("/deleteFields", deleteFields);
 router.get("/getUserById/:userId",getUserById);
 router.put("/updateUser/:userId",updateUser);

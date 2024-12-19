@@ -492,7 +492,7 @@ const UpdateGenerateInvoiceModal = ({
               </Form.Item>
               <div className="flex space-x-4">
                 <Form.Item
-                  label="Proposal date"
+                  label="Invoice date"
                   name="invoice_date"
                   className="flex-1"
                   size="large"

@@ -14,56 +14,58 @@ const AuditDetails = () => {
   const [selectedAuditor, setSelectedAuditor] = useState("none");
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [intialLoading, setIntialLoading] = useState(true);
   const { user } = useAuth();
 
-  
 
-// Fetch audit data
-const fetchAudits = useCallback(
-  (filters = {}, page = 1, perPage = 9) => {
-    setLoading(true); // Set loading to true when fetching more data
 
-    const isAdmin =
-      user.role === "SUPER_ADMIN" || user.role === "AUDIT_ADMIN";
+  // Fetch audit data
+  const fetchAudits = useCallback(
+    (filters = {}, page = 1, perPage = 9) => {
+      setLoading(true); // Set loading to true when fetching more data
 
-    const queryParams = new URLSearchParams({
-      status: "submitted",
-      ...(filters.searchQuery && { searchQuery: filters.searchQuery }),
-      ...(filters.userId &&
-        filters.userId !== "none" && { userId: filters.userId }),
-      ...(isAdmin ? {} : { userId: user._id }), // If not admin, filter by user ID
-      page,
-      perPage,
-    }).toString();
+      const isAdmin =
+        user.role === "SUPER_ADMIN" || user.role === "AUDIT_ADMIN";
 
-    const url = `/api/auditor/getAllAudits?${queryParams}`;
+      const queryParams = new URLSearchParams({
+        status: "submitted",
+        ...(filters.searchQuery && { searchQuery: filters.searchQuery }),
+        ...(filters.userId &&
+          filters.userId !== "none" && { userId: filters.userId }),
+        ...(isAdmin ? {} : { userId: user._id }), // If not admin, filter by user ID
+        page,
+        perPage,
+      }).toString();
 
-    axios
-      .get(url)
-      .then((response) => {
-        // Ensure the structure of the response is correct
-        if (response && response.data && response.data.success) {
-          if (page === 1) {
-            setAudits(response.data.data); // Set the audits data for the first page
-          } else {
-            setAudits((prev) => [...prev, ...response.data.data]); // Append the new data for pagination
+      const url = `/api/auditor/getAllAudits?${queryParams}`;
+
+      axios
+        .get(url)
+        .then((response) => {
+          // Ensure the structure of the response is correct
+          if (response && response.data && response.data.success) {
+            if (page === 1) {
+              setAudits(response.data.data); // Set the audits data for the first page
+            } else {
+              setAudits((prev) => [...prev, ...response.data.data]); // Append the new data for pagination
+            }
+
+            // Determine if more pages exist and update `hasMore`
+            setHasMore(
+              response.data.pagination.page <
+                response.data.pagination.totalPages
+            );
           }
-
-          // Determine if more pages exist and update `hasMore`
-          setHasMore(
-            response.data.pagination.page < response.data.pagination.totalPages
-          );
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching audits:", error); // Log the error if the API call fails
-      })
-      .finally(() => {
-        setLoading(false); // Set loading to false once data fetching is complete
-      });
-  },
-  [user.role, user._id]
-);
+        })
+        .catch((error) => {
+          console.error("Error fetching audits:", error); // Log the error if the API call fails
+        })
+        .finally(() => {
+          setLoading(false); // Set loading to false once data fetching is complete
+        });
+    },
+    [user.role, user._id]
+  );
 
   // Fetch auditors
   const fetchAuditors = useCallback(() => {
@@ -74,7 +76,10 @@ const fetchAudits = useCallback(
           setAuditors(response.data.data);
         }
       })
-      .catch((error) => console.error("Error fetching auditors:", error));
+      .catch((error) => console.error("Error fetching auditors:", error))
+      .finally(() => {
+        setIntialLoading(false); // Reset the loading state here
+      });
   }, []);
 
   useEffect(() => {
@@ -135,10 +140,10 @@ const fetchAudits = useCallback(
           <h2 className="text-xl font-semibold">Assigned Audits</h2>
         </div>
 
-        <div className="flex justify-end my-4">
-          <div className="flex items-center space-x-4">
-          
-          {(user.role === "SUPER_ADMIN" || user.role === "AUDIT_ADMIN") && (
+        <Spin spinning={intialLoading}>
+          <div className="flex justify-end my-4">
+            <div className="flex items-center space-x-4">
+              {(user.role === "SUPER_ADMIN" || user.role === "AUDIT_ADMIN") && (
                 <>
                   <div>
                     <h2 className="text-xl font-semibold">Filters</h2>
@@ -162,59 +167,59 @@ const fetchAudits = useCallback(
                   </div>
                 </>
               )}
-            <Input
-              size="default"
-              placeholder="Search"
-              prefix={<SearchOutlined />}
-              value={searchKeyword}
-              onChange={handleInputChange}
-              style={{ width: 300 }}
-            />
+              <Input
+                size="default"
+                placeholder="Search"
+                prefix={<SearchOutlined />}
+                value={searchKeyword}
+                onChange={handleInputChange}
+                style={{ width: 300 }}
+              />
+            </div>
           </div>
-        </div>
 
-        {audits.length === 0 ? (
-  <div className="flex flex-col justify-center items-center text-center text-xl font-semibold text-gray-500 h-screen">
-    <FileOutlined style={{ fontSize: 40, marginBottom: 8 }} />
-    <div>No data available</div>
-  </div>
-) : (
-  <div>
-    <div
-      className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4"
-      style={{
-        minHeight: "400px",
-        maxHeight: "calc(100vh - 200px)", // Adjust this based on your layout
-        overflowY: "auto", // Ensure the container is scrollable
-      }}
-      onScroll={handleScroll}
-    >
-      {audits.map((audit) => (
-        <div key={audit._id}>
-          <AuditCard
-            status={audit.status}
-            auditorName={audit.userName}
-            fboName={audit.fbo_name}
-            outletName={audit.outlet_name}
-            location={audit.location}
-            date={new Date(audit.started_at).toLocaleDateString()}
-            proposalNumber={audit.proposal_number}
-            auditNumber={audit.audit_number}
-            id={audit._id}
-            route="submittedForApproval"
-          />
-        </div>
-      ))}
+          {audits.length === 0 ? (
+            <div className="flex flex-col justify-center items-center text-center text-xl font-semibold text-gray-500 h-screen">
+              <FileOutlined style={{ fontSize: 40, marginBottom: 8 }} />
+              <div>No data available</div>
+            </div>
+          ) : (
+            <div>
+              <div
+                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4"
+                style={{
+                  minHeight: "400px",
+                  maxHeight: "calc(100vh - 200px)", // Adjust this based on your layout
+                  overflowY: "auto", // Ensure the container is scrollable
+                }}
+                onScroll={handleScroll}
+              >
+                {audits.map((audit) => (
+                  <div key={audit._id}>
+                    <AuditCard
+                      status={audit.status}
+                      auditorName={audit.userName}
+                      fboName={audit.fbo_name}
+                      outletName={audit.outlet_name}
+                      location={audit.location}
+                      date={new Date(audit.started_at).toLocaleDateString()}
+                      proposalNumber={audit.proposal_number}
+                      auditNumber={audit.audit_number}
+                      id={audit._id}
+                      route="submittedForApproval"
+                    />
+                  </div>
+                ))}
 
-      {loading && (
-        <div className="flex justify-center items-center py-4 col-span-4">
-          <Spin size="medium" />
-        </div>
-      )}
-    </div>
-  </div>
-)}
-
+                {loading && (
+                  <div className="flex justify-center items-center py-4 col-span-4">
+                    <Spin size="medium" />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </Spin>
       </div>
     </AdminDashboard>
   );

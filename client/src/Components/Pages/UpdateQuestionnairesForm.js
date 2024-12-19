@@ -66,6 +66,17 @@ const UpdateQuestionnairesForm = () => {
     }
   };
 
+
+  const handleCancel = () => {
+  
+    
+    // Disable editing and hide the update buttons
+    setIsEditable(false);
+    setShowUpdateButtons(false);
+  };
+  
+
+
   if (!formData) {
     return (
       <div className="flex justify-center">
@@ -155,16 +166,18 @@ const UpdateQuestionnairesForm = () => {
           </Form.Item>
         </div>
         <div
-          className={`sticky bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top transition-transform duration-500 ${
+          className={`fixed bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top transition-transform duration-500 ${
             showUpdateButtons
               ? "translate-y-0 opacity-100"
               : "translate-y-full opacity-0"
           }`}
-          style={{ marginTop: 600 }}
         >
           <Form.Item>
             <Button type="primary" className="ml-6" htmlType="submit">
-              {isEditable ? "Update" : "Next"}
+              Update
+            </Button>
+            <Button type="primary" className="ml-6" onClick={handleCancel} >
+              Cancel
             </Button>
           </Form.Item>
         </div>

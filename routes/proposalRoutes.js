@@ -19,31 +19,32 @@ import { generateProposal } from "../controller/proposalGenerationController.js"
 
 const router = express.Router();
 
-router.get("/getOutletDetailsById/:enquiryId", getOutletDetailsById);
+router.get("/getOutletDetailsById/:enquiryId", verifyToken, getOutletDetailsById);
 
-router.post("/createProposalAndOutlet", createProposalAndOutlet);
+router.post("/createProposalAndOutlet", verifyToken, createProposalAndOutlet);
 
 router.get(
   "/getBusinessDetailsByEnquiryId/:enquiryId",
+  verifyToken,
   getBusinessDetailsByEnquiryId
 );
 
-router.get("/genrateProposalNumber", generateProposalNumber);
+router.get("/genrateProposalNumber", verifyToken, generateProposalNumber);
 
-router.put("/updateProposalAndOutlet/:proposalId", updateProposalAndOutlet);
+router.put("/updateProposalAndOutlet/:proposalId", verifyToken, updateProposalAndOutlet);
 
-router.post("/generateProposal/:proposalId", generateProposal);
+router.post("/generateProposal/:proposalId", verifyToken, generateProposal);
 
-router.get("/getAllProposalDetails", getAllProposalDetails);
+router.get("/getAllProposalDetails", verifyToken, getAllProposalDetails);
 
-router.get("/getOutletsByProposalId/:proposalId", getOutletsByProposalId);
+router.get("/getOutletsByProposalId/:proposalId", verifyToken, getOutletsByProposalId);
 
-router.delete("/deleteFields", deleteFields);
+router.delete("/deleteFields", verifyToken, deleteFields);
 
-router.put("/updateProposalStatus/:proposalId", updateProposalStatus);
+router.put("/updateProposalStatus/:proposalId", verifyToken, updateProposalStatus);
 
-router.get("/getProposalById/:proposalId", getProposalById);
+router.get("/getProposalById/:proposalId", verifyToken, getProposalById);
 
-router.get("/proposalCount",proposalCount);
+router.get("/proposalCount",verifyToken, proposalCount);
 
 export default router;

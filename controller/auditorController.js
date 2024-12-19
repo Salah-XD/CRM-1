@@ -161,6 +161,7 @@ export const processProposalsWithOutlets = async (req, res) => {
           ?.replace(/,/, "/")
           .replace(/\s+/g, "");
 
+
         // Filter outlets with description "Hygiene Rating" and unassigned auditors
         if (
           outlet.is_assignedAuditor === false &&
@@ -183,6 +184,10 @@ export const processProposalsWithOutlets = async (req, res) => {
           });
 
           // Increment audit counter
+      
+        }
+           
+        if(outlet.description==="Hygiene Rating"){
           auditCounter++;
         }
       });
@@ -473,6 +478,7 @@ export const getAuditById = async (req, res) => {
       modificationHistory: audit.modificationHistory || null,
       fssai_image_url: audit.fssai_image_url ? audit.fssai_image_url : null,
       fssai_number: audit.fssai_number ? audit.fssai_number : null,
+      assigned_date:audit.assigned_date || null,
       __v: audit.__v,
     };
 
@@ -1130,3 +1136,157 @@ export const updateStartedDate = async (req, res) => {
       .json({ message: "Internal Server Error", error: error.message });
   }
 };
+
+
+// Controller to delete an AuditManagement document and its associated responses
+export const deleteAuditById = async (req, res) => {
+  const { id } = req.params; // Extract the audit ID from the request parameters
+
+  try {
+    // Check if the AuditManagement document exists
+    const audit = await AuditManagement.findById(id);
+
+    if (!audit) {
+      return res.status(404).json({ message: 'Audit not found' });
+    }
+
+    // Delete all AuditResponse documents with the matching audit_id
+    const responseDeleteResult = await AuditResponse.deleteMany({ audit_id: id });
+
+    // Delete the AuditManagement document
+    const auditDeleteResult = await AuditManagement.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      message: 'Audit and associated responses deleted successfully',
+      auditDeleted: auditDeleteResult,
+      responsesDeletedCount: responseDeleteResult.deletedCount,
+    });
+  } catch (error) {
+    console.error('Error deleting audit:', error);
+    return res.status(500).json({ message: 'Internal server error', error });
+  }
+};
+
+
+// Update FSSAI Details Handler
+export const updateFssaiDetails = async (req, res) => {
+  const { fssai_number, audit_id } = req.body;
+
+  try {
+    let uploadedImageUrl = "";
+
+    // Validate and convert audit_id to ObjectId
+    if (!audit_id) {
+      return res.status(400).json({ message: "Invalid audit ID format." });
+    }
+
+    // Handle file upload if a file is provided
+    if (req.file) {
+      try {
+        const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+          folder: "audit_images",
+        });
+        uploadedImageUrl = uploadResult.secure_url;
+
+        // Delete the temporary file
+        fs.unlinkSync(req.file.path);
+      } catch (uploadError) {
+        console.error("Error uploading file to Cloudinary:", uploadError);
+        return res.status(500).json({ message: "File upload failed" });
+      }
+    }
+
+    // Prepare the fields to update
+    const updateData = { fssai_number };
+    if (uploadedImageUrl) {
+      updateData.fssai_image_url = uploadedImageUrl;
+    }
+
+    // Use findByIdAndUpdate for updating by audit_id
+    const updatedRecord = await AuditManagement.findByIdAndUpdate(
+      audit_id,       // Pass the ObjectId directly
+      updateData,     // Fields to update
+      { new: true }   // Return the updated document
+    );
+
+    if (!updatedRecord) {
+      return res.status(404).json({ message: "FSSAI record not found" });
+    }
+
+    // Success Response
+    return res
+      .status(200)
+      .json({ message: "FSSAI details updated successfully", updatedRecord });
+  } catch (err) {
+    console.error("Error updating FSSAI details:", err);
+    return res.status(500).json({ message: "An error occurred while updating FSSAI details" });
+  }
+};
+
+
+const getDateRanges = (filter) => {
+  switch (filter) {
+    case 'today':
+      return {
+        start: moment().startOf('day').toDate(),
+        end: moment().endOf('day').toDate(),
+      };
+    case 'week':
+      return {
+        start: moment().startOf('week').toDate(),
+        end: moment().endOf('week').toDate(),
+      };
+    case 'month':
+      return {
+        start: moment().startOf('month').toDate(),
+        end: moment().endOf('month').toDate(),
+      };
+    case 'overall':
+      return null; // No date range for overall count
+    default:
+      throw new Error('Invalid filter');
+  }
+};
+
+export const auditorCount = async (req, res) => {
+  try {
+    const { filter } = req.query; // Get the filter from query params
+
+    const dateRange = getDateRanges(filter);
+
+    const matchConditions = {
+      // Ensure the last status in statusHistory is "approved"
+      $expr: {
+        $eq: [
+          { $arrayElemAt: ["$statusHistory.status", -1] }, // Last element's status
+          "approved",
+        ],
+      },
+    };
+
+    if (dateRange) {
+      matchConditions.createdAt = { $gte: dateRange.start, $lte: dateRange.end };
+    }
+
+    const countResult = await AuditManagement.aggregate([
+      { $match: matchConditions },
+      { $count: "count" },
+    ]);
+
+    const count = countResult.length > 0 ? countResult[0].count : 0;
+
+    return res.status(200).json({
+      success: true,
+      count,
+    });
+  } catch (error) {
+    console.error('Error counting proposals:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to count proposals',
+      error: error.message,
+    });
+  }
+};
+
+

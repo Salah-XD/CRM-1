@@ -59,7 +59,9 @@ const UpdateBusinessDetail = ({
   const { id } = useParams();
 
   const handleCancel = () => {
-    navigate("/client-profile"); // Replace with your desired route
+  
+  setIsEditable(false);
+  setShowUpdateButtons(false);
   };
 
   useEffect(() => {

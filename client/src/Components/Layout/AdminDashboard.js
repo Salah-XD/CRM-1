@@ -1,4 +1,4 @@
-                                                      import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import {
   UserOutlined,
@@ -32,7 +32,6 @@ const AdminDashboard = ({ children }) => {
     Cookies.get("selectedKey") || location.pathname
   );
 
-
   const handleLogout = () => {
     logout();
     navigate("/");
@@ -49,7 +48,7 @@ const AdminDashboard = ({ children }) => {
   useEffect(() => {
     const currentPath = location.pathname;
     const firstSegment = `/${currentPath.split("/")[1]}`; // Get the first segment of the path
-  
+
     // Find the matching menu key based on the first segment
     const findSelectedKey = (items, segment) => {
       for (const item of items) {
@@ -63,13 +62,13 @@ const AdminDashboard = ({ children }) => {
       }
       return null;
     };
-  
+
     const matchedKey = findSelectedKey(menuItems, firstSegment);
     if (matchedKey) {
       setSelectedKey(matchedKey);
       Cookies.set("selectedKey", matchedKey, { expires: 7 });
     }
-  
+
     // Determine openKeys for parent items
     const getOpenKeys = (items, segment) => {
       return items.reduce((acc, item) => {
@@ -82,12 +81,10 @@ const AdminDashboard = ({ children }) => {
         return acc;
       }, []);
     };
-  
+
     const newOpenKeys = getOpenKeys(menuItems, firstSegment);
     setOpenKeys(newOpenKeys);
   }, [location.pathname]);
-  
-  
 
   const handleMenuItemClick = (key) => {
     setSelectedKey(key);
@@ -114,150 +111,145 @@ const AdminDashboard = ({ children }) => {
   };
 
   const roles = getRoleLabel(user?.role);
-  const role=user?.role;
-  
- const menuItems = [
-   {
-     label: "Home",
-     key: "/dashboard",
-     icon: <DashboardOutlined />,
-     link: "/dashboard",
-     roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN", "AUDIT_ADMIN"],
-   },
-   {
-     label: "Customers",
-     key: "/customers",
-     icon: <UserOutlined />,
-     roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
-     children: [
-       {
-         label: "Client Approval",
-         key: "/client-approval",
-         link: "/client-approval",
-         roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
-       },
-       {
-         label: "Client Profile",
-         key: "/client-profile",
-         link: "/client-profile",
-         roles: ["SUPER_ADMIN"],
-       },
-     ],
-   },
-   {
-     label: "Accounts Management",
-     key: "/accounts",
-     icon: <MessageOutlined />,
-     roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
-     children: [
-       {
-         label: "Enquiry",
-         key: "/enquiry",
-         link: "/enquiry",
-         roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
-       },
-       {
-         label: "Proposal",
-         key: "/proposal",
-         link: "/proposal",
-         roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
-       },
-       {
-         label: "Invoice",
-         key: "/invoice",
-         link: "/invoice",
-         roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
-       },
+  const role = user?.role;
 
-       {
-         label: "Agreement",
-         key: "/agreement",
-         link: "/agreement",
-         roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
-       },
+  const menuItems = [
+    {
+      label: "Home",
+      key: "/dashboard",
+      icon: <DashboardOutlined />,
+      link: "/dashboard",
+      roles: ["SUPER_ADMIN"],
+    },
+    {
+      label: "Customers",
+      key: "/customers",
+      icon: <UserOutlined />,
+      roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
+      children: [
+        {
+          label: "Client Approval",
+          key: "/client-approval",
+          link: "/client-approval",
+          roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
+        },
+        {
+          label: "Client Profile",
+          key: "/client-profile",
+          link: "/client-profile",
+          roles: ["SUPER_ADMIN"],
+        },
+      ],
+    },
+    {
+      label: "Accounts Management",
+      key: "/accounts",
+      icon: <MessageOutlined />,
+      roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
+      children: [
+        {
+          label: "Enquiry",
+          key: "/enquiry",
+          link: "/enquiry",
+          roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
+        },
+        {
+          label: "Proposal",
+          key: "/proposal",
+          link: "/proposal",
+          roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
+        },
+        {
+          label: "Invoice",
+          key: "/invoice",
+          link: "/invoice",
+          roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
+        },
 
-       
-        
-     ],
-   },
-   {
-    label: "HR Audit Management",
-    key: "/audit",
-    icon: <FileTextOutlined />,
-    roles: ["SUPER_ADMIN", "AUDIT_ADMIN","AUDITOR"],
-    children: [
-      {
-        label: "Unassigned",
-        key: "/unassigned",
-        link: "/audit-work",
-        roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
-      },
-      {
-        label: "Assigned",
-        key: "/assigned",
-        link: "/assigned-audit",
-        roles: ["SUPER_ADMIN", "AUDIT_ADMIN","AUDITOR"],
-      },
-      {
-        label: "Draft",
-        key: "/draft",
-        link: "/draft",
-        roles: ["SUPER_ADMIN", "AUDIT_ADMIN","AUDITOR"],
-      },
-      {
-        label: "Submitted for Approval",
-        key: "/submittedForApproval",
-        link: "/submittedForApproval",
-        roles: ["SUPER_ADMIN", "AUDIT_ADMIN","AUDITOR"],
-      },
-      {
-        label: "Modified",
-        key: "/modified",
-        link: "/modified",
-        roles: ["SUPER_ADMIN", "AUDIT_ADMIN","AUDITOR"],
-      },
-   
-      {
-        label: "Approved",
-        key: "/approved",
-        link: "/approved",
-        roles: ["SUPER_ADMIN", "AUDIT_ADMIN","AUDITOR"],
-      },
-    ],
-  }
-,  
-   {
-     label: "Settings",
-     key: "/setting",
-     icon: <SettingOutlined />,
-     link: "/setting",
-     roles: ["SUPER_ADMIN"],
-   },
-   {
-     label: "Logout",
-     key: "logout",
-     icon: <LogoutOutlined />,
-     action: handleLogout,
-     roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN", "AUDIT_ADMIN","AUDITOR"],
-   },
- ];
+        {
+          label: "Agreement",
+          key: "/agreement",
+          link: "/agreement",
+          roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
+        },
+      ],
+    },
+    {
+      label: "HR Audit Management",
+      key: "/audit",
+      icon: <FileTextOutlined />,
+      roles: ["SUPER_ADMIN", "AUDIT_ADMIN", "AUDITOR"],
+      children: [
+        {
+          label: "Unassigned",
+          key: "/unassigned",
+          link: "/audit-work",
+          roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+        },
+        {
+          label: "Assigned",
+          key: "/assigned",
+          link: "/assigned-audit",
+          roles: ["SUPER_ADMIN", "AUDIT_ADMIN", "AUDITOR"],
+        },
+        {
+          label: "Draft",
+          key: "/draft",
+          link: "/draft",
+          roles: ["SUPER_ADMIN", "AUDIT_ADMIN", "AUDITOR"],
+        },
+        {
+          label: "Submitted for Approval",
+          key: "/submittedForApproval",
+          link: "/submittedForApproval",
+          roles: ["SUPER_ADMIN", "AUDIT_ADMIN", "AUDITOR"],
+        },
+        {
+          label: "Modified",
+          key: "/modified",
+          link: "/modified",
+          roles: ["SUPER_ADMIN", "AUDIT_ADMIN", "AUDITOR"],
+        },
 
- const filterMenuItems = (items, role) => {
-   return items
-     .filter((item) => item.roles.includes(role))
-     .map((item) => {
-       if (item.children) {
-         return {
-           ...item,
-           children: filterMenuItems(item.children, role),
-         };
-       }
-       return item;
-     });
- };
+        {
+          label: "Approved",
+          key: "/approved",
+          link: "/approved",
+          roles: ["SUPER_ADMIN", "AUDIT_ADMIN", "AUDITOR"],
+        },
+      ],
+    },
+    {
+      label: "Settings",
+      key: "/setting",
+      icon: <SettingOutlined />,
+      link: "/setting",
+      roles: ["SUPER_ADMIN"],
+    },
+    {
+      label: "Logout",
+      key: "logout",
+      icon: <LogoutOutlined />,
+      action: handleLogout,
+      roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN", "AUDIT_ADMIN", "AUDITOR"],
+    },
+  ];
 
- const filteredMenuItems = filterMenuItems(menuItems, role);
+  const filterMenuItems = (items, role) => {
+    return items
+      .filter((item) => item.roles.includes(role))
+      .map((item) => {
+        if (item.children) {
+          return {
+            ...item,
+            children: filterMenuItems(item.children, role),
+          };
+        }
+        return item;
+      });
+  };
 
+  const filteredMenuItems = filterMenuItems(menuItems, role);
 
   return (
     <ConfigProvider
@@ -273,24 +265,48 @@ const AdminDashboard = ({ children }) => {
         <AdminHeader />
       </div>
       <Layout style={{ minHeight: "100vh", background: "#E6F7FF" }}>
-        <Sider
-          collapsible
-          collapsed={collapsed}
-          onCollapse={setCollapsed}
-          theme="light"
-          width={250}
-          collapsedWidth={80}
-          style={{
-            overflow: "auto",
-            height: "calc(100vh - 64px)",
-            position: "fixed",
-            left: 0,
-            top: 64,
-            bottom: 50,
-            background: "white",
-            borderRight: "1px solid #e8e8e8",
-          }}
-        >
+
+      <Sider
+  collapsible
+  collapsed={collapsed}
+  onCollapse={setCollapsed}
+  theme="light"
+  width={250}
+  collapsedWidth={80}
+  style={{
+    overflow: "auto",
+    height: "calc(100vh - 64px)",
+    position: "fixed",
+    left: 0,
+    top: 64,
+    bottom: 50,
+    background: "white",
+    borderRight: "1px solid #e8e8e8",
+  }}
+>
+ <style>
+    {`
+      /* Custom scrollbar styles */
+      ::-webkit-scrollbar {
+        width: 6px; /* Thinner scrollbar */
+      }
+      ::-webkit-scrollbar-track {
+        background: #f7f7f7; /* Light track for a clean look */
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #b3b3b3; /* Subtle gray for the thumb */
+        border-radius: 10px; /* Rounded thumb for a modern feel */
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #8c8c8c; /* Slightly darker gray on hover */
+      }
+      /* Add smooth scrolling behavior */
+      html {
+        scroll-behavior: smooth;
+      }
+    `}
+  </style>
+
           <div className="sider-menu">
             <div className="sider-menu-content">
               {!collapsed && (
@@ -306,57 +322,56 @@ const AdminDashboard = ({ children }) => {
                   </div>
                 </div>
               )}
-             <Menu
-  mode="inline"
-  selectedKeys={[selectedKey]} // Ensure it is wrapped in an array
-  openKeys={openKeys}
-  onOpenChange={onOpenChange}
-  theme="light"
-  className="custom-menu"
->
-  {filteredMenuItems.map((item) =>
-    item.children ? (
-      <Menu.SubMenu
-        key={item.key}
-        icon={item.icon}
-        title={item.label}
-      >
-        {item.children.map((subItem) => (
-          <Menu.Item key={subItem.key}>
-            <NavLink
-              to={subItem.link}
-              className="custom-menu-item"
-              activeClassName="custom-selected"
-              onClick={() => handleMenuItemClick(subItem.key)}
-            >
-              {subItem.label}
-            </NavLink>
-          </Menu.Item>
-        ))}
-      </Menu.SubMenu>
-    ) : (
-      <Menu.Item
-        key={item.key}
-        icon={item.icon}
-        onClick={
-          item.action
-            ? item.action
-            : () => handleMenuItemClick(item.key)
-        }
-      >
-        <NavLink
-          to={item.link}
-          className="custom-menu-item"
-          activeClassName="custom-selected"
-          onClick={() => handleMenuItemClick(item.key)}
-        >
-          {item.label}
-        </NavLink>
-      </Menu.Item>
-    )
-  )}
-</Menu>
-
+              <Menu
+                mode="inline"
+                selectedKeys={[selectedKey]} // Ensure it is wrapped in an array
+                openKeys={openKeys}
+                onOpenChange={onOpenChange}
+                theme="light"
+                className="custom-menu"
+              >
+                {filteredMenuItems.map((item) =>
+                  item.children ? (
+                    <Menu.SubMenu
+                      key={item.key}
+                      icon={item.icon}
+                      title={item.label}
+                    >
+                      {item.children.map((subItem) => (
+                        <Menu.Item key={subItem.key}>
+                          <NavLink
+                            to={subItem.link}
+                            className="custom-menu-item"
+                            activeClassName="custom-selected"
+                            onClick={() => handleMenuItemClick(subItem.key)}
+                          >
+                            {subItem.label}
+                          </NavLink>
+                        </Menu.Item>
+                      ))}
+                    </Menu.SubMenu>
+                  ) : (
+                    <Menu.Item
+                      key={item.key}
+                      icon={item.icon}
+                      onClick={
+                        item.action
+                          ? item.action
+                          : () => handleMenuItemClick(item.key)
+                      }
+                    >
+                      <NavLink
+                        to={item.link}
+                        className="custom-menu-item"
+                        activeClassName="custom-selected"
+                        onClick={() => handleMenuItemClick(item.key)}
+                      >
+                        {item.label}
+                      </NavLink>
+                    </Menu.Item>
+                  )
+                )}
+              </Menu>
             </div>
             <div className="sider-menu-bottom">
               <Button

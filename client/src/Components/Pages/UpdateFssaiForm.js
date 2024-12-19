@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Form, Input, Upload, Button, Image, message, Typography } from "antd";
+import {
+  Form,
+  Input,
+  Upload,
+  Button,
+  Image,
+  message,
+  Typography,
+  Spin,
+} from "antd";
 import { InboxOutlined, DeleteOutlined } from "@ant-design/icons";
 import axios from "axios";
 import { useParams } from "react-router-dom";
@@ -80,32 +89,72 @@ const UpdateFssaiForm = () => {
       return true;
     },
   };
-  
+
   const pathSegments = location.pathname.split("/").filter(Boolean);
 
   // Extract the first segment, which will be the first meaningful part
   const firstSegment = pathSegments[0];
 
-  const onFinish = (values) => {
-    const updatedData = {
-      fssai_number: values.fssai_number,
-      fssai_image_url: newImage ? newImage : fssaiImageUrl,
-    };
-    console.log("Updated Data:", updatedData);
-    // Add your API call or submission logic here
+  const onFinish = async (values) => {
+    setLoading(true); // Start loading state
+    const formData = new FormData();
+
+    // Append audit_id and fssai_number
+    formData.append("audit_id", audit_id);
+    formData.append("fssai_number", values.fssai_number);
+
+    // If a new image exists, append the file to formData
+    if (newImage) {
+      formData.append("file", newImage);
+      formData.append("fileName", newImage.name); // Send the filename
+    } else {
+      // Optionally, you can append a delete flag if the user wants to delete an image
+      formData.append("deleteImage", true); // Set this to false if not deleting
+    }
+
+    try {
+      // Send data to the server using axios (use PUT for updates)
+      const response = await axios.put(
+        "/api/auditor/updateFssaiDetails",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        message.success("FSSAI details updated successfully!");
+        console.log("Response:", response.data);
+      } else {
+        message.error("Failed to update FSSAI details.");
+      }
+    } catch (error) {
+      console.error("Error updating FSSAI details:", error);
+      message.error(
+        error.response?.data?.message || "An error occurred while updating."
+      );
+    } finally {
+      setLoading(false); // Stop loading state
+    }
   };
 
   return (
     <div>
+      {/* Full-page Loading Spinner */}
+      {loading && (
+        <div className="absolute top-0 left-0 right-0 bottom-0 flex justify-center items-center z-10">
+          <Spin size="medium" />
+        </div>
+      )}
+
       {/* Edit Button */}
       <div className="flex justify-end my-4">
         <Button
           type="primary"
           onClick={() => setIsEditable(!isEditable)} // Toggle edit mode
-          disabled={
-            !["draft", "rejected"].includes(firstSegment) ||
-            isEditable
-          }
+          disabled={!["draft", "rejected"].includes(firstSegment) || isEditable}
         >
           {isEditable ? "Cancel" : "Edit"}
         </Button>
@@ -142,13 +191,22 @@ const UpdateFssaiForm = () => {
                 required: true,
                 message: "Please enter your FSSAI License No.",
               },
+              {
+                pattern: /^[0-9]{14}$/,
+                message:
+                  "FSSAI License No. must be exactly 14 numeric characters.",
+              },
+              {
+                len: 14,
+                message: "FSSAI License No. must be exactly 14 characters.",
+              },
             ]}
           >
             <Input
-              value={fssaiNumber} // Set value to state
-              onChange={(e) => setFssaiNumber(e.target.value)} // Handle change in input
-              placeholder="Enter FSSAI License Number"
+              value={fssaiNumber}
+              onChange={(e) => setFssaiNumber(e.target.value)}
               disabled={!isEditable} // Disable if not editable
+              formatter={(str) => str.toUpperCase()}
             />
           </Form.Item>
         </div>
@@ -179,7 +237,7 @@ const UpdateFssaiForm = () => {
 
         {/* Current Image Preview */}
         {(fssaiImageUrl || newImage) && (
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col  mt-10  items-center">
             <Image
               width={200}
               src={newImage ? previewUrl : fssaiImageUrl}
@@ -202,9 +260,9 @@ const UpdateFssaiForm = () => {
 
         {/* Submit Button */}
         {isEditable && (
-          <div className="flex justify-center my-4">
+          <div className="flex justify-end mt-10">
             <Button type="primary" htmlType="submit">
-              Update
+              Save Changes
             </Button>
           </div>
         )}

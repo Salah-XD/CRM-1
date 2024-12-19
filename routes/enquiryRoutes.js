@@ -12,17 +12,17 @@ import {
 
 const router = express.Router();
 
-router.post("/saveEnquiryForm", saveEnquiryForm);
+router.post("/saveEnquiryForm",verifyToken, saveEnquiryForm);
 
-router.get("/getAllEnquiryDetails", getAllEnquiryDetails);
+router.get("/getAllEnquiryDetails",verifyToken, getAllEnquiryDetails);
 
-router.get("/getEnquiryById/:id", getEnquiryById);
+router.get("/getEnquiryById/:id",verifyToken, getEnquiryById);
 
-router.delete("/deleteFields", deleteFields);
+router.delete("/deleteFields",verifyToken, deleteFields);
 
-router.put("/updateEnquiryById/:id", updateEnquiryById);
+router.put("/updateEnquiryById/:id", verifyToken,updateEnquiryById);
 
-router.put("/updateEnquiryProposalStatus",updateEnquiryProposalStatus)
+router.put("/updateEnquiryProposalStatus",verifyToken,updateEnquiryProposalStatus)
 
 
 

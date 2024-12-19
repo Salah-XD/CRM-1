@@ -1,38 +1,69 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import {
   FileDoneOutlined, // Proposal Done
   CheckCircleOutlined, // Audit Done
   CreditCardOutlined, // Invoice Done
-  DollarOutlined, // Week Sales (remains the same)
 } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
 
 const Dashboard = () => {
-  const [auditFilter, setAuditFilter] = useState("overall");
+  const [proposalFilter, setProposalFilter] = useState("overall");
+  const [invoiceFilter, setInvoiceFilter] = useState("overall");
+
+  const [proposalCount, setProposalCount] = useState("Loading...");
+  const [invoiceCount, setInvoiceCount] = useState("Loading...");
+
+  // Fetch proposal count based on the filter
+  useEffect(() => {
+    const fetchProposalCount = async () => {
+      try {
+        const response = await axios.get(
+          `/api/proposal/proposalcount?filter=${proposalFilter}`
+        );
+        setProposalCount(response.data.count || "0");
+      } catch (error) {
+        console.error("Error fetching proposal count:", error);
+        setProposalCount("Error");
+      }
+    };
+
+    fetchProposalCount();
+  }, [proposalFilter]);
+
+  // Fetch invoice count based on the filter
+  useEffect(() => {
+    const fetchInvoiceCount = async () => {
+      try {
+        const response = await axios.get(
+          `/api/invoice/invoicecount?filter=${invoiceFilter}`
+        );
+        setInvoiceCount(response.data.count || "0");
+      } catch (error) {
+        console.error("Error fetching invoice count:", error);
+        setInvoiceCount("Error");
+      }
+    };
+
+    fetchInvoiceCount();
+  }, [invoiceFilter]);
 
   // Data for dashboard cards
   const data = [
     {
       icon: (
-        <FileDoneOutlined className="text-blue-600" style={{ fontSize: "28px" }} />
-      ),
-      value: "120+",
-      label: "Proposals done overall",
-    },
-    {
-      icon: (
-        <CheckCircleOutlined
-          className="text-green-600"
+        <FileDoneOutlined
+          className="text-blue-600"
           style={{ fontSize: "28px" }}
         />
       ),
-      value: auditFilter === "today" ? "20" : auditFilter === "week" ? "100" : auditFilter === "month" ? "150" : "178+",
-      label: `Audits done ${auditFilter}`,
+      value: proposalCount,
+      label: `Proposals done ${proposalFilter}`,
       filter: (
         <div className="mt-3">
           <select
-            value={auditFilter}
-            onChange={(e) => setAuditFilter(e.target.value)}
+            value={proposalFilter}
+            onChange={(e) => setProposalFilter(e.target.value)}
             className="w-full p-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="today">Today</option>
@@ -50,15 +81,33 @@ const Dashboard = () => {
           style={{ fontSize: "28px" }}
         />
       ),
-      value: "350",
-      label: "Invoices done overall",
+      value: invoiceCount,
+      label: `Invoices done ${invoiceFilter}`,
+      filter: (
+        <div className="mt-3">
+          <select
+            value={invoiceFilter}
+            onChange={(e) => setInvoiceFilter(e.target.value)}
+            className="w-full p-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="overall">Overall</option>
+          </select>
+        </div>
+      ),
     },
     {
       icon: (
-        <DollarOutlined className="text-red-600" style={{ fontSize: "28px" }} />
+        <CheckCircleOutlined
+          className="text-green-600"
+          style={{ fontSize: "28px" }}
+        />
       ),
-      value: "₹1.6 L",
-      label: "Week sales",
+      value: "Coming soon", // Placeholder for audit data
+      label: "Audits done overall",
+      filter: null, // No filter for now
     },
   ];
 
@@ -74,7 +123,9 @@ const Dashboard = () => {
             >
               <div className="mr-6">{item.icon}</div>
               <div>
-                <div className="text-2xl font-semibold text-gray-900">{item.value}</div>
+                <div className="text-2xl font-semibold text-gray-900">
+                  {item.value}
+                </div>
                 <div className="text-gray-600 mt-1">{item.label}</div>
                 {item.filter && item.filter}
               </div>

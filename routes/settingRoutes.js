@@ -9,34 +9,29 @@ import {
   deleteSetting,
   saveOrUpdateProfile,
   getProfileSetting
-  } from "../controller/settingController.js";
-
-
-
-  
+} from "../controller/settingController.js";
 
 const router = express.Router();
 
-
 // Create a new setting
-router.post("/createSetting", createSetting);
+router.post("/createSetting", verifyToken, createSetting);
 
 // Get all settings
-router.get("/getSettings", getSettings);
+router.get("/getSettings", verifyToken, getSettings);
 
 // Get a specific setting by ID
-router.get("/getSetting/:id", getSettingById);
+router.get("/getSetting/:id", verifyToken, getSettingById);
 
 // Update a setting by ID
-router.put("/updateSetting/:id", updateSetting);
+router.put("/updateSetting/:id", verifyToken, updateSetting);
 
 // Delete a setting by ID
-router.delete("/deleteSetting/:id", deleteSetting);
+router.delete("/deleteSetting/:id", verifyToken, deleteSetting);
 
-router.post("/saveOrUpdateProfile",saveOrUpdateProfile);
+// Save or update profile settings
+router.post("/saveOrUpdateProfile", verifyToken, saveOrUpdateProfile);
 
-router.get("/getProfileSetting",getProfileSetting);
-
-// 66c41b85dedfff785c08df21 //setting
+// Get profile settings
+router.get("/getProfileSetting", verifyToken, getProfileSetting);
 
 export default router;

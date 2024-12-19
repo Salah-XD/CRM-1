@@ -84,6 +84,7 @@ function AuditReport() {
     form
       .validateFields()
       .then((values) => {
+        console.log("i am submitted ");
         console.log("Form values:", values);
         handleNextFormSubmit(values, currentStep);
       })
@@ -308,9 +309,14 @@ function AuditReport() {
                 required: true,
                 message: "Please enter your FSSAI License No.",
               },
+              {
+                pattern: /^[0-9]{14}$/,
+                message:
+                  "FSSAI License No. must be exactly 14 numeric characters.",
+              },
             ]}
           >
-            <Input.OTP length={13} formatter={(str) => str.toUpperCase()} />
+            <Input maxLength={14} formatter={(value) => value.toUpperCase()} />
           </Form.Item>
         </div>
 

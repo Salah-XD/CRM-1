@@ -37,7 +37,7 @@ import {
   AuditAdminRoute,
 } from "./Components/Context/ProtectedRoute";
 import Check from "./Components/Pages/Check";
-import Arun from "./Components/Pages/Arun";
+import Arun from "./Components/Pages/Reference";
 
 function App() {
   return (
@@ -47,10 +47,6 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/check" element={<Check />} />
-        <Route path="/arun" element={<Arun />} />
-        <Route path="/arun" element={<Arun />} />
-        <Route path="/updatefssai/:audit_id" element={<UpdateFssaiAudit />} />
 
         <Route element={<AccountAdminRoute />}>
           <Route path="/enquiry" element={<EnquiryTable />} />
@@ -84,19 +80,6 @@ function App() {
             }
           />
         </Route>
-
-        {/* <Route element={<AuditAdminRoute />}>
-      
-          <Route path="/audit-work" element={<UnassignedAuditTable />} />
-          <Route path="/assigned-audit" element={<AssignedAuditCard />} />
-          <Route path="/draft" element={<DraftAuditCard/>} />
-          <Route path="/rejected" element={<RejectedAuditCard/>} />
-          <Route path="/approved" element={<ApprovedAuditCard/>} />
-          <Route path="/submittedForApproval" element={<SubmittedForApproval/>} />
-          <Route path="/audit-form/:audit_id" element={<AuditForm />} />
-          <Route path="/audit-report/:audit_id" element={<AuditReport />} />
-          <Route path="/updateAuditReport/:audit_id" element={<UpdateAuditReport />} />
-        </Route> */}
 
         <Route element={<AuditAdminRoute />}>
           {/* Main Audit Routes */}

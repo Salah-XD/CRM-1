@@ -481,23 +481,56 @@ export const getInvoicesByProposalId = async (req, res) => {
 
 
 
+const getDateRanges = (filter) => {
+  switch (filter) {
+    case 'today':
+      return {
+        start: moment().startOf('day').toDate(),
+        end: moment().endOf('day').toDate(),
+      };
+    case 'week':
+      return {
+        start: moment().startOf('week').toDate(),
+        end: moment().endOf('week').toDate(),
+      };
+    case 'month':
+      return {
+        start: moment().startOf('month').toDate(),
+        end: moment().endOf('month').toDate(),
+      };
+    case 'overall':
+      return null; // No date range for overall count
+    default:
+      throw new Error('Invalid filter');
+  }
+};
 
 export const invoiceCount = async (req, res) => {
   try {
-    // Count the number of invoices in the Invoice collection
-    const count = await Invoice.countDocuments();
+    const { filter } = req.query; // Get the filter from query params
 
-    // Send the count as the response
+    const dateRange = getDateRanges(filter);
+
+    let count;
+    if (dateRange) {
+      // Filter based on the date range
+      count = await Invoice.countDocuments({
+        createdAt: { $gte: dateRange.start, $lte: dateRange.end },
+      });
+    } else {
+      // Count all invoices
+      count = await Invoice.countDocuments();
+    }
+
     return res.status(200).json({
       success: true,
       count,
     });
   } catch (error) {
-    // Handle errors
-    console.error("Error counting invoices:", error);
+    console.error('Error counting invoices:', error);
     return res.status(500).json({
       success: false,
-      message: "Failed to count invoices",
+      message: 'Failed to count invoices',
       error: error.message,
     });
   }

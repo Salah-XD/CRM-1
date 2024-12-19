@@ -171,13 +171,9 @@ const UpdateOutletForm = ({
                 message: "Please enter the FSSAI License Number",
               },
               {
-                len: 14,
+                pattern: /^[0-9]{14}$/,
                 message:
-                  "FSSAI License Number must be exactly 14 characters long",
-              },
-              {
-                pattern: /^[0-9]+$/,
-                message: "FSSAI License Number must be numeric only",
+                  "FSSAI License No. must be exactly 14 numeric characters.",
               },
             ]}
           >
@@ -185,6 +181,7 @@ const UpdateOutletForm = ({
               placeholder="Enter FSSAI License"
               className="placeholder-gray-400 p-3 rounded-lg w-full"
               disabled={!isEditMode}
+              maxLength={14} // Prevent input beyond 14 characters
             />
           </Form.Item>
 
@@ -195,7 +192,9 @@ const UpdateOutletForm = ({
               </span>
             }
             name="type_of_industry"
-            rules={[{ required: true, message: "Please select an industry Type" }]}
+            rules={[
+              { required: true, message: "Please select an industry Type" },
+            ]}
           >
             <Select
               placeholder="Select industry Type"
@@ -211,7 +210,7 @@ const UpdateOutletForm = ({
             </Select>
           </Form.Item>
 
-          {(industryType || form.getFieldValue('type_of_industry')) && (
+          {(industryType || form.getFieldValue("type_of_industry")) && (
             <>
               <Form.Item
                 label={
@@ -229,7 +228,8 @@ const UpdateOutletForm = ({
                 />
               </Form.Item>
 
-              {industryType === "Manufacturing" || form.getFieldValue('type_of_industry') === "Manufacturing" ? (
+              {industryType === "Manufacturing" ||
+              form.getFieldValue("type_of_industry") === "Manufacturing" ? (
                 <Form.Item
                   label={
                     <span className="text-gray-600 font-semibold">
@@ -237,7 +237,12 @@ const UpdateOutletForm = ({
                     </span>
                   }
                   name="no_of_production_line"
-                  rules={[{ required: true, message: "Please enter the number of production lines" }]}
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please enter the number of production lines",
+                    },
+                  ]}
                 >
                   <Input
                     placeholder="Enter the number of production lines"
@@ -285,7 +290,9 @@ const UpdateOutletForm = ({
 
           <Form.Item
             label={
-              <span className="text-gray-600 font-semibold">Contact Person</span>
+              <span className="text-gray-600 font-semibold">
+                Contact Person
+              </span>
             }
             name="contact_person"
           >
@@ -299,15 +306,19 @@ const UpdateOutletForm = ({
           <Form.Item>
             {isEditMode && (
               <div className="flex justify-center">
-              <div className="flex justify-between space-x-2">
-                <Button className="mr-5" onClick={handleCancel}>
-                  Cancel
-                </Button>
-                <Button type="primary" className="ml-5" onClick={handleSubmit}>
-                  Save
-                </Button>
+                <div className="flex justify-between space-x-2">
+                  <Button className="mr-5" onClick={handleCancel}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="primary"
+                    className="ml-5"
+                    onClick={handleSubmit}
+                  >
+                    Save
+                  </Button>
+                </div>
               </div>
-            </div>
             )}
           </Form.Item>
         </Form>

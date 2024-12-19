@@ -247,13 +247,14 @@ const GenerateProposalModal = ({
       // Get proposal ID from response and show mail modal
       setPropsalId(response.data.proposal._id);
       setShowSendMailModal(true);
+    
 
       // Update enquiry status to mark proposal as done
       await axios.post("/api/enquiry/updateEnquiryProposalStatus", {
         equiryId: enquiryId,
         isProposalDone: true,
       });
-
+      form.resetFields();
       // Finalize actions and messages
       onOk(); // Trigger any OK handling logic (such as closing modals)
       message.success("Proposal generated and status updated successfully!");

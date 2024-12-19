@@ -15,26 +15,20 @@ import { generateagreement } from "../controller/agreementGenerationController.j
 
 const router = express.Router();
 
-router.delete("/deleteFields", deleteFields);
+router.delete("/deleteFields", verifyToken, deleteFields);
 
-router.post("/createAgreement", createAgreement);
+router.post("/createAgreement", verifyToken, createAgreement);
 
-router.get("/getAllAgreementDetails", getAllAgreementDetails);
+router.get("/getAllAgreementDetails", verifyToken, getAllAgreementDetails);
 
-router.post("/generateagreement/:agreementId", generateagreement);
+router.post("/generateagreement/:agreementId", verifyToken, generateagreement);
 
-router.get("/getAgreementById/:agreementId", getAgreementById);
+router.get("/getAgreementById/:agreementId", verifyToken, getAgreementById);
 
-router.put("/updateAgreement/:agreementId",updateAgreement);
+router.put("/updateAgreement/:agreementId", verifyToken, updateAgreement);
 
+router.put("/updateAgreementStatus/:agreementId", verifyToken, updateAgreementStatus);
 
-router.put("/updateAgreementStatus/:agreementId",updateAgreementStatus);
-
-router.get("/getAgreementsByProposalId/:proposalId", getAgreementsByProposalId);
-
-
-
-
-
+router.get("/getAgreementsByProposalId/:proposalId", verifyToken, getAgreementsByProposalId);
 
 export default router;

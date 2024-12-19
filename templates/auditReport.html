@@ -18,50 +18,59 @@
         height: 297mm;
         width: 210mm;
       }
+      .no-break {
+        page-break-inside: avoid;
+      }
     }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-  <!-- Page 1 -->
-  <div class="a4-page max-w-5xl mx-auto my-10 bg-white shadow-md rounded-lg p-6">
+   <div class="flex p-2 header items-center border mb-4">
+      <div class="w-1/5">
+        <!-- Include this placeholder where you want the image to appear -->
+        <img
+          src="data:image/png;base64,{{imageData}}"
+          alt="Your Image Alt Text"
+          width="80"
+          height="80"
+        />
+      </div>
+       <div>
+          <h1 class="text-lg font-bold text-gray-800">
+            Unavar Food Inspection and Certification Private Limited
+          </h1>
+        </div>
+    </div>
+  <!-- A4 Page Wrapper -->
+  <div class="a4-page max-w-5xl mx-auto mb-8 bg-white  rounded-lg p-6 text-gray-800">
+    <!-- Header -->
     <header class="border-b pb-4 mb-6">
       <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-bold">Audit Report</h1>
+        <h1 class="text-lg font-bold uppercase">Audit Report</h1>
         <div>
-          <p class="text-sm text-gray-600">Issue Date: <span class="font-semibold">24.03.2023</span></p>
-          <p class="text-sm text-gray-600">Version No: <span class="font-semibold">2</span></p>
+          <p class="text-xs text-gray-600">Issue Date: <span class="font-semibold">24.03.2023</span></p>
+          <p class="text-xs text-gray-600">Version No: <span class="font-semibold">2</span></p>
         </div>
       </div>
-      <div class="mt-4">
-        <p class="text-lg">Client Information:</p>
-        <p class="text-sm text-gray-700">
-          <span class="font-semibold">Name:</span> XYZ Corporation<br>
-          <span class="font-semibold">Address:</span> 123 Business Street, Cityville<br>
-          <span class="font-semibold">Auditor:</span> John Doe<br>
-          <span class="font-semibold">FSSAI License No:</span> 123456789<br>
-          <span class="font-semibold">Grade:</span> A<br>
-          <span class="font-semibold">Auditee Name:</span> Jane Smith
-        </p>
+
+      <!-- Client Information -->
+      <div class="mt-4 text-xs text-gray-700">
+        <p class="font-semibold uppercase mb-1">Client Information</p>
+        <p><span class="font-semibold">Name:</span> {{fbo_name}}</p>
+        <p><span class="font-semibold">Address:</span> {{location}}</p>
+        <p><span class="font-semibold">Auditor:</span> {{auditor_name}}</p>
+        <p><span class="font-semibold">FSSAI License No:</span> {{fssai_number}}</p>
       </div>
     </header>
 
-    <!-- Section: General Requirements -->
-    <section class="mb-6">
-     
-      <table class="w-full text-sm border border-gray-300">
-       
-        <tbody>
-          {{AUDIT_SECTIONS}}  <!-- This will be replaced with dynamic content -->
-        </tbody>
-      </table>
+    <!-- Audit Sections -->
+    <section class="mb-6 text-xs">
+      {{AUDIT_SECTIONS}}
     </section>
 
-    <footer class="text-center text-sm text-gray-600 mt-6">
-      Page 1 of 2
-    </footer>
+
   </div>
 
 </body>
 </html>
-
