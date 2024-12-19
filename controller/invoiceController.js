@@ -179,13 +179,21 @@ export const getAllInvoiceDetail = async (req, res) => {
       });
     }
 
-    // Apply sorting based on the 'sort' parameter
-    if (sort === "allist") {
-      query = query.sort({ invoice_date: -1 });
-    } else if (sort === "newinvoice") {
-      query = query.sort({ invoice_date: 1 });
+    let sortQuery = {};
+    switch (sort) {
+      case "newinvoice":
+        sortQuery = { createdAt: -1 }; // Descending order for newer invoices first
+        break;
+      case "allist":
+        sortQuery = { createdAt: 1 }; // Ascending order for older invoices first
+        break;
+      default:
+        sortQuery = { createdAt: 1 }; // Default sorting (oldest first)
+        break;
     }
 
+    // Apply sorting
+    query = query.sort(sortQuery);
     // Count total number of invoices
     const totalInvoices = await Invoice.countDocuments(query.getQuery());
 

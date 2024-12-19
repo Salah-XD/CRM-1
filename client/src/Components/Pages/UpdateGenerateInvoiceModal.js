@@ -32,7 +32,6 @@ const UpdateGenerateInvoiceModal = ({
   const [outlets, setOutlets] = useState([]);
   const [invoicedOutlets, setInvoicedOutlets] = useState([]);
   const [invoiceNumber, setInvoiceNumber] = useState([]);
-  const [InvoiceId, setInvoiceId] = useState([]);
   const [initialValuesLoaded, setInitialValuesLoaded] = useState(false);
   const [invoiceDate, setInvoiceDate] = useState(moment());
   const [checkState, setCheckState] = useState("");
@@ -108,6 +107,8 @@ const UpdateGenerateInvoiceModal = ({
                 team_leader_name,
                 outlets: invoicedOutlets,
                 gst_number,
+                invoice_number,
+                invoice_date
               } = response.data;
 
               setInvoicedOutlets(invoicedOutlets);
@@ -122,8 +123,12 @@ const UpdateGenerateInvoiceModal = ({
                 field_executive_name,
                 team_leader_name,
                 gst_number,
+                invoice_date
+               
               });
 
+            
+              setInvoiceNumber(invoice_number);
               setInitialValuesLoaded(true);
 
               // Select outlets that match with invoicedOutlets
@@ -145,17 +150,7 @@ const UpdateGenerateInvoiceModal = ({
           console.error("Error fetching outlets:", error);
         });
 
-      // Fetch invoice number
-      const fetchInvoiceId = async () => {
-        try {
-          const response = await axios.get(
-            "/api/invoice/generateInvoiceNumber"
-          );
-          setInvoiceNumber(response.data.invoice_number);
-        } catch (error) {
-          console.error("Error fetching InvoiceId", error);
-        }
-      };
+    
 
       const fetchProfileSetting = async () => {
         try {
@@ -167,7 +162,7 @@ const UpdateGenerateInvoiceModal = ({
       };
 
       fetchProfileSetting();
-      fetchInvoiceId();
+
     }
   }, [visible, proposalId, form, checkState]);
 

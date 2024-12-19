@@ -3,8 +3,6 @@ import mongoose from "mongoose";
 import Agreement from "../models/agreementModel.js";
 import Proposal from "../models/proposalModel.js";
 
-
-
 export const deleteFields = async (req, res) => {
   console.log(req.body);
   try {
@@ -73,8 +71,6 @@ export const deleteFields = async (req, res) => {
   }
 };
 
-
-
 export const getAllAgreementDetails = async (req, res) => {
   try {
     const { page = 1, pageSize = 10, sort, keyword } = req.query;
@@ -104,18 +100,29 @@ export const getAllAgreementDetails = async (req, res) => {
       query = query.where("fbo_name").regex(searchRegex);
     }
 
-    // Apply sorting based on the 'sort' parameter
-    if (sort === "newest") {
-      query = query.sort({ agreement_date: -1 });
-    } else if (sort === "oldest") {
-      query = query.sort({ agreement_date: 1 });
+    let sortQuery = {};
+    switch (sort) {
+      case "newest":
+        sortQuery = { createdAt: -1 }; // Descending order for newer invoices first
+        break;
+      case "oldest":
+        sortQuery = { createdAt: 1 }; // Ascending order for older invoices first
+        break;
+      default:
+        sortQuery = { createdAt: 1 }; // Default sorting (oldest first)
+        break;
     }
+
+    // Apply sorting
+    query = query.sort(sortQuery);
 
     // Retrieve agreements with pagination
     const agreements = await query
       .skip((pageNumber - 1) * sizePerPage)
       .limit(sizePerPage)
-      .select("fbo_name no_of_outlets agreement_date status proposalId outlets");
+      .select(
+        "fbo_name no_of_outlets agreement_date status proposalId outlets"
+      );
 
     // Calculate total outlets and formatted dates for each agreement
     const agreementsWithCounts = agreements.map((agreement) => {
@@ -130,9 +137,8 @@ export const getAllAgreementDetails = async (req, res) => {
         no_of_outlets: agreement.no_of_outlets,
         agreement_date: formattedDate,
         status: agreement.status,
-        proposalId:agreement.proposalId,
-        outlets:agreement.outlets,
-
+        proposalId: agreement.proposalId,
+        outlets: agreement.outlets,
       };
     });
 
@@ -150,39 +156,58 @@ export const getAllAgreementDetails = async (req, res) => {
   }
 };
 
-
 export const createAgreement = async (req, res) => {
   console.log(req.body);
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const { fbo_name, from_date, to_date, total_cost, no_of_outlets, address, period,  proposalId, outlets } = req.body;
+    const {
+      fbo_name,
+      from_date,
+      to_date,
+      total_cost,
+      no_of_outlets,
+      address,
+      period,
+      proposalId,
+      outlets,
+    } = req.body;
 
-    if (!fbo_name ||  !to_date ||  !no_of_outlets || !address || !period || ! proposalId || !outlets) {
+    if (
+      !fbo_name ||
+      !to_date ||
+      !no_of_outlets ||
+      !address ||
+      !period ||
+      !proposalId ||
+      !outlets
+    ) {
       throw new Error("Missing required fields");
     }
 
-    const formattedFromDate = from_date ? from_date : moment().format("DD/MM/YYYY");
+    const formattedFromDate = from_date
+      ? from_date
+      : moment().format("DD/MM/YYYY");
 
-    const formattedToDate=to_date  ? to_date  : moment().format("DD/MM/YYYY");
+    const formattedToDate = to_date ? to_date : moment().format("DD/MM/YYYY");
 
     // Create a new agreement instance with the provided data
     const newAgreement = new Agreement({
       fbo_name,
       address,
       from_date: formattedFromDate,
-      to_date:formattedToDate,
+      to_date: formattedToDate,
       total_cost,
       no_of_outlets,
       period,
       proposalId,
-      outlets
+      outlets,
     });
 
     // Save the new agreement to the database
     const savedAgreement = await newAgreement.save({ session });
-    
+
     const outletIds = outlets.map((outlet) => outlet._id);
 
     // Update outlets to mark them as invoiced
@@ -221,7 +246,6 @@ export const createAgreement = async (req, res) => {
   }
 };
 
-
 export const getAgreementById = async (req, res, next) => {
   const { agreementId } = req.params; // Extract the ID from the request parameters
 
@@ -242,13 +266,20 @@ export const getAgreementById = async (req, res, next) => {
   }
 };
 
-
 export const updateAgreement = async (req, res) => {
-  console.log(req.body)
+  console.log(req.body);
   try {
-    const { agreementId } = req.params; 
-    const { fbo_name, from_date, to_date, total_cost, no_of_outlets, address, period,outlets } =
-      req.body;
+    const { agreementId } = req.params;
+    const {
+      fbo_name,
+      from_date,
+      to_date,
+      total_cost,
+      no_of_outlets,
+      address,
+      period,
+      outlets,
+    } = req.body;
 
     // Find the agreement by ID and update it with the provided data
     const updatedAgreement = await Agreement.findByIdAndUpdate(
@@ -261,7 +292,7 @@ export const updateAgreement = async (req, res) => {
         total_cost,
         no_of_outlets,
         period,
-        outlets
+        outlets,
       },
       { new: true } // Return the updated document
     );
@@ -290,13 +321,12 @@ export const updateAgreement = async (req, res) => {
   }
 };
 
-
 export const updateAgreementStatus = async (req, res) => {
   console.log("Request Body:", req.body);
-  
-  const { agreementId } = req.params;  // Extract agreementId from params
-  const { status } = req.body;         // Extract status from the request body
-  
+
+  const { agreementId } = req.params; // Extract agreementId from params
+  const { status } = req.body; // Extract status from the request body
+
   try {
     // Validate input
     if (!agreementId || !status) {
@@ -309,7 +339,7 @@ export const updateAgreementStatus = async (req, res) => {
     const updateAgreement = await Agreement.findByIdAndUpdate(
       agreementId,
       { $set: { status, message: "Updated Status" } }, // Update status and message
-      { new: true, runValidators: true }               // Return updated document and run validators
+      { new: true, runValidators: true } // Return updated document and run validators
     );
 
     // Check if the agreement was found and updated
@@ -321,7 +351,6 @@ export const updateAgreementStatus = async (req, res) => {
     res
       .status(200)
       .json({ message: "Agreement updated successfully", updateAgreement });
-    
   } catch (error) {
     // Handle any server errors
     res.status(500).json({ error: "Server error", details: error.message });
@@ -342,7 +371,9 @@ export const getAgreementsByProposalId = async (req, res) => {
 
     // Check if any agreements were found
     if (agreements.length === 0) {
-      return res.status(404).json({ message: "No agreements found for this proposal ID" });
+      return res
+        .status(404)
+        .json({ message: "No agreements found for this proposal ID" });
     }
 
     // Send a successful response with the found agreements
@@ -355,4 +386,3 @@ export const getAgreementsByProposalId = async (req, res) => {
     res.status(500).json({ error: "Server error", details: error.message });
   }
 };
-

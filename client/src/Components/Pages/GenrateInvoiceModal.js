@@ -498,6 +498,8 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
                         className="flex justify-around items-center mb-2"
                       >
                         <span>{invoice.fbo_name}</span>
+                        <span>{invoice.invoice_number}</span>
+
                         <Button
                           type="link"
                           onClick={() => handleViewInvoice(invoice._id)}

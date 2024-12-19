@@ -11,7 +11,7 @@ import {
   updateInvoice,
   updateInvoiceStatus,
   getInvoicesByProposalId,
-  invoiceCount
+  invoiceCount,
 } from "../controller/invoiceController.js";
 
 import { generateInvoice } from "../controller/invoicesGenerationController.js";
@@ -36,8 +36,12 @@ router.put("/updateInvoice/:invoiceId", verifyToken, updateInvoice);
 
 router.put("/updateInvoieStatus/:invoiceId", verifyToken, updateInvoiceStatus);
 
-router.get("/getInvoicesByProposalId/:proposalId", verifyToken, getInvoicesByProposalId);
+router.get(
+  "/getInvoicesByProposalId/:proposalId",
+  verifyToken,
+  getInvoicesByProposalId
+);
 
-router.get("/invoiceCount",verifyToken, invoiceCount);
+router.get("/invoiceCount", verifyToken, invoiceCount);
 
 export default router;

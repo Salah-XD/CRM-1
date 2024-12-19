@@ -13,7 +13,7 @@ import axios from "axios";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import GenreateSuccessSendMailTableModal from "./GenreateSuccessSendMailTableModal";
-import { useNavigate  } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 // Extend dayjs with customParseFormat
 dayjs.extend(customParseFormat);
@@ -27,7 +27,7 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
   const [agreementId, setAgreementId] = useState(null);
   const [showSendMailModal, setShowSendMailModal] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
-  const [agreements, setAgreements]= useState([]);
+  const [agreements, setAgreements] = useState([]);
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
@@ -35,19 +35,14 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
     if (visible) {
       setLoading(true);
 
-    
-
-
       axios
-      .get(`/api/agreement/getAgreementsByProposalId/${proposalId}`)
-      .then((response) => {
-        setAgreements(response.data.agreements); 
-      })
-      .catch((error) => {
-      
-        setLoading(false);
-      });
-      
+        .get(`/api/agreement/getAgreementsByProposalId/${proposalId}`)
+        .then((response) => {
+          setAgreements(response.data.agreements);
+        })
+        .catch((error) => {
+          setLoading(false);
+        });
 
       axios
         .get(`/api/proposal/getOutletsByProposalId/${proposalId}`)
@@ -74,7 +69,6 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
         });
     }
   }, [proposalId, visible, form]);
-
 
   const handleViewAgreement = (agreementId) => {
     navigate(`/agreement/view-agreement/${agreementId}`); // Use navigate to redirect
@@ -139,7 +133,8 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
   };
 
   const handlePeriodChange = (value) => {
-    const fromDate = form.getFieldValue("from_date") || dayjs(); // Use current date if no date selected
+    const fromDate = form.getFieldValue("from_date") || dayjs();
+    console.log("this is the from Date", fromDate);
     if (value) {
       const toDate = fromDate.add(value, "months");
       form.setFieldsValue({ to_date: toDate });
@@ -164,6 +159,8 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
       setShowSendMailModal(true);
 
       message.success("Agreement generated successfully");
+
+      setShowForm(false);
 
       form.resetFields();
       onOk();
@@ -239,27 +236,29 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
                   </Button>
                 </div>
                 {agreements.length > 0 && (
-  <div className="mt-4">
-    <div className="text-center font-medium text-xl mb-5 rounded-md">
-      Generated Agreements
-    </div>
-    <ul className="agreement-list">
-      {agreements.map((agreement) => (
-        <li key={agreement._id} className="flex justify-around items-center mb-2">
-          <span>{agreement.fbo_name}</span>
-          <Button
-            type="link"
-            onClick={() => handleViewAgreement(agreement._id)}
-            className="text-blue-600"
-          >
-            View
-          </Button>
-        </li>
-      ))}
-    </ul>
-  </div>
-)}
-
+                  <div className="mt-4">
+                    <div className="text-center font-medium text-xl mb-5 rounded-md">
+                      Generated Agreements
+                    </div>
+                    <ul className="agreement-list">
+                      {agreements.map((agreement) => (
+                        <li
+                          key={agreement._id}
+                          className="flex justify-around items-center mb-2"
+                        >
+                          <span>{agreement.fbo_name}</span>
+                          <Button
+                            type="link"
+                            onClick={() => handleViewAgreement(agreement._id)}
+                            className="text-blue-600"
+                          >
+                            View
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="p-6" style={{ backgroundColor: "#F6FAFB" }}>
@@ -275,7 +274,7 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
                 >
                   <Input />
                 </Form.Item>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Form.Item label="From date" name="from_date">
                     <DatePicker
