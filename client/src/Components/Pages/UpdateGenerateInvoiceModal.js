@@ -35,6 +35,7 @@ const UpdateGenerateInvoiceModal = ({
   const [initialValuesLoaded, setInitialValuesLoaded] = useState(false);
   const [invoiceDate, setInvoiceDate] = useState(moment());
   const [checkState, setCheckState] = useState("");
+  const [disableOutlets, setdisableOutlet] = useState(["676a75343b72ede0b1b76aa0"]);
   const [sameState, setSameState] = useState(true);
 
   useEffect(() => {
@@ -108,7 +109,7 @@ const UpdateGenerateInvoiceModal = ({
                 outlets: invoicedOutlets,
                 gst_number,
                 invoice_number,
-                invoice_date
+                invoice_date,
               } = response.data;
 
               setInvoicedOutlets(invoicedOutlets);
@@ -123,11 +124,9 @@ const UpdateGenerateInvoiceModal = ({
                 field_executive_name,
                 team_leader_name,
                 gst_number,
-                invoice_date
-               
+                invoice_date,
               });
 
-            
               setInvoiceNumber(invoice_number);
               setInitialValuesLoaded(true);
 
@@ -150,8 +149,6 @@ const UpdateGenerateInvoiceModal = ({
           console.error("Error fetching outlets:", error);
         });
 
-    
-
       const fetchProfileSetting = async () => {
         try {
           const response = await axios.get("/api/setting/getProfileSetting");
@@ -162,7 +159,6 @@ const UpdateGenerateInvoiceModal = ({
       };
 
       fetchProfileSetting();
-
     }
   }, [visible, proposalId, form, checkState]);
 
@@ -240,7 +236,7 @@ const UpdateGenerateInvoiceModal = ({
         ...formData,
         outlets: items,
         invoice_number: invoiceNumber,
-      
+
         same_state: sameState,
       };
 
@@ -455,6 +451,9 @@ const UpdateGenerateInvoiceModal = ({
                   onSelectAll: (selected, selectedRows) => {
                     handleSelectAll(selected, selectedRows);
                   },
+                  getCheckboxProps: (record) => ({
+                    disabled: disableOutlets.includes(record._id), // Disable rows if record._id exists in disableOutlets
+                  }),
                 }}
                 rowClassName={() => ""}
               />
@@ -709,7 +708,7 @@ const UpdateGenerateInvoiceModal = ({
                   className="bg-buttonModalColor px-4 py-2 text-white rounded"
                   htmlType="submit"
                 >
-                 Update
+                  Update
                 </button>
               </div>
             </div>

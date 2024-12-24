@@ -11,6 +11,7 @@ import {
 } from "antd";
 import moment from "moment";
 import axios from "axios";
+import dayjs from "dayjs";
 
 const UpdateGenerateAgreementModal = ({
   visible,
@@ -26,6 +27,9 @@ const UpdateGenerateAgreementModal = ({
   const [loading, setLoading] = useState(true);
   const [agreementId, setAgreementId] = useState(null); // Initialize as null
   const [showSendMailModal, setShowSendMailModal] = useState(false);
+  const [disableOutlets, setdisableOutlet] = useState([
+    "676a75343b72ede0b1b76aa0",
+  ]);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -157,7 +161,7 @@ const UpdateGenerateAgreementModal = ({
       formData.total_cost = totalAmount;
       formData.no_of_outlets = selectedOutlets.length;
       formData.proposalId = proposalId;
-      formData.outlets = selectedOutlets; 
+      formData.outlets = selectedOutlets;
 
       const response = await axios.put(
         `/api/agreement/updateAgreement/${agreementIds}`,
@@ -227,6 +231,9 @@ const UpdateGenerateAgreementModal = ({
                   selectedRowKeys: selectedOutlets.map((outlet) => outlet._id), // Ensure this maps the correct keys
                   onSelect: handleSelect,
                   onSelectAll: handleSelectAll,
+                  getCheckboxProps: (record) => ({
+                    disabled: disableOutlets.includes(record._id), // Disable rows if record._id exists in disableOutlets
+                  }),
                 }}
               />
 
@@ -252,21 +259,21 @@ const UpdateGenerateAgreementModal = ({
               >
                 <Input />
               </Form.Item>
-             
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Form.Item
                   label="From date"
                   name="from_date"
+                  getValueProps={(i) => ({ value: dayjs(i) })}
                   rules={[
                     { required: true, message: "Please select from date!" },
                   ]}
                 >
                   <DatePicker
-                    className="w-full"
-                    onChange={(date, dateString) => {
-                      // Handle date change if necessary
-                      console.log("Selected From Date:", date, dateString);
-                    }}
+                    style={{ width: "100%" }}
+                    placeholder="Select date"
+                    format="DD-MM-YYYY"
+                    allowClear={false}
                   />
                 </Form.Item>
                 <Form.Item
@@ -276,7 +283,7 @@ const UpdateGenerateAgreementModal = ({
                     { required: true, message: "Please select to date!" },
                   ]}
                 >
-                  <DatePicker className="w-full" disabled />
+                  <DatePicker className="w-full" format="DD-MM-YYYY" disabled />
                 </Form.Item>
               </div>
               <Form.Item

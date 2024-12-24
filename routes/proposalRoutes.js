@@ -37,7 +37,7 @@ router.post("/generateProposal/:proposalId", verifyToken, generateProposal);
 
 router.get("/getAllProposalDetails", verifyToken, getAllProposalDetails);
 
-router.get("/getOutletsByProposalId/:proposalId", verifyToken, getOutletsByProposalId);
+router.get("/getOutletsByProposalId/:proposalId", getOutletsByProposalId);
 
 router.delete("/deleteFields", verifyToken, deleteFields);
 

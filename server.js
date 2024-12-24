@@ -63,7 +63,7 @@ app.use("/api/proposal", proposalRoutes);
 app.use("/api/invoice", invoiceRoutes);
 app.use("/api/agreement", agreementRoutes);
 app.use("/api/auth", authenticatinRoutes);
-// app.use("/api/auditor", auditorRoutes);
+app.use("/api/auditor", auditorRoutes);
 app.use("/api/setting", settingRoutes);
 
 // All other routes (non-API routes) go to React app

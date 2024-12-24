@@ -30,7 +30,7 @@ router.delete("/deleteFields", verifyToken, deleteFields);
 
 router.post("/createInvoice", verifyToken, createInvoice);
 
-router.get("/getInvoiceById/:invoiceId", verifyToken, getInvoiceById);
+router.get("/getInvoiceById/:invoiceId", getInvoiceById);
 
 router.put("/updateInvoice/:invoiceId", verifyToken, updateInvoice);
 
