@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import puppeteer from "puppeteer";
-import AuditResponse from "../models/AuditResponse.js";
+import AuditResponse1 from "../models/auditReponseModel.js";
 import AuditManagement from "../models/auditMangement.js";
 import Label from "../models/labelModel.js";
 import Question from "../models/questionSchema.js";
@@ -28,7 +28,7 @@ export const generateAuditReport = async (req, res) => {
 
     const labels = await Label.find();
     const questions = await Question.find();
-    const auditResponses = await AuditResponse.find({ audit: audit_id });
+    const auditResponse1s = await AuditResponse1.find({ audit: audit_id });
 
     // Process sections and questions
     const sections = labels.map((label) => {
@@ -37,7 +37,7 @@ export const generateAuditReport = async (req, res) => {
       );
 
       const questionsWithAnswers = labelQuestions.map((question, index) => {
-        const auditResponse = auditResponses.find(
+        const auditResponse1 = auditResponse1s.find(
           (response) => String(response.question) === String(question._id)
         );
 
@@ -45,8 +45,8 @@ export const generateAuditReport = async (req, res) => {
           questionId: question._id,
           description: ` ${question.question_text}`,
           mark: question.marks,
-          comment: auditResponse?.comment || "No Observation",
-          marks: auditResponse?.marks || "N/A",
+          comment: auditResponse1?.comment || "No Observation",
+          marks: auditResponse1?.marks || "N/A",
         };
       });
 
