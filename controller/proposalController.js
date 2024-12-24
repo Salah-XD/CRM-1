@@ -3,6 +3,7 @@ import Outlet from "../models/outletModel.js";
 import Enquiry from "../models/enquiryModel.js";
 import Proposal from "../models/proposalModel.js";
 import ProposalCounter from "../models/proposalCounter.js";
+import Invoice from "../models/invoiceModel.js";
 import moment from "moment";
 import mongoose from "mongoose";
 
@@ -540,3 +541,50 @@ export const proposalCount = async (req, res) => {
     });
   }
 };
+
+
+export const getFilteredInvoices = async (req, res) => {
+  try {
+    const { invoiceId } = req.params; // Extract the invoiceId from query parameters
+
+    // Validate input parameters
+    if (!invoiceId) {
+      return res.status(400).json({ message: "Invoice ID is required" });
+    }
+
+    // Fetch the proposalId from the provided invoiceId
+    const invoice = await Invoice.findById(invoiceId);
+    if (!invoice) {
+      return res.status(404).json({ message: "Invoice not found" });
+    }
+
+    const proposalId = invoice.proposal_id;
+
+    // Query to fetch all invoices with the same proposalId, excluding the provided invoiceId
+    const invoices = await Invoice.find({
+      proposal_id: proposalId,
+      _id: { $ne: invoiceId }, // Exclude the provided invoiceId
+    });
+
+    // Collect all outlet IDs from the invoices
+    const outletIds = invoices.reduce((acc, inv) => {
+      if (Array.isArray(inv.outlets)) {
+        acc.push(...inv.outlets); // Merge all outlets IDs into the accumulator
+      }
+      return acc;
+    }, []);
+
+    // Send the response with filtered invoices and outlet IDs
+    return res.status(200).json({
+      success: true,
+      invoices,
+      outletIds: [...new Set(outletIds)], // Remove duplicates from outlet IDs
+    });
+  } catch (error) {
+    console.error("Error fetching filtered invoices:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
+

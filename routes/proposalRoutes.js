@@ -12,7 +12,7 @@ import {
   updateProposalStatus,
   getProposalById,
   updateProposalAndOutlet,
-  proposalCount
+  proposalCount,getFilteredInvoices
 } from "../controller/proposalController.js";
 
 import { generateProposal } from "../controller/proposalGenerationController.js";
@@ -46,5 +46,7 @@ router.put("/updateProposalStatus/:proposalId", verifyToken, updateProposalStatu
 router.get("/getProposalById/:proposalId", getProposalById);
 
 router.get("/proposalCount",verifyToken, proposalCount);
+
+router.get("/getFilteredInvoices/:invoiceId", getFilteredInvoices);
 
 export default router;
