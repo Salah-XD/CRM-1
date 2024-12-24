@@ -35,12 +35,14 @@ const UpdateGenerateInvoiceModal = ({
   const [initialValuesLoaded, setInitialValuesLoaded] = useState(false);
   const [invoiceDate, setInvoiceDate] = useState(moment());
   const [checkState, setCheckState] = useState("");
-  const [disableOutlets, setdisableOutlet] = useState(["676a75343b72ede0b1b76aa0"]);
+  const [disableOutlets, setdisableOutlet] = useState([""]);
   const [sameState, setSameState] = useState(true);
 
   useEffect(() => {
     if (visible) {
       setInvoiceDate(moment());
+
+      
 
       // Fetch outlets when the modal is visible
       axios
@@ -158,11 +160,24 @@ const UpdateGenerateInvoiceModal = ({
         }
       };
 
+      const fetchFilteredInvoices = async () => {
+        try {
+          const response = await axios.get(`/api/proposal/getFilteredInvoices/${invoiceId}`);
+          if (response.data.success) {
+            setdisableOutlet(response.data.outletIds);
+          } 
+        } catch (err) {
+          console.error("Error is fetching the profile state");
+        } 
+      };
+
       fetchProfileSetting();
+      fetchFilteredInvoices();
     }
   }, [visible, proposalId, form, checkState]);
 
   const handleCancel = () => {
+    setdisableOutlet([]);
     onCancel();
     form.resetFields();
     setItems([]);

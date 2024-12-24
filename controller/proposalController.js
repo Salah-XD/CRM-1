@@ -569,7 +569,11 @@ export const getFilteredInvoices = async (req, res) => {
     // Collect all outlet IDs from the invoices
     const outletIds = invoices.reduce((acc, inv) => {
       if (Array.isArray(inv.outlets)) {
-        acc.push(...inv.outlets); // Merge all outlets IDs into the accumulator
+        inv.outlets.forEach(outlet => {
+          if (outlet._id) {
+            acc.push(outlet._id); // Push only the _id of each outlet
+          }
+        });
       }
       return acc;
     }, []);
@@ -577,7 +581,6 @@ export const getFilteredInvoices = async (req, res) => {
     // Send the response with filtered invoices and outlet IDs
     return res.status(200).json({
       success: true,
-      invoices,
       outletIds: [...new Set(outletIds)], // Remove duplicates from outlet IDs
     });
   } catch (error) {
@@ -585,6 +588,5 @@ export const getFilteredInvoices = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
 
 
