@@ -82,7 +82,8 @@ const agreementSchema = new Schema({
     ref: "Proposal",
     required: true,
   },
-});
+   
+} ,{ timestamps: true } );
 
 const Agreement = model("Agreement", agreementSchema);
 

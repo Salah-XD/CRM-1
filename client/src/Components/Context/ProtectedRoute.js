@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../Context/AuthContext";
 import { Spin, Typography } from "antd";
+import { jwtDecode } from "jwt-decode";
 
 const { Text } = Typography;
 
@@ -12,8 +13,23 @@ const userRoles = {
   AUDITOR: "AUDITOR",
 };
 
+// Function to check if token is expired
+const isTokenExpired = (token) => {
+  if (!token) return true;
+  const decodedToken = jwtDecode(token);
+  const currentTime = Date.now() / 1000;
+  return decodedToken.exp < currentTime;
+};
+
 const ProtectedRoute = ({ roles }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, token } = useAuth();  // Make sure to fetch the token from context or storage
+
+  useEffect(() => {
+    if (token && isTokenExpired(token)) {
+      // Handle token expiry (e.g., log out the user or redirect)
+      window.location.href = "/";  // Redirect to home page or login
+    }
+  }, [token]);
 
   if (loading) {
     return (

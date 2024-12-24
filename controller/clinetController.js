@@ -420,14 +420,12 @@ export const deleteFields = async (req, res) => {
 
 //Controller to send logic to
 export const sendEmail = async (req, res) => {
-  // console.log(req.body);
-  const { to, message, formLink } = req.body;
+  const { to, message, formLink } = req.body; // Expect 'message' to hold the full HTML content, including the form link placeholder.
 
   try {
     if (!to || !message || !formLink) {
       throw new Error("Missing parameters");
     }
-
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -439,11 +437,14 @@ export const sendEmail = async (req, res) => {
       },
     });
 
+    // Check if the frontend already contains a placeholder for the form link
+    const emailContent = message.replace("{formlink}", formLink);  // Dynamically replace the placeholder in the message with the actual form link
+
     const mailOptions = {
       from: `<${process.env.EMAIL_USERNAME}>`,
       to,
-      subject: "Client Onboarding Form",
-      text: `${message}\n\nClient Onboarding Form: ${formLink}`,
+      subject: "Client Onboarding Process",
+      html: emailContent, // Use the content from the frontend with dynamically inserted form link
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -454,6 +455,7 @@ export const sendEmail = async (req, res) => {
     res.status(500).json({ error: "Failed to send email" });
   }
 };
+
 
 
 export const getOutletDetailsById = async (req, res) => {

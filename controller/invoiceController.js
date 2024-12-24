@@ -173,7 +173,8 @@ export const getAllInvoiceDetail = async (req, res) => {
         $or: [
           { fbo_name: { $regex: searchRegex } },
           { proposal_number: { $regex: searchRegex } },
-          { phone: { $regex: searchRegex } },
+          { email: { $regex: searchRegex } },
+  
           { status: { $regex: searchRegex } },
         ],
       });

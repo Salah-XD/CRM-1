@@ -57,7 +57,7 @@ const proposalSchema = new Schema(
     },
     representative:{
        type: Schema.Types.ObjectId,
-      ref: "Auditor",
+      ref: "User",
       required: true,
     },
     fbo_name: {

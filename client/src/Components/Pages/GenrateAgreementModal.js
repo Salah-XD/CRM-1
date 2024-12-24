@@ -14,6 +14,7 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import GenreateSuccessSendMailTableModal from "./GenreateSuccessSendMailTableModal";
 import { useNavigate } from "react-router-dom";
+import { set } from "lodash";
 
 // Extend dayjs with customParseFormat
 dayjs.extend(customParseFormat);
@@ -96,7 +97,6 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
         }),
     },
   ];
-
   const handleSelect = (record, selected) => {
     const updatedSelectedOutlets = selected
       ? [...selectedOutlets, record]
@@ -163,6 +163,8 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
       setShowForm(false);
 
       form.resetFields();
+    setAgreements([]);
+    setSelectedOutlets([]);
       onOk();
     } catch (error) {
       console.error("Error saving agreement:", error);
@@ -180,6 +182,7 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
   const handleCancel = () => {
     setSelectedOutlets([]);
     setShowForm(false);
+    setAgreements([]);
     onCancel();
   };
 
@@ -278,7 +281,7 @@ const GenerateAgreementModal = ({ visible, onOk, onCancel, proposalId }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Form.Item label="From date" name="from_date">
                     <DatePicker
-                      defaultValue={dayjs()} // Set current date if no date is selected
+                      value={form.getFieldValue("from_date") || dayjs()} // Sync with form state
                       format="DD/MM/YYYY"
                       className="w-full"
                       onChange={(date) =>

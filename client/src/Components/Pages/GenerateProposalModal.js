@@ -205,8 +205,8 @@ const GenerateProposalModal = ({
 
       const fetchAllrepresentaive = async () => {
         try {
-          const response = await axios.get("/api/auditor/getAllAuditors"); // Adjust the endpoint as needed
-          setRepesentaive(response.data);
+          const response = await axios.get("/api/auth/getAllUsers"); // Adjust the endpoint as needed
+          setRepesentaive(response.data.data);
         } catch (error) {
           console.error("Error fetching auditors:", error);
         }
@@ -793,13 +793,13 @@ const GenerateProposalModal = ({
                 name="representative"
                 label="Representative"
                 rules={[
-                  { required: true, message: "Please select an auditor!" },
+                  { required: true, message: "Please select Representative!" },
                 ]}
               >
-                <Select placeholder="Select an auditor">
+                <Select placeholder="Select Representative">
                   {representaive.map((representaive) => (
                     <Option key={representaive._id} value={representaive._id}>
-                      {representaive.auditor_name}
+                      {representaive.userName}
                     </Option>
                   ))}
                 </Select>

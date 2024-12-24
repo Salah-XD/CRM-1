@@ -30,7 +30,11 @@ router.post("/saveClientData", verifyToken, saveBusiness);
 
 router.post("/saveQuestionary", verifyToken, saveQuestionary);
 
-router.get("/getQuestionaryByBusiness/:businessId", verifyToken, getQuestionaryByBusiness);
+router.get(
+  "/getQuestionaryByBusiness/:businessId",
+  verifyToken,
+  getQuestionaryByBusiness
+);
 
 router.put("/updateQuestionary/:businessId", verifyToken, updateQuestionary);
 
@@ -44,7 +48,11 @@ router.get("/getAllBussinessName", verifyToken, getBusinesses);
 router.get("/getAllBussinesDetails", verifyToken, getAllBusinessDetails);
 
 // Route to fetch business details by form ID
-router.get("/getBusinessDataByFormId/:formId", verifyToken, getBusinessDetailsById);
+router.get(
+  "/getBusinessDataByFormId/:formId",
+  verifyToken,
+  getBusinessDetailsById
+);
 
 // Route to fetch business details by ID
 router.get("/getBusinessDataById/:id", verifyToken, getBusinessDetailsById);
@@ -71,7 +79,11 @@ router.put("/updateOutlet/:outletId", verifyToken, updateOutlet);
 router.get("/getOutletDetails/:businessId", verifyToken, getOutletDetailsById);
 
 // Route to get particular outlet details
-router.get("/getParticularOutletDetails/:id", verifyToken, getParticularOutletDetails);
+router.get(
+  "/getParticularOutletDetails/:id",
+  verifyToken,
+  getParticularOutletDetails
+);
 
 // Route to get all the client name
 router.get(

@@ -19,7 +19,7 @@ router.delete("/deleteFields", verifyToken, deleteFields);
 
 router.post("/createAgreement", verifyToken, createAgreement);
 
-router.get("/getAllAgreementDetails", verifyToken, getAllAgreementDetails);
+router.get("/getAllAgreementDetails", getAllAgreementDetails);
 
 router.post("/generateagreement/:agreementId", verifyToken, generateagreement);
 
@@ -29,6 +29,6 @@ router.put("/updateAgreement/:agreementId", verifyToken, updateAgreement);
 
 router.put("/updateAgreementStatus/:agreementId", verifyToken, updateAgreementStatus);
 
-router.get("/getAgreementsByProposalId/:proposalId", verifyToken, getAgreementsByProposalId);
+router.get("/getAgreementsByProposalId/:proposalId", getAgreementsByProposalId);
 
 export default router;

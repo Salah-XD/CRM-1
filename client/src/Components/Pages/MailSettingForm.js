@@ -65,7 +65,7 @@ const MailSettingForm = () => {
     <div style={{ padding: "20px", maxWidth: "800px" }}>
        <Spin spinning={isFetching}>
        {!isFetching && ( <Form layout="vertical">
-          <Title level={3}>Mail Settings</Title>
+          <Title level={3}>Account Mail Settings</Title>
 
           <div className="my-4">
             <Form.Item label="Proposal Mail Message" name="proposal_email">

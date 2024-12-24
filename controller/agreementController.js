@@ -73,7 +73,7 @@ export const deleteFields = async (req, res) => {
 
 export const getAllAgreementDetails = async (req, res) => {
   try {
-    const { page = 1, pageSize = 10, sort, keyword } = req.query;
+    const { page = 1, pageSize = 10, sort = "createdAt", keyword } = req.query;
 
     // Convert page and pageSize to integers
     const pageNumber = parseInt(page, 10);
@@ -100,17 +100,15 @@ export const getAllAgreementDetails = async (req, res) => {
       query = query.where("fbo_name").regex(searchRegex);
     }
 
+    // Dynamically handle sorting
     let sortQuery = {};
-    switch (sort) {
-      case "newest":
-        sortQuery = { createdAt: -1 }; // Descending order for newer invoices first
-        break;
-      case "oldest":
-        sortQuery = { createdAt: 1 }; // Ascending order for older invoices first
-        break;
-      default:
-        sortQuery = { createdAt: 1 }; // Default sorting (oldest first)
-        break;
+    if (sort === "newagreement") {
+      sortQuery = { createdAt: 1 }; // Ascending order for newer agreements first
+    } else if (sort === "alllist") {
+      sortQuery = { createdAt: -1 }; // Descending order for latest agreements first
+    } else {
+      // Default sorting (ascending by createdAt)
+      sortQuery = { createdAt: 1 };
     }
 
     // Apply sorting
@@ -142,7 +140,7 @@ export const getAllAgreementDetails = async (req, res) => {
       };
     });
 
-    // Get the total number of agreements for pagination (this assumes you have a total count somewhere)
+    // Get the total number of agreements for pagination
     const totalAgreements = await Agreement.countDocuments();
 
     res.json({
@@ -155,6 +153,7 @@ export const getAllAgreementDetails = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 export const createAgreement = async (req, res) => {
   console.log(req.body);

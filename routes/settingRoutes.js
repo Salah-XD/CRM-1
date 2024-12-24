@@ -8,7 +8,9 @@ import {
   updateSetting,
   deleteSetting,
   saveOrUpdateProfile,
-  getProfileSetting
+  getCompanyDetail,
+  saveAndUpdateBankDetail,
+  getTheBankDetails,
 } from "../controller/settingController.js";
 
 const router = express.Router();
@@ -20,18 +22,22 @@ router.post("/createSetting", verifyToken, createSetting);
 router.get("/getSettings", verifyToken, getSettings);
 
 // Get a specific setting by ID
-router.get("/getSetting/:id", verifyToken, getSettingById);
+router.get("/getSetting/:id", getSettingById);
 
 // Update a setting by ID
-router.put("/updateSetting/:id", verifyToken, updateSetting);
+router.put("/updateSetting/:id", updateSetting);
 
 // Delete a setting by ID
 router.delete("/deleteSetting/:id", verifyToken, deleteSetting);
 
 // Save or update profile settings
-router.post("/saveOrUpdateProfile", verifyToken, saveOrUpdateProfile);
+router.post("/saveOrUpdateProfile", saveOrUpdateProfile);
+
+router.post("/saveAndUpdateBankDetail", saveAndUpdateBankDetail);
 
 // Get profile settings
-router.get("/getProfileSetting", verifyToken, getProfileSetting);
+router.get("/getCompanyDetail", getCompanyDetail);
+
+router.get("/getTheBankDetails", getTheBankDetails);
 
 export default router;

@@ -1,5 +1,7 @@
 import Setting from "../models/settingModel.js";
-import ProfileSetting from "../models/ProfileSettingModel.js";
+import CompanyDetail from "../models/CompanyDetail.js";
+import BankDetail from "../models/BankDetailModel.js";
+
 
 
 // Create a new setting
@@ -53,7 +55,7 @@ export const updateSetting = async (req, res) => {
   console.log(req.body);
   try {
     const { id } = req.params;
-    const { proposal_note, invoice_note, proposal_email, invoice_email,agreement_email,  proposal_cc,invoice_cc, agreement_cc} = req.body;
+    const { proposal_note, invoice_note, proposal_email, invoice_email,agreement_email,  proposal_cc,invoice_cc, agreement_cc,formlink_email} = req.body;
 
     const updatedSetting = await Setting.findByIdAndUpdate(
       id,
@@ -65,7 +67,8 @@ export const updateSetting = async (req, res) => {
         agreement_email,
         proposal_cc,
         invoice_cc,
-        agreement_cc
+        agreement_cc,
+        formlink_email
       },
       { new: true }
     );
@@ -103,43 +106,134 @@ export const deleteSetting = async (req, res) => {
 
 export const saveOrUpdateProfile = async (req, res) => {
   try {
-    const { company_name, company_address } = req.body;
+    const {
+      company_name,
+      company_address, // This should be an object with line1, line2, state, city, and pincode
+      contact_number,
+      email,
+      gstin,
+      PAN,
+    } = req.body;
+
+    // Validate input
+    if (!company_name || !company_address || !company_address.line1 || !company_address.city || !company_address.state || !company_address.pincode) {
+      return res.status(400).json({ message: "Required fields are missing." });
+    }
 
     // Check if the profile setting already exists
-    let profileSetting = await ProfileSetting.findOne();
+    let companyDetail = await CompanyDetail.findOne();
 
-    if (profileSetting) {
-      // If it exists, update the fields
-      profileSetting.company_name = company_name;
-      profileSetting.company_address = company_address;
+    if (companyDetail) {
+      // Update existing profile
+      companyDetail.company_name = company_name;
+      companyDetail.company_address = company_address;
+      companyDetail.contact_number = contact_number;
+      companyDetail.email = email;
+      companyDetail.gstin = gstin;
+      companyDetail.PAN = PAN;
     } else {
-      // If it doesn't exist, create a new profile setting
-      profileSetting = new ProfileSetting({
+      // Create a new profile
+      companyDetail = new CompanyDetail({
         company_name,
         company_address,
+        contact_number,
+        email,
+        gstin,
+        PAN,
       });
     }
 
-    // Save the profile setting (either newly created or updated)
-    const savedProfile = await profileSetting.save();
+    // Save the profile (either newly created or updated)
+    const savedProfile = await companyDetail.save();
 
     res.status(200).json({ message: "Profile saved/updated successfully", profile: savedProfile });
   } catch (error) {
-    res.status(500).json({ message: "Error saving/updating the profile", error });
+    console.error("Error in saveOrUpdateProfile:", error); // Log the error for debugging
+    res.status(500).json({ message: "Error saving/updating the profile", error: error.message });
   }
 };
 
 
-export const getProfileSetting = async (req, res) => {
-  try {
-    const profileSetting = await ProfileSetting.findOne();
 
-    if (!profileSetting) {
+
+export const getCompanyDetail = async (req, res) => {
+  try {
+    // Fetch the company detail
+    const companyDetail = await CompanyDetail.findOne();
+
+    if (!companyDetail) {
+      // Return 404 if no profile is found
       return res.status(404).json({ message: "Profile setting not found" });
     }
 
-    res.status(200).json({ profile: profileSetting });
+    // Return the found profile
+    res.status(200).json({ profile: companyDetail });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching the profile setting", error });
+    console.error("Error in getCompanyDetail:", error); // Log the error for debugging
+    res.status(500).json({ message: "Error fetching the profile setting", error: error.message });
+  }
+};
+
+
+export const saveAndUpdateBankDetail = async (req, res) => {
+  try {
+    const {
+      bank_name,
+      account_holder_name,
+      account_number,
+      ifsc_code,
+      branch_name,
+    } = req.body;
+
+    // Validate required fields
+    if (!bank_name || !account_holder_name || !account_number || !ifsc_code) {
+      return res.status(400).json({ message: "Required fields are missing." });
+    }
+
+    // Check if bank details already exist
+    let bankDetail = await BankDetail.findOne();
+
+    if (bankDetail) {
+      // Update existing bank details
+      bankDetail.bank_name = bank_name;
+      bankDetail.account_holder_name = account_holder_name;
+      bankDetail.account_number = account_number;
+      bankDetail.ifsc_code = ifsc_code;
+      bankDetail.branch_name = branch_name;
+    } else {
+      // Create new bank details
+      bankDetail = new BankDetail({
+        bank_name,
+        account_holder_name,
+        account_number,
+        ifsc_code,
+        branch_name,
+      });
+    }
+
+    // Save the bank details
+    const savedBankDetail = await bankDetail.save();
+
+    res.status(200).json({ message: "Bank details saved/updated successfully", bankDetail: savedBankDetail });
+  } catch (error) {
+    console.error("Error in saveAndUpdateBankDetail:", error);
+    res.status(500).json({ message: "Error saving/updating bank details", error: error.message });
+  }
+};
+
+
+export const getTheBankDetails = async (req, res) => {
+  try {
+    // Fetch the bank details
+    const bankDetail = await BankDetail.findOne();
+
+    if (!bankDetail) {
+      return res.status(404).json({ message: "Bank details not found." });
+    }
+
+    res.status(200).json({ bankDetail });
+  } catch (error) {
+    console.error("Error in getTheBankDetails:", error);
+    res.status(500).json({ message: "Error fetching bank details", error: error.message });
   }
 };

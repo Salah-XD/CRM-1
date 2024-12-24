@@ -21,7 +21,6 @@ import AgreementTable from "./Components/Pages/AgreementTable";
 import ViewProposal from "./Components/Pages/ViewProposal";
 import ViewInvoice from "./Components/Pages/ViewInvoice";
 import ViewAgreement from "./Components/Pages/ViewAgreement";
-import SettingsPage from "./Components/Pages/SettingPage";
 import UnassignedAuditTable from "./Components/Pages/UnassignedAuditTable";
 import AssignedAuditCard from "./Components/Pages/AssignedAuditCard";
 import AuditForm from "./Components/Pages/AuditForm";
@@ -32,6 +31,15 @@ import DraftAuditCard from "./Components/Pages/DraftAuditCard";
 import UpdateAuditReport from "./Components/Pages/UpdateAuditReport";
 import ApprovedAuditCard from "./Components/Pages/ApprovedAuditCard";
 import UpdateFssaiAudit from "./Components/Pages/UpdateFssaiForm";
+import SettingsPage from "./Components/Pages/SettingPage"; // Correct import path
+
+import CompanyAddressSetting from "./Components/Pages/CompanyAddressSetting"; // Update as per file path
+import BankDetailsSetting from "./Components/Pages/BankDetailsSetting"; // Update as per file path
+import NoteForm from "./Components/Pages/NoteForm"; // Update as per file path
+import MailSettingForm from "./Components/Pages/MailSettingForm"; // Update as per file path
+import MailSettingCC from "./Components/Pages/MailSettingCC"; // Update as per file path
+import UserListSetting from "./Components/Pages/UserListSetting"; // Update as per file path
+import FormLinkMailSetting from "./Components/Pages/FormLinkMailSetting";
 import {
   AccountAdminRoute,
   AuditAdminRoute,
@@ -49,37 +57,42 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
 
         <Route element={<AccountAdminRoute />}>
-          <Route path="/enquiry" element={<EnquiryTable />} />
-          <Route path="/client-approval" element={<ClientApprovalTable />} />
-          <Route path="/client-profile" element={<ClientTable />} />
-          <Route path="/invoice" element={<InvoiceTable />} />
-          <Route path="/proposal" element={<ProposalTable />} />
-          <Route path="/agreement" element={<AgreementTable />} />
-          <Route path="/add" element={<BusinessDetail />} />
-          <Route
-            path="/proposal/view-proposal/:proposalId"
-            element={<ViewProposal />}
-          />
-          <Route
-            path="/invoice/view-invoice/:invoiceId"
-            element={<ViewInvoice />}
-          />
-          <Route
-            path="/agreement/view-agreement/:agreementId"
-            element={<ViewAgreement />}
-          />
-          <Route path="/setting" element={<SettingsPage />} />
-          <Route
-            path="/client-profile/add-business"
-            element={
-              <AdminDashboard>
-                <AddClient newClientTitle={"Client Details Form"}>
-                  <BusinessDetail />
-                </AddClient>
-              </AdminDashboard>
-            }
-          />
+        {/* Main Tables */}
+        <Route path="/enquiry" element={<EnquiryTable />} />
+        <Route path="/client-approval" element={<ClientApprovalTable />} />
+        <Route path="/client-profile" element={<ClientTable />} />
+        <Route path="/invoice" element={<InvoiceTable />} />
+        <Route path="/proposal" element={<ProposalTable />} />
+        <Route path="/agreement" element={<AgreementTable />} />
+        <Route path="/add" element={<BusinessDetail />} />
+        
+        {/* View Specific Items */}
+        <Route path="/proposal/view-proposal/:proposalId" element={<ViewProposal />} />
+        <Route path="/invoice/view-invoice/:invoiceId" element={<ViewInvoice />} />
+        <Route path="/agreement/view-agreement/:agreementId" element={<ViewAgreement />} />
+
+        {/* Settings Page and Nested Routes */}
+        <Route path="/settings" element={<SettingsPage />}>
+      
+          <Route path="company-address" element={<CompanyAddressSetting />} />
+          <Route path="bank-details" element={<BankDetailsSetting />} />
+          <Route path="notes" element={<NoteForm />} />
+          <Route path="mail" element={<MailSettingForm />} />
+          <Route path="mail-message" element={<MailSettingForm />} />
+          <Route path="form-link-mail" element={<FormLinkMailSetting />} />
+          <Route path="cc-mails" element={<MailSettingCC />} />
+          <Route path="user" element={<UserListSetting />} />
         </Route>
+
+        {/* Add Client Profile with Business Detail */}
+        <Route path="/client-profile/add-business" element={
+          <AdminDashboard>
+            <AddClient newClientTitle={"Client Details Form"}>
+              <BusinessDetail />
+            </AddClient>
+          </AdminDashboard>
+        } />
+      </Route>
 
         <Route element={<AuditAdminRoute />}>
           {/* Main Audit Routes */}

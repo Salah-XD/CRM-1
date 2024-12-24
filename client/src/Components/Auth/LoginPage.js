@@ -37,25 +37,26 @@ const LoginPage = () => {
         login(response.data.token);
   
         console.log("this is the ",values.businessType);
+        navigate("/dashboard");
         // Switch statement for role-based navigation
-        switch (values.businessType) {
-          case "SUPER_ADMIN":
-            navigate("/dashboard");
-            break;
-          case "ACCOUNT_ADMIN":
-            navigate("/client-profile");
-            break;
-          case "AUDIT_ADMIN":
-            navigate("/audit-work");
-            break;
-          case "AUDITOR":
-            navigate("/assigned-audit");
-            break;
-          default:
-            console.error("Invalid business type:", values.businessType);
-            message.error("Invalid role selected. Please try again.");
-            break;
-        }
+        // switch (values.businessType) {
+        //   case "SUPER_ADMIN":
+        //     navigate("/dashboard");
+        //     break;
+        //   case "ACCOUNT_ADMIN":
+        //     navigate("/client-profile");
+        //     break;
+        //   case "AUDIT_ADMIN":
+        //     navigate("/audit-work");
+        //     break;
+        //   case "AUDITOR":
+        //     navigate("/assigned-audit");
+        //     break;
+        //   default:
+        //     console.error("Invalid business type:", values.businessType);
+        //     message.error("Invalid role selected. Please try again.");
+        //     break;
+        // }
       } else {
         message.error("Incorrect email or password.");
       }

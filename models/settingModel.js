@@ -18,6 +18,9 @@ const settingSchema = new Schema({
   agreement_email: {
     type: String,
   },
+  formlink_email: {
+    type: String,
+  },
   proposal_cc: {
     type: [String],
   },

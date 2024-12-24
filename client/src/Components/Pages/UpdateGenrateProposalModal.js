@@ -49,8 +49,7 @@ const UpdateGenerateProposalModal = ({
   const [cgst, setCgst] = useState(0);
   const [igst, setIgst] = useState(0);
   const [total, setTotal] = useState(0);
-  const [email, setEmail] = useState(0);
-  const [auditors, setAuditors] = useState([]);
+  const [representaive, setRepesentaive] = useState([]);
   const [checkState, setCheckState] = useState("");
   const [sameState, setSameState] = useState(true);
   const handleCancel = () => {
@@ -109,8 +108,11 @@ const UpdateGenerateProposalModal = ({
             phone: businessData.phone,
             proposal_number: businessData.proposal_number,
             proposal_date: businessData.proposal_date,
-            assigned_auditor: businessData.representative, // Populate the select option
+            representative: businessData.representative, // Populate the select option
           });
+
+
+          console.log("This is teh representative",businessData.representative);
 
           // Set the outlets state
           setOutlets(businessData.outlets);
@@ -174,8 +176,8 @@ const UpdateGenerateProposalModal = ({
 
       const fetchAllAuditors = async () => {
         try {
-          const response = await axios.get("/api/auditor/getAllAuditors"); // Adjust the endpoint as needed
-          setAuditors(response.data);
+          const response = await axios.get("/api/auth/getAllUsers"); // Adjust the endpoint as needed
+          setRepesentaive(response.data.data);
         } catch (error) {
           console.error("Error fetching auditors:", error);
         }
@@ -632,7 +634,7 @@ const UpdateGenerateProposalModal = ({
                   },
                 ]}
               >
-                <DatePicker className="w-full"   format="DD/MM/YYYY" />
+                <DatePicker className="w-full" format="DD/MM/YYYY" />
               </Form.Item>
               <Form.Item
                 label="Proposal number"
@@ -733,14 +735,14 @@ const UpdateGenerateProposalModal = ({
               </Form.Item>
             </div>
             <Form.Item
-              name="assigned_auditor"
+              name="representative"
               label="Representative"
               rules={[{ required: true, message: "Please select an auditor!" }]}
             >
               <Select placeholder="Select an auditor">
-                {auditors.map((auditor) => (
-                  <Option key={auditor._id} value={auditor._id}>
-                    {auditor.auditor_name}
+                {representaive.map((representaive) => (
+                  <Option key={representaive._id} value={representaive._id}>
+                    {representaive.userName}
                   </Option>
                 ))}
               </Select>

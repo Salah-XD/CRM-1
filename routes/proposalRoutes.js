@@ -43,7 +43,7 @@ router.delete("/deleteFields", verifyToken, deleteFields);
 
 router.put("/updateProposalStatus/:proposalId", verifyToken, updateProposalStatus);
 
-router.get("/getProposalById/:proposalId", verifyToken, getProposalById);
+router.get("/getProposalById/:proposalId", getProposalById);
 
 router.get("/proposalCount",verifyToken, proposalCount);
 

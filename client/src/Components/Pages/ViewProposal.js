@@ -3,10 +3,10 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminDashboard from "../Layout/AdminDashboard";
 import moment from "moment";
-import {Spin,Button } from "antd";
+import { Spin, Button } from "antd";
 import UpdateGenerateProposalModal from "./UpdateGenrateProposalModal";
 
-import "../css/view.css"
+import "../css/view.css";
 
 const ViewProposal = () => {
   const { proposalId } = useParams(); // Extract proposalId from the route
@@ -14,24 +14,36 @@ const ViewProposal = () => {
   const [zoom, setZoom] = useState(1); // State to manage zoom level
   const [noteContent, setNoteContent] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
- const navigate = useNavigate();
+  const [companyProfile, setCompanyProfile] = useState(null);
+  const [bankDetails, setBankDetails] = useState(null);
 
+  const navigate = useNavigate();
 
+  const fetchProposalData = async () => {
+    try {
+      // Fetch proposal, company, and bank details concurrently
+      const [proposalResponse, companyResponse, bankDetailsResponse] =
+        await Promise.all([
+          axios.get(`/api/proposal/getProposalById/${proposalId}`),
+          axios.get(`/api/setting/getCompanyDetail`),
+          axios.get(`/api/setting/getTheBankDetails`),
+        ]);
 
- const fetchProposalData = async () => {
-  try {
-    const response = await axios.get(
-      `/api/proposal/getProposalById/${proposalId}`
-    );
-    setProposalData(response.data);
-  } catch (error) {
-    console.error("Error fetching proposal data:", error);
-  }
-};
+      // Extract the necessary data
+      const proposalData = proposalResponse.data;
+      const companyProfile = companyResponse.data?.profile; // Extract profile from company response
+      const bankDetails = bankDetailsResponse.data?.bankDetail; // Extract bankDetail from bank details response
+
+      // Set the data in respective state variables
+      setProposalData(proposalData);
+      setCompanyProfile(companyProfile);
+      setBankDetails(bankDetails);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
 
   useEffect(() => {
-   
-
     const fetchNoteContent = async () => {
       try {
         const response = await axios.get(
@@ -45,14 +57,14 @@ const ViewProposal = () => {
     };
 
     fetchProposalData();
-    fetchNoteContent(); 
+    fetchNoteContent();
   }, [proposalId]);
 
   if (!proposalData) {
     return (
       <AdminDashboard>
         <div className="flex justify-center items-center h-screen">
-         <Spin/>
+          <Spin />
         </div>
       </AdminDashboard>
     );
@@ -64,39 +76,38 @@ const ViewProposal = () => {
 
   // Prepare outlet rows
   const outletRows = proposalData.outlets
-  .map((outlet) => {
+    .map((outlet) => {
+      let postfix = "";
+      switch (outlet.type_of_industry) {
+        case "Transportation":
+          postfix = "VH";
+          break;
+        case "Catering":
+          postfix = "FH";
+          break;
+        case "Trade and Retail":
+          postfix = "Sq ft";
+          break;
+        case "Manufacturing":
+          postfix = "PD/Line";
+          break;
+        default:
+          postfix = ""; // or any default value
+      }
 
-    let postfix = "";
-    switch (outlet.type_of_industry) {
-      case "Transportation":
-        postfix = "VH";
-        break;
-      case "Catering":
-        postfix = "FH";
-        break;
-      case "Trade and Retail":
-        postfix = "Sq ft";
-        break;
-      case "Manufacturing":
-        postfix = "PD/Line";
-        break;
-      default:
-        postfix = ""; // or any default value
-    }
+      const outletName = outlet.outlet_name || "";
+      let service = outlet.unit ? `${outlet.unit} ${postfix}` : "";
+      let manDays = outlet.man_days?.$numberDouble || outlet.man_days || 0;
+      const quantity = outlet.quantity?.$numberInt || outlet.quantity || 0;
+      const unitCost = outlet.unit_cost?.$numberInt || outlet.unit_cost || 0;
+      const amount = outlet.amount?.$numberInt || outlet.amount || 0;
 
-    const outletName = outlet.outlet_name || "";
-    let service = outlet.unit ? `${outlet.unit} ${postfix}` : "";
-    let manDays = outlet.man_days?.$numberDouble || outlet.man_days || 0;
-    const quantity = outlet.quantity?.$numberInt || outlet.quantity || 0;
-    const unitCost = outlet.unit_cost?.$numberInt || outlet.unit_cost || 0;
-    const amount = outlet.amount?.$numberInt || outlet.amount || 0;
+      if (outletName === "Others") {
+        service = "N/A";
+        manDays = "N/A";
+      }
 
-    if (outletName === "Others") {
-      service = "N/A";
-      manDays = "N/A";
-    }
-
-    return `
+      return `
       <tr>
         <td class="px-2 py-1 text-center">${outletName}</td>
         <td class="px-2 py-1 text-center">${outlet.description || ""}</td>
@@ -107,33 +118,32 @@ const ViewProposal = () => {
         <td class="px-2 py-1 text-center">${amount}</td>
       </tr>
     `;
-  })
-  .join("");
+    })
+    .join("");
 
-let total = 0;
-proposalData.outlets.forEach((outlet) => {
-  total += parseFloat(outlet.amount?.$numberInt || outlet.amount || 0);
-});
+  let total = 0;
+  proposalData.outlets.forEach((outlet) => {
+    total += parseFloat(outlet.amount?.$numberInt || outlet.amount || 0);
+  });
 
+  // Initialize tax variables
+  let cgst = 0;
+  let sgst = 0;
+  let igst = 0;
+  let overallTotal = 0;
 
-// Initialize tax variables
-let cgst = 0;
-let sgst = 0;
-let igst = 0;
-let overallTotal = 0;
+  if (proposalData.same_state) {
+    cgst = parseFloat((total * 0.09).toFixed(2)); // 9% CGST
+    sgst = parseFloat((total * 0.09).toFixed(2)); // 9% SGST
+    overallTotal = parseFloat((total + cgst + sgst).toFixed(2));
+  } else {
+    igst = parseFloat((total * 0.18).toFixed(2)); // 18% GST
+    overallTotal = parseFloat((total + igst).toFixed(2));
+  }
 
-if (proposalData.same_state) {
-  cgst = parseFloat((total * 0.09).toFixed(2)); // 9% CGST
-  sgst = parseFloat((total * 0.09).toFixed(2)); // 9% SGST
-  overallTotal = parseFloat((total + cgst + sgst).toFixed(2));
-} else {
-  igst = parseFloat((total * 0.18).toFixed(2)); // 18% GST
-  overallTotal = parseFloat((total + igst).toFixed(2));
-}
-
-// Tax details to be displayed in the table
-const tax = proposalData.same_state
-  ? `
+  // Tax details to be displayed in the table
+  const tax = proposalData.same_state
+    ? `
     <tr>
       <td colspan="6" class="border text-right w-3/4 small-cell">
         <strong>CGST [9%]</strong>
@@ -147,7 +157,7 @@ const tax = proposalData.same_state
       <td class="border w-1/4 small-cell text-center">${sgst}</td>
     </tr>
   `
-  : `
+    : `
     <tr>
       <td colspan="6" class="border text-right w-3/4 small-cell">
         <strong>IGST [18%]</strong>
@@ -156,9 +166,8 @@ const tax = proposalData.same_state
     </tr>
   `;
 
-
-  const tax2= proposalData.same_state 
-  ? `  <tr>
+  const tax2 = proposalData.same_state
+    ? `  <tr>
                 <td class="w-1/2 border px-4 py-1">CGST9 [9%]</td>
                 <td class="w-1/2 border px-4 py-1">${cgst}</td>
               </tr>
@@ -166,29 +175,25 @@ const tax = proposalData.same_state
                 <td class="w-1/2 border px-4 py-1">SGST9 [9%]</td>
                 <td class="w-1/2 border px-4 py-1">${sgst}</td>
               </tr>
-              <tr>`:` <tr>
+              <tr>`
+    : ` <tr>
                 <td class="w-1/2 border px-4 py-1">IGST [18%]</td>
                 <td class="w-1/2 border px-4 py-1">${igst}</td>
-              </tr>`
+              </tr>`;
 
-
-   const showModal = () => {
- 
+  const showModal = () => {
     setIsModalVisible(true);
-   };
+  };
 
   const handleOk = () => {
-    
-    
     setIsModalVisible(false);
   };
 
   const handleCancel = () => {
     fetchProposalData();
-  
+
     setIsModalVisible(false);
   };
-
 
   // Inject data into HTML template
   const htmlTemplate = `
@@ -362,34 +367,38 @@ const tax = proposalData.same_state
          <div class="mt-5">
           <strong>Note:</strong>
           <ol class="list-inside">
-            ${noteContent
-              .map((line) => `<li>${line}</li>`)
-              .join("")}
+            ${noteContent.map((line) => `<li>${line}</li>`).join("")}
           </ol>
         </div>
         <div class="mt-10">
           <div class="text-center mb-4">
             <h2 class="font-bold text-sm">Address & Payment Details</h2>
           </div>
-          <div class="text-center">
-            <table class="border w-4/5 mx-auto">
-              <tr>
-                <td class="w-1/2 border p-2 align-top">
-                  <strong>Company Address:</strong>
-                  <div>Unavar Food Inspection and Certification Pvt Ltd.</div>
-                  <div>8-2-672/1/3, 2nd Floor, Road No. 1, Banjara Hills, Hyderabad-500034</div>
-                  <div>Contact: +91-1234567890</div>
-                  <div>Email: info@unavarfood.com</div>
-                </td>
-                <td class="w-1/2 border p-2 align-top">
-                  <strong>Bank Details:</strong>
-                  <div>Bank Name: XYZ Bank</div>
-                  <div>Account Number: 1234567890</div>
-                  <div>IFSC Code: XYZ123</div>
-                </td>
-              </tr>
-            </table>
+           <div class="text-center">
+    <table class="border w-4/5 mx-auto">
+      <tr>
+        <td class="w-1/2 border p-2 align-top">
+          <strong>Company Address:</strong>
+          <div>${companyProfile?.company_name || "N/A"}</div>
+          <div>
+            ${companyProfile?.company_address?.line1 || ""}, 
+            ${companyProfile?.company_address?.line2 || ""}, 
+            ${companyProfile?.company_address?.city || ""}, 
+            ${companyProfile?.company_address?.state || ""} - 
+            ${companyProfile?.company_address?.pincode || ""}
           </div>
+          <div>Contact: +91-1234567890</div> <!-- Replace with dynamic contact -->
+          <div>Email: info@unavarfood.com</div> <!-- Replace with dynamic email -->
+        </td>
+        <td class="w-1/2 border p-2 align-top">
+          <strong>Bank Details:</strong>
+          <div>Bank Name: ${bankDetails?.bank_name || "N/A"}</div>
+          <div>Account Number: ${bankDetails?.account_number || "N/A"}</div>
+          <div>IFSC Code: ${bankDetails?.ifsc_code || "N/A"}</div>
+        </td>
+      </tr>
+    </table>
+  </div>
         </div>
         </div>
         
@@ -409,10 +418,9 @@ const tax = proposalData.same_state
               ←
             </span>
             <h2 className="text-xl font-semibold">View Proposal Document</h2>
-            <Button type="primary" className="ml-auto" onClick={showModal} >
+            <Button type="primary" className="ml-auto" onClick={showModal}>
               Edit
             </Button>
-           
           </div>
         </div>
 
@@ -450,13 +458,12 @@ const tax = proposalData.same_state
             </div>
           </div>
           <UpdateGenerateProposalModal
-        visible={isModalVisible}
-        onOk={handleOk}
-        onCancel={handleCancel}
-        proposalId={proposalId}
-      />
+            visible={isModalVisible}
+            onOk={handleOk}
+            onCancel={handleCancel}
+            proposalId={proposalId}
+          />
         </>
-
       </AdminDashboard>
     </div>
   );

@@ -3,10 +3,9 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminDashboard from "../Layout/AdminDashboard";
 import { Spin, Button } from "antd";
-import { ToWords } from 'to-words';
+import { ToWords } from "to-words";
 import moment from "moment";
 import UpdateGenerateInvoiceModal from "./UpdateGenerateInvoiceModal";
-
 
 const ViewInvoice = () => {
   const { invoiceId } = useParams(); // Extract invoiceId from the route
@@ -14,26 +13,42 @@ const ViewInvoice = () => {
   const [zoom, setZoom] = useState(1); // State to manage zoom level
   const [noteContent, setNoteContent] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [proposalId,setProposalId]=useState();
+  const [proposalId, setProposalId] = useState();
+  const [companyProfile, setCompanyProfile] = useState(null);
+  const [bankDetails, setBankDetails] = useState(null);
   const navigate = useNavigate();
-
-
 
   const fetchInvoiceData = async () => {
     try {
-      const response = await axios.get(
-        `/api/invoice/getInvoiceById/${invoiceId}`
-      );
-      setProposalId(response.data.proposalId);
-      console.log(response.data.proposalId);
-      setInvoiceData(response.data);
+      // Fetch invoice data, company details, and bank details concurrently
+      const [invoiceResponse, companyResponse, bankDetailsResponse] =
+        await Promise.all([
+          axios.get(`/api/invoice/getInvoiceById/${invoiceId}`),
+          axios.get(`/api/setting/getCompanyDetail`),
+          axios.get(`/api/setting/getTheBankDetails`),
+        ]);
+
+      // Log the full response to inspect the structure
+      console.log("Company Response:", companyResponse);
+
+      // Extract the necessary data
+      const invoiceData = invoiceResponse.data;
+      const companyProfile1 = companyResponse.data?.profile; // Extract profile from company response
+      const bankDetails = bankDetailsResponse.data?.bankDetail; // Extract bank details from bank response
+
+      console.log("This is company profile", companyProfile1); // Check if companyProfile1 is correctly populated
+
+      // Set the states
+      setProposalId(invoiceData.proposalId);
+      setInvoiceData(invoiceData);
+      setCompanyProfile(companyProfile1);
+      setBankDetails(bankDetails);
     } catch (error) {
-      console.error("Error fetching invoice data:", error);
+      console.error("Error fetching data:", error);
     }
   };
-  useEffect(() => {
-   
 
+  useEffect(() => {
     const fetchNoteContent = async () => {
       try {
         const response = await axios.get(
@@ -101,9 +116,8 @@ const ViewInvoice = () => {
     tax = `<p><span class="font-semibold">Add: IGST:</span>${gst}</p>`;
   }
 
-
   const toWords = new ToWords({
-    localeCode: 'en-IN',
+    localeCode: "en-IN",
     converterOptions: {
       currency: true,
       ignoreDecimal: false,
@@ -111,13 +125,13 @@ const ViewInvoice = () => {
       doNotAddOnly: false,
       currencyOptions: {
         // can be used to override defaults for the selected locale
-        name: 'Rupee',
-        plural: 'Rupees',
-        symbol: '₹',
+        name: "Rupee",
+        plural: "Rupees",
+        symbol: "₹",
         fractionalUnit: {
-          name: 'Paisa',
-          plural: 'Paise',
-          symbol: '',
+          name: "Paisa",
+          plural: "Paise",
+          symbol: "",
         },
       },
     },
@@ -125,8 +139,9 @@ const ViewInvoice = () => {
 
   let words = toWords.convert(subTotal);
 
-  const formattedDate = invoiceData ? moment(invoiceData.invoice_date).format("MMMM D, YYYY") : '';
-
+  const formattedDate = invoiceData
+    ? moment(invoiceData.invoice_date).format("MMMM D, YYYY")
+    : "";
 
   const showModal = () => {
     setIsModalVisible(true);
@@ -145,7 +160,7 @@ const ViewInvoice = () => {
     return (
       <AdminDashboard>
         <div className="flex justify-center items-center h-screen">
-         <Spin/>
+          <Spin />
         </div>
       </AdminDashboard>
     );
@@ -215,13 +230,30 @@ const ViewInvoice = () => {
     <body class="p-4">
       <div class="container mx-auto mt-4">
         <div class="header-info flex justify-between items-center border p-2 border-gray-400 rounded">
-          <div>
-            <h2 class="text-lg font-bold" style="color: #13A6B8;">UNAVAR FOOD INSPECTION AND CERTIFICATION PRIVATE LIMITED
-            </h2>
-            <p style="color: #13A6B8;">MM ILLAM MKN ROAD, ALANDUR CHENNAI - 600016.</p>
-            <p style="color: #13A6B8;">Tel: + 9894398096 | Email: vivekanand@unavar.com</p>
-            <p style="color: #13A6B8;">GSTIN: 33AADCU1306M1ZI | PAN: AADCU1306M</p>
-          </div>
+         <div>
+  <h2 style="font-size: 1rem; font-weight: bold; color: #13A6B8;">
+  ${companyProfile?.company_name?.toUpperCase() || "Company Name"}
+</h2>
+
+
+    <p style="color: #13A6B8;">
+      ${companyProfile?.company_address?.line1 || "Address Line 1"}, 
+      ${companyProfile?.company_address?.line2 || "Address Line 2"}, 
+      ${companyProfile?.company_address?.city || "City"}, 
+      ${companyProfile?.company_address?.state || "State"} - 
+      ${companyProfile?.company_address?.pincode || "Pincode"}
+    </p>
+    <p style="color: #13A6B8;">
+      Tel: ${companyProfile?.contact_number || "Contact Number"} | Email: ${
+    companyProfile?.email || "Email not available"
+  }
+    </p>
+    <p style="color: #13A6B8;">
+      GSTIN: ${companyProfile?.gstin || "GSTIN not available"} | PAN: ${
+    companyProfile?.PAN || "PAN not available"
+  }
+    </p>
+  </div>
           <img src="/logo2.png" alt="Your Image Alt Text" width="80" height="80" />
         </div>
         <h1 class="text-xl font-bold my-2 text-center text-gray-700">TAX INVOICE</h1>
@@ -231,9 +263,7 @@ const ViewInvoice = () => {
               <p><span class="font-semibold">Invoice No:</span> ${
                 invoiceData.invoice_number
               }</p>
-              <p><span class="font-semibold">Invoice Date:</span> ${
-                formattedDate
-              }</p>
+              <p><span class="font-semibold">Invoice Date:</span> ${formattedDate}</p>
               <p><span class="font-semibold">Order Ref No:</span> ${
                 invoiceData.proposal_number
               }</p>
@@ -266,7 +296,7 @@ const ViewInvoice = () => {
             <p><span class="font-semibold">State (Place of Supply):</span> ${
               invoiceData.place_of_supply
             }</p>
-            <p><span class="font-semibold">pincode Code:</span> ${
+            <p><span class="font-semibold">Pincode Code:</span> ${
               invoiceData.pincode
             }</p>
           </div>
@@ -312,13 +342,24 @@ const ViewInvoice = () => {
             }</p>
           </div>
           <div class="bank-info my-2">
-            <h2 class="text-md font-semibold text-gray-700">Bank Account Details</h2>
-            <p><span class="font-semibold">Account Holder's Name:</span> UNAVAR FOOD INSPECTION AND CERTIFICATION PVT LTD</p>
-            <p><span class="font-semibold">Bank Name:</span> HDFC BANK</p>
-            <p><span class="font-semibold">Bank Branch:</span> West Mambalam</p>
-            <p><span class="font-semibold">IFSC Code:</span> HDFC0000575</p>
-            <p><span class="font-semibold">Account No:</span> 50200078830737</p>
-          </div>
+  <h2 class="text-md font-semibold text-gray-700">Bank Account Details</h2>
+  <p><span class="font-semibold">Account Holder's Name:</span> ${
+    bankDetails?.account_holder_name || "Account Holder's Name"
+  }</p>
+  <p><span class="font-semibold">Bank Name:</span> ${
+    bankDetails?.bank_name || "Bank Name"
+  }</p>
+  <p><span class="font-semibold">Bank Branch:</span> ${
+    bankDetails?.branch || "Bank Branch"
+  }</p>
+  <p><span class="font-semibold">IFSC Code:</span> ${
+    bankDetails?.ifsc_code || "IFSC Code"
+  }</p>
+  <p><span class="font-semibold">Account No:</span> ${
+    bankDetails?.account_number || "Account Number"
+  }</p>
+</div>
+
           <div class="declaration my-2">
             <h2 class="text-md font-semibold text-gray-700">Declaration:</h2>
             <p>1. E& O.E,</p>
@@ -387,12 +428,12 @@ const ViewInvoice = () => {
           </div>
         </div>
         <UpdateGenerateInvoiceModal
-        visible={isModalVisible}
-        onOk={handleOk}
-        onCancel={handleCancel}
-        proposalId={proposalId}
-        invoiceId={invoiceId}
-      />
+          visible={isModalVisible}
+          onOk={handleOk}
+          onCancel={handleCancel}
+          proposalId={proposalId}
+          invoiceId={invoiceId}
+        />
       </>
     </AdminDashboard>
   );
