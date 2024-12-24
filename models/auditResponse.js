@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 
-const auditResponseSchema = new mongoose.Schema({
+const {Schema,model}=mongoose;
+
+const auditResponseSchema = new Schema({
     audit: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'AuditMangement',
@@ -27,6 +29,6 @@ const auditResponseSchema = new mongoose.Schema({
     timestamps: true
 });
 // Check if the model is already registered before defining it
-const AuditResponse = mongoose.models.AuditResponse || mongoose.model('AuditResponse', auditResponseSchema);
+const AuditResponse =mongoose.model('AuditResponse', auditResponseSchema);
 
 export default AuditResponse;

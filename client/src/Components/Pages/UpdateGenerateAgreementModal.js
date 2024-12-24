@@ -27,9 +27,7 @@ const UpdateGenerateAgreementModal = ({
   const [loading, setLoading] = useState(true);
   const [agreementId, setAgreementId] = useState(null); // Initialize as null
   const [showSendMailModal, setShowSendMailModal] = useState(false);
-  const [disableOutlets, setdisableOutlet] = useState([
-    "676a75343b72ede0b1b76aa0",
-  ]);
+  const [disableOutlets, setdisableOutlet] = useState([]);
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -83,7 +81,23 @@ const UpdateGenerateAgreementModal = ({
           console.error("Error fetching agreement data:", error);
           message.error("Error fetching agreement data");
         });
+
+      
     }
+
+    const fetchFilteredAgreement = async () => {
+      try {
+        const response = await axios.get(`/api/proposal/getFilteredAgreements/${agreementIds}`);
+        if (response.data.success) {
+          setdisableOutlet(response.data.outletIds);
+        } 
+      } catch (err) {
+        console.error("Error is fetching the profile state");
+      } 
+    };
+
+    fetchFilteredAgreement();
+
   }, [proposalId, visible, form]);
 
   const outletsColumns = [
@@ -188,6 +202,7 @@ const UpdateGenerateAgreementModal = ({
   };
 
   const handleCancel = () => {
+
     setShowForm(false);
     setSelectedOutlets([]);
     onCancel();

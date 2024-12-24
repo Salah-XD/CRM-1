@@ -4,6 +4,7 @@ import Enquiry from "../models/enquiryModel.js";
 import Proposal from "../models/proposalModel.js";
 import ProposalCounter from "../models/proposalCounter.js";
 import Invoice from "../models/invoiceModel.js";
+import Agreement from "../models/agreementModel.js";
 import moment from "moment";
 import mongoose from "mongoose";
 
@@ -587,6 +588,49 @@ export const getFilteredInvoices = async (req, res) => {
     console.error("Error fetching filtered invoices:", error);
     return res.status(500).json({ success: false, message: "Server error" });
   }
+
 };
 
+export const getFilteredAgreements = async (req, res) => {
+  try {
+    const { agreementId } = req.params; // Extract the agreementId from query parameters
 
+    // Validate input parameters
+    if (!agreementId) {
+      return res.status(400).json({ message: "Agreement ID is required" });
+    }
+
+    // Fetch the proposalId from the provided agreementId
+    const agreement = await Agreement.findById(agreementId);
+    if (!agreement) {
+      return res.status(404).json({ message: "Agreement not found" });
+    }
+
+    const proposalId = agreement.proposalId;
+    console.log("this is the proposal id",proposalId);
+
+    // Query to fetch all agreements with the same proposalId, excluding the provided agreementId
+    const agreements = await Agreement.find({
+      proposalId: proposalId,
+      _id: { $ne: agreementId }, // Exclude the provided agreementId
+    });
+
+    // Collect all outlet _id values from the agreements
+    const outletIds = agreements.reduce((acc, agreement) => {
+      if (Array.isArray(agreement.outlets)) {
+        // Assuming each outlet has an _id field
+        acc.push(...agreement.outlets.map(outlet => outlet._id));
+      }
+      return acc;
+    }, []);
+
+    // Send the response with filtered agreements and outlet _id values
+    return res.status(200).json({
+      success: true,
+      outletIds: [...new Set(outletIds)], // Remove duplicates from outlet _id values
+    });
+  } catch (error) {
+    console.error("Error fetching filtered agreements:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
