@@ -26,7 +26,7 @@ const auditResponseSchema = new mongoose.Schema({
 }, {
     timestamps: true
 });
-
-const AuditResponse = mongoose.model('AuditResponse', auditResponseSchema);
+// Check if the model is already registered before defining it
+const AuditResponse = mongoose.models.AuditResponse || mongoose.model('AuditResponse', auditResponseSchema);
 
 export default AuditResponse;

@@ -5,7 +5,7 @@ import { User, userRoles } from "../models/usersModel.js";
 import AuditManagement from "../models/auditMangement.js";
 import Question from "../models/questionSchema.js";
 import Label from "../models/labelModel.js";
-import AuditResponse from "../models/AuditResponse.js";
+import AuditResponse from "../models/auditResponse.js";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
