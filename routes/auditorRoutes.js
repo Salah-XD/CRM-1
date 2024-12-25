@@ -29,51 +29,11 @@ import path from "path";
 
 import { generateAuditReport } from "../controller/auditReportGenerationController.js";
 
-// // Configure multer
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, "uploads/"); // Define where to store the uploaded files
-//   },
-//   filename: (req, file, cb) => {
-//     // Set the file name to be saved in the destination folder
-//     cb(null, Date.now() + path.extname(file.originalname)); // Append timestamp to avoid file name conflicts
-//   },
-// });
-
-
-
-// const storage2 = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, "uploads/"); // Specify the folder to store the uploaded files
-//   },
-//   filename: (req, file, cb) => {
-//     cb(null, Date.now() + "-" + file.originalname); // Specify the file name
-//   },
-// });
-
-// const upload = multer({ storage: storage });
-// const upload2 = multer({ storage: storage }).single("file")
 
 
 // Multer memory storage
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Function to upload to Cloudinary
-const uploadToCloudinary = (buffer, folder) =>
-  new Promise((resolve, reject) => {
-    const uploadStream = cloudinary.v2.uploader.upload_stream(
-      { audit_images }, // Specify the folder in Cloudinary
-      (error, result) => {
-        if (error) {
-          console.error("Cloudinary error:", error.message);
-          reject(error);
-        } else {
-          resolve(result);
-        }
-      }
-    );
-    streamifier.createReadStream(buffer).pipe(uploadStream);
-  });
 
 
 const router = express.Router();

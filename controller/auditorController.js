@@ -7,10 +7,7 @@ import Question from "../models/questionSchema.js";
 import Label from "../models/labelModel.js";
 import AuditResponse from "../models/auditReponseModel.js";
 import uploadToCloudinary from "../helper/uploadToCloudinary.js";
-import multer from "multer";
-import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
-import { compareSync } from "bcrypt";
+
 
 // Create a new auditor
 export const createAuditor = async (req, res) => {
@@ -796,18 +793,7 @@ export const fetchLabelsWithQuestions = async (req, res) => {
 
 // Configure Multer for file upload
 // Helper function for uploading files to Cloudinary
-const uploadFileToCloudinary = async (filePath, folder) => {
-  try {
-    const result = await cloudinary.uploader.upload(filePath, { folder });
-    if (fs.existsSync(filePath)) {
-      await fs.promises.unlink(filePath); // Ensure temp file is deleted
-    }
-    return result.secure_url;
-  } catch (error) {
-    console.error(`Error uploading file to Cloudinary: ${error.message}`);
-    throw new Error("File upload failed.");
-  }
-};
+
 
 export const saveAuditResponses = async (req, res) => {
   const { data } = req.body;

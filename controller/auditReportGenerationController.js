@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
-import puppeteer from "puppeteer";
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 import AuditResponse1 from "../models/auditReponseModel.js";
 import AuditManagement from "../models/auditMangement.js";
 import Label from "../models/labelModel.js";
@@ -11,6 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const generateAuditReport = async (req, res) => {
+  let browser;
   try {
     const { audit_id } = req.params;
 
@@ -65,7 +67,7 @@ export const generateAuditReport = async (req, res) => {
     const logoBase64 = fs.readFileSync(logoPath, { encoding: "base64" });
 
     // Replace dynamic placeholders
-    const { fbo_name, location, fssai_number,outlet_name} = auditDetails;
+    const { fbo_name, location, fssai_number, outlet_name } = auditDetails;
 
     htmlTemplate = htmlTemplate
       .replace(/{{fbo_name}}/g, fbo_name || "N/A")
@@ -112,7 +114,13 @@ export const generateAuditReport = async (req, res) => {
     htmlTemplate = htmlTemplate.replace("{{AUDIT_SECTIONS}}", sectionsHTML);
 
     // Generate the PDF using Puppeteer
-    const browser = await puppeteer.launch({ headless: true });
+    browser = await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+      ignoreHTTPSErrors: true,
+    });
     const page = await browser.newPage();
     await page.setContent(htmlTemplate, { waitUntil: "load" });
 
@@ -120,14 +128,11 @@ export const generateAuditReport = async (req, res) => {
       format: "A4",
       printBackground: true,
       displayHeaderFooter: true,
-      headerTemplate: `
-       
-      `,
+      headerTemplate: ``,
       footerTemplate: `
         <div style="width: 100%; font-size: 8px; text-align: center; padding: 4px 0;">
           <span>Page <span class="pageNumber"></span> of <span class="totalPages"></span></span>
-        </div>
-      `,
+        </div>`,
       margin: {
         top: "40px",
         bottom: "40px",
@@ -145,10 +150,13 @@ export const generateAuditReport = async (req, res) => {
       `attachment; filename=audit-report-${fbo_name}-${outlet_name}.pdf`
     );
     res.send(pdfBuffer);
+
   } catch (error) {
     console.error("Error generating audit report:", error);
-    res
-      .status(500)
-      .json({ message: "An error occurred while generating the audit report" });
+    res.status(500).json({ message: "An error occurred while generating the audit report" });
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 };
