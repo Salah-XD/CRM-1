@@ -6,6 +6,7 @@ import AuditManagement from "../models/auditMangement.js";
 import Question from "../models/questionSchema.js";
 import Label from "../models/labelModel.js";
 import AuditResponse from "../models/auditReponseModel.js";
+import uploadToCloudinary from "../helper/uploadToCloudinary.js";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
@@ -794,61 +795,53 @@ export const fetchLabelsWithQuestions = async (req, res) => {
 // export const handleFileUpload = upload.single("image"); // Expecting an `image` field
 
 // Configure Multer for file upload
-const upload = multer({ dest: "uploads/" }); // Files will be temporarily saved in the 'uploads/' directory
+// Helper function for uploading files to Cloudinary
+const uploadFileToCloudinary = async (filePath, folder) => {
+  try {
+    const result = await cloudinary.uploader.upload(filePath, { folder });
+    if (fs.existsSync(filePath)) {
+      await fs.promises.unlink(filePath); // Ensure temp file is deleted
+    }
+    return result.secure_url;
+  } catch (error) {
+    console.error(`Error uploading file to Cloudinary: ${error.message}`);
+    throw new Error("File upload failed.");
+  }
+};
 
 export const saveAuditResponses = async (req, res) => {
-  console.log(req.body); // Contains form data like 'data'
-  console.log(req.files); // Contains the uploaded files
+  const { data } = req.body;
+  const files = req.files;
 
-  const { data } = req.body; // 'data' is the JSON part of the form
-  const files = req.files; // The uploaded files
+  if (!data || !files) {
+    return res
+      .status(400)
+      .json({ message: "Invalid request. Missing data or files." });
+  }
 
   try {
-    const parsedData = JSON.parse(data); // Parse the JSON data for responses
+    console.log("Files received:", files); // Debugging
+
+    const parsedData = JSON.parse(data);
     const { auditId, responses, status, fssai_number, fssai_file } = parsedData;
 
-    // Save responses with file uploads
+    const uploadedFiles = {};
+
+    // Upload all files to Cloudinary first and map them
+    await Promise.all(
+      files.map(async (file) => {
+        const uploadedResult = await uploadToCloudinary(file.buffer, "audit_files");
+        uploadedFiles[file.originalname] = uploadedResult.secure_url; // Map file names to their URLs
+      })
+    );
+
+    console.log("Uploaded files:", uploadedFiles); // Debugging
+
+    // Save responses
     const savedResponses = await Promise.all(
-      responses.map(async (response) => {
-        const { questionId, comment, marks, file } = response;
+      responses.map(async ({ questionId, comment, marks, file }) => {
+        const uploadedImageUrl = file ? uploadedFiles[file] || "" : "";
 
-        let uploadedImageUrl = "";
-        if (file) {
-          const uploadedFile = files.find((f) => f.originalname === file);
-          if (uploadedFile) {
-            try {
-              // Upload to Cloudinary
-              const uploadResult = await cloudinary.uploader.upload(
-                uploadedFile.path,
-                {
-                  folder: "audit_images",
-                }
-              );
-              uploadedImageUrl = uploadResult.secure_url;
-
-              // Delete the temporary file after upload
-              if (fs.existsSync(uploadedFile.path)) {
-                try {
-                  await fs.promises.unlink(uploadedFile.path);
-                } catch (err) {
-                  console.warn(
-                    `Failed to delete file ${uploadedFile.path}:`,
-                    err.message
-                  );
-                }
-              } else {
-                console.warn(
-                  `File not found for deletion: ${uploadedFile.path}`
-                );
-              }
-            } catch (error) {
-              console.error("Image upload failed:", error.message);
-              throw new Error("Failed to upload image.");
-            }
-          }
-        }
-
-        // Save the audit response in DB
         const auditResponse = new AuditResponse({
           audit: auditId,
           question: questionId,
@@ -861,50 +854,21 @@ export const saveAuditResponses = async (req, res) => {
       })
     );
 
-    // Find the audit record to update
+    // Update audit record
     const audit = await AuditManagement.findById(auditId);
-
     if (!audit) {
       throw new Error("Audit not found.");
     }
 
-    // Update the status and add status history
-    audit.status = status; // Use the status from the request
-    audit.statusHistory.push({
-      status,
-      changedAt: new Date(),
-    });
-
-    // Update FSSAI number and image URL
+    audit.status = status;
+    audit.statusHistory.push({ status, changedAt: new Date() });
     audit.fssai_number = fssai_number;
 
     if (fssai_file) {
-      const uploadedFssaiFile = files.find(
-        (f) => f.originalname === fssai_file
-      );
-      if (uploadedFssaiFile) {
-        try {
-          // Upload the FSSAI file to Cloudinary
-          const fssaiUploadResult = await cloudinary.uploader.upload(
-            uploadedFssaiFile.path,
-            {
-              folder: "fssai_documents", // Use a meaningful folder name
-            }
-          );
-
-          // Save the file URL in the audit record
-          audit.fssai_image_url = fssaiUploadResult.secure_url;
-
-          // Optionally remove the temp file
-          // fs.unlinkSync(uploadedFssaiFile.path);
-        } catch (error) {
-          console.error("FSSAI file upload failed:", error.message);
-          throw new Error("Failed to upload FSSAI file.");
-        }
-      }
+      audit.fssai_image_url = uploadedFiles[fssai_file] || "";
     }
 
-    await audit.save(); // Save changes
+    await audit.save();
 
     res.status(200).json({
       message: "Audit responses, FSSAI details, and status saved successfully.",
@@ -912,8 +876,8 @@ export const saveAuditResponses = async (req, res) => {
     });
   } catch (error) {
     console.error("Error saving audit responses:", error.message);
-    res.status(400).json({
-      message: "Invalid request body or failed to process responses.",
+    res.status(500).json({
+      message: "An error occurred while processing the audit responses.",
       error: error.message,
     });
   }
@@ -968,23 +932,17 @@ export const updateAuditResponses = async (req, res) => {
       if (file && !file.startsWith("https://res.cloudinary.com")) {
         const uploadedFile = files.find((f) => f.originalname === file);
         if (uploadedFile) {
-          const filePath = uploadedFile.path;
-          console.log("Processing file:", filePath);
+          console.log("Processing file:", uploadedFile);
 
           try {
-            const uploadResult = await cloudinary.uploader.upload(filePath, {
-              folder: "audit_images",
-            });
+            // Uploading file buffer to Cloudinary
+            const uploadResult = await uploadToCloudinary(uploadedFile.buffer, "audit_images");
             uploadedImageUrl = uploadResult.secure_url;
           } catch (error) {
             console.error(
               `Failed to upload image for questionId ${questionId}:`,
               error.message
             );
-          } finally {
-            if (fs.existsSync(filePath)) {
-              fs.unlinkSync(filePath);
-            }
           }
         }
       }
@@ -1027,6 +985,7 @@ export const updateAuditResponses = async (req, res) => {
     }
   }
 };
+
 
 export const fetchingQuestionAnswer = async (req, res) => {
   try {
@@ -1183,13 +1142,9 @@ export const updateFssaiDetails = async (req, res) => {
     // Handle file upload if a file is provided
     if (req.file) {
       try {
-        const uploadResult = await cloudinary.uploader.upload(req.file.path, {
-          folder: "audit_images",
-        });
+        // Uploading the file buffer to Cloudinary
+        const uploadResult = await uploadToCloudinary(req.file.buffer, "audit_images");
         uploadedImageUrl = uploadResult.secure_url;
-
-        // Delete the temporary file
-        fs.unlinkSync(req.file.path);
       } catch (uploadError) {
         console.error("Error uploading file to Cloudinary:", uploadError);
         return res.status(500).json({ message: "File upload failed" });
@@ -1222,6 +1177,7 @@ export const updateFssaiDetails = async (req, res) => {
     return res.status(500).json({ message: "An error occurred while updating FSSAI details" });
   }
 };
+
 
 
 const getDateRanges = (filter) => {
