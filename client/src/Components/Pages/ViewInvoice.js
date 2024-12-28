@@ -85,8 +85,8 @@ const ViewInvoice = () => {
       <td class="px-2 py-1 text-center">${outlet.service || ""}</td>
       <td class="px-2 py-1 text-center">${outlet.man_days || 0}</td>
       <td class="px-2 py-1 text-center">${outlet.quantity || 0}</td>
-      <td class="px-2 py-1 text-center">₹${unit_cost.toFixed(2)}</td>
-      <td class="px-2 py-1 text-center">₹${amount.toFixed(2)}</td>
+      <td class="px-2 py-1 text-center">₹${unit_cost}</td>
+      <td class="px-2 py-1 text-center">₹${amount}</td>
     </tr>
   `;
       })
@@ -320,7 +320,7 @@ const ViewInvoice = () => {
               <tr>
                 <td class="px-2 py-1 font-bold text-right" colspan="6">Sub Total</td>
                 <td class="px-2 py-1 font-bold text-center ">
-                 ${subTotal}
+                 ₹${subTotal}
                 </td>
               </tr>
             </tbody>

@@ -153,7 +153,7 @@ const UpdateGenerateInvoiceModal = ({
 
       const fetchProfileSetting = async () => {
         try {
-          const response = await axios.get("/api/setting/getProfileSetting");
+          const response = await axios.get("/api/setting/getCompanyDetail");
           setCheckState(response.data.profile.company_address.state);
         } catch (error) {
           console.error("Error is fetching the profile state");
@@ -698,7 +698,7 @@ const UpdateGenerateInvoiceModal = ({
                   </>
                 ) : (
                   <div className="flex justify-between items-center">
-                    <div className="text-sm font-medium">GST [18%]:</div>
+                    <div className="text-sm font-medium">IGST [18%]:</div>
                     <div className="text-sm font-medium">
                       {gst.toLocaleString("en-IN", {
                         style: "currency",

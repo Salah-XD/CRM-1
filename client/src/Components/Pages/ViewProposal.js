@@ -148,13 +148,13 @@ const ViewProposal = () => {
       <td colspan="6" class="border text-right w-3/4 small-cell">
         <strong>CGST [9%]</strong>
       </td>
-      <td class="border w-1/4 small-cell text-center">${cgst}</td>
+      <td class="border w-1/4 small-cell text-center">₹${cgst}</td>
     </tr>
     <tr>
       <td colspan="6" class="border text-right w-3/4 small-cell">
         <strong>SGST [9%]</strong>
       </td>
-      <td class="border w-1/4 small-cell text-center">${sgst}</td>
+      <td class="border w-1/4 small-cell text-center">₹${sgst}</td>
     </tr>
   `
     : `
@@ -162,23 +162,23 @@ const ViewProposal = () => {
       <td colspan="6" class="border text-right w-3/4 small-cell">
         <strong>IGST [18%]</strong>
       </td>
-      <td class="border w-1/4 small-cell text-center">${igst}</td>
+      <td class="border w-1/4 small-cell text-center"><strong>₹${igst}</strong></td>
     </tr>
   `;
 
   const tax2 = proposalData.same_state
     ? `  <tr>
-                <td class="w-1/2 border px-4 py-1">CGST9 [9%]</td>
-                <td class="w-1/2 border px-4 py-1">${cgst}</td>
+                <td class="w-1/2 border px-4 py-1"><strong>CGST9 [9%]</strong></td>
+                <td class="w-1/2 border px-4 py-1">₹${cgst}</td>
               </tr>
               <tr>
-                <td class="w-1/2 border px-4 py-1">SGST9 [9%]</td>
-                <td class="w-1/2 border px-4 py-1">${sgst}</td>
+                <td class="w-1/2 border px-4 py-1"><strong>SGST9 [9%]</strong></td>
+                <td class="w-1/2 border px-4 py-1">₹${sgst}</td>
               </tr>
               <tr>`
     : ` <tr>
-                <td class="w-1/2 border px-4 py-1">IGST [18%]</td>
-                <td class="w-1/2 border px-4 py-1">${igst}</td>
+                <td class="w-1/2 border px-4 py-1"><strong>IGST [18%]</strong></td>
+                <td class="w-1/2 border px-4 py-1"><strong>₹${igst}</strong></td>
               </tr>`;
 
   const showModal = () => {
@@ -337,13 +337,13 @@ const ViewProposal = () => {
               <td colspan="6" class="selected-cell border text-right w-3/4 small-cell">
                 <strong>Sub Total</strong>
               </td>
-              <td class="border w-1/4 selected-cell small-cell text-center "><strong>${total}</strong></td>
+              <td class="border w-1/4 selected-cell small-cell text-center "><strong>₹${total}</strong></td>
             </tr>
            ${tax}
               <td colspan="6" class="border selected-cell text-right w-3/4 small-cell">
                 <strong>Total</strong>
               </td>
-              <td class="border w-1/4 selected-cell small-cell text-center"><strong>${overallTotal}</strong></td>
+              <td class="border w-1/4 selected-cell small-cell text-center"><strong>₹${overallTotal}</strong></td>
             </tr>
           </table>
         </div>
@@ -352,14 +352,14 @@ const ViewProposal = () => {
           <div class="w-full flex justify-center">
             <table class="border-collapse w-3/4">
               <tr>
-                <td class="w-1/2 border px-4 py-1">Total Amount (without tax)</td>
-                <td class="w-1/2 border px-4 py-1"><strong>${total}</strong></td>
+                <td class="w-1/2 border px-4 py-1"><strong>Total Amount (without tax)</strong></td>
+                <td class="w-1/2 border px-4 py-1"><strong>₹${total}</strong></td>
               </tr>
              ${tax2}
                 <td class="w-1/2 border px-4 py-1">
                   <strong>Total Amount (With Tax)</strong>
                 </td>
-                <td class="w-1/2 border px-4 py-1"> <strong>${overallTotal}</strong></td>
+                <td class="w-1/2 border px-4 py-1"> <strong>₹${overallTotal}</strong></td>
               </tr>
             </table>
           </div>

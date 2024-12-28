@@ -119,7 +119,7 @@ const AdminDashboard = ({ children }) => {
       key: "/dashboard",
       icon: <DashboardOutlined />,
       link: "/dashboard",
-      roles: ["SUPER_ADMIN"],
+      roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN", "AUDIT_ADMIN", "AUDITOR"],
     },
     {
       label: "Customers",

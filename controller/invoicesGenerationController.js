@@ -159,7 +159,7 @@ export const generateInvoice = async (req, res) => {
     const info = await transporter.sendMail(mailOptions);
     console.log("Email sent:", info.response);
 
-    await Invoice.findByIdAndUpdate(invoiceId, { status: "Unpaid/Mail Sent" });
+    await Invoice.findByIdAndUpdate(invoiceId, { status: "Unpaid" });
 
     res.status(200).json({ message: "Email sent successfully" });
   } catch (error) {

@@ -155,7 +155,7 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
 
       const fetchProfileSetting = async () => {
         try {
-          const response = await axios.get("/api/setting/getProfileSetting");
+          const response = await axios.get("/api/setting/getCompanyDetail");
           console.log("here", response.data.profile.company_address.state);
           setCheckState(response.data.profile.company_address.state);
         } catch (error) {

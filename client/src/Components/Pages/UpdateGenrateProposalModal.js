@@ -78,7 +78,7 @@ const UpdateGenerateProposalModal = ({
     if (visible) {
       const fetchProfileSetting = async () => {
         try {
-          const response = await axios.get("/api/setting/getProfileSetting");
+          const response = await axios.get("/api/setting/getCompanyDetail");
           setCheckState(response.data.profile.company_address.state);
           //  console.log("This is second check state",checkState);
         } catch (error) {
@@ -187,7 +187,7 @@ const UpdateGenerateProposalModal = ({
       fetchBusinessDetails();
       fetchAllAuditors();
     }
-  }, [visible, form]);
+  }, [visible, proposalId, form, checkState]);
 
   const handleSubmit = async () => {
     try {
