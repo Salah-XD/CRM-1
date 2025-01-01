@@ -20,8 +20,7 @@ import {
   fetchingQuestionAnswer,
   getUserNameById,
   updateStartedDate,
-  deleteAuditById,updateFssaiDetails,
-  auditorCount
+  deleteAuditById,updateFssaiDetails,auditManagementCount,getAuditorAuditCounts
 } from "../controller/auditorController.js";
 import { verifyToken } from "../middleware/auth.js";
 import multer from "multer";
@@ -95,6 +94,10 @@ router.delete("/deleteAuditById/:id", deleteAuditById);
 
 router.put("/updateFssaiDetails",  upload.single("file"), updateFssaiDetails);
 
-router.get("/approvedAuditCount",auditorCount)
+router.get("/auditManagementCount", auditManagementCount);
+
+router.get("/getAuditorAuditCounts",getAuditorAuditCounts)
+
+
 
 export default router;

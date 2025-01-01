@@ -1165,7 +1165,6 @@ export const updateFssaiDetails = async (req, res) => {
 };
 
 
-
 const getDateRanges = (filter) => {
   switch (filter) {
     case 'today':
@@ -1190,45 +1189,120 @@ const getDateRanges = (filter) => {
   }
 };
 
-export const auditorCount = async (req, res) => {
+export const auditManagementCount = async (req, res) => {
   try {
-    const { filter } = req.query; // Get the filter from query params
+    const { filter } = req.query;
+
 
     const dateRange = getDateRanges(filter);
 
-    const matchConditions = {
-      // Ensure the last status in statusHistory is "approved"
-      $expr: {
-        $eq: [
-          { $arrayElemAt: ["$statusHistory.status", -1] }, // Last element's status
-          "approved",
-        ],
-      },
-    };
+
+    let count;
+    const query = { 'statusHistory.status': 'approved' };
 
     if (dateRange) {
-      matchConditions.createdAt = { $gte: dateRange.start, $lte: dateRange.end };
-    }
+      query.createdAt = { $gte: dateRange.start, $lte: dateRange.end };
+    } 
 
-    const countResult = await AuditManagement.aggregate([
-      { $match: matchConditions },
-      { $count: "count" },
-    ]);
+    // Using $elemMatch to ensure we query statusHistory array
+    count = await AuditManagement.countDocuments(query);
 
-    const count = countResult.length > 0 ? countResult[0].count : 0;
+    console.log('Count result:', count);
 
     return res.status(200).json({
       success: true,
       count,
     });
   } catch (error) {
-    console.error('Error counting proposals:', error);
+    console.error('Error counting audit management records:', error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to count proposals',
+      message: 'Failed to count audit management records',
       error: error.message,
     });
   }
 };
 
+// Controller function to fetch auditors and count their assigned audits
+export const getAuditorAuditCounts = async (req, res) => {
+  try {
+    const { page = 1, pageSize = 10, sort, keyword } = req.query;
 
+    // Convert page and pageSize to integers
+    const pageNumber = parseInt(page, 10);
+    const sizePerPage = parseInt(pageSize, 10);
+
+    // Validate page number and page size
+    if (
+      isNaN(pageNumber) ||
+      pageNumber < 1 ||
+      isNaN(sizePerPage) ||
+      sizePerPage < 1
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid page or pageSize parameter" });
+    }
+
+    // Create the base query
+    let query = AuditManagement.find()
+      .populate("user", "role")  // Include the role of the user
+      .where("status")
+      .ne("assigned");  // Add any other conditions based on your needs
+
+    // Apply search keyword if provided
+    if (keyword) {
+      const searchRegex = new RegExp(keyword, "i"); // Case-insensitive regex
+      query = query.where("fbo_name").regex(searchRegex);
+    }
+
+    // Determine the sort query based on the 'sort' parameter
+    let sortQuery = {};
+    switch (sort) {
+      case "assigned":
+        sortQuery = { assigned_date: -1 }; // Descending order for newer audits first
+        break;
+      case "submitted":
+        sortQuery = { statusHistory: { status: "submitted" } }; // Submitted audits first
+        break;
+      default:
+        sortQuery = { assigned_date: 1 }; // Default sorting (oldest first)
+        break;
+    }
+
+    // Count total number of auditors (users with role 'Auditor')
+    const totalAuditors = await User.countDocuments({ role: "AUDITOR" });
+
+    // Retrieve audits with pagination and sorting
+    const audits = await query
+      .skip((pageNumber - 1) * sizePerPage)
+      .limit(sizePerPage)
+      .sort(sortQuery)
+      .select("user proposalId outletId status assigned_date");
+
+    // Calculate audit counts for each auditor
+    const auditorCounts = audits.map((audit) => {
+      const assignedAudits = audit.status === "assigned" ? 1 : 0;
+      const submittedAudits = audit.status === "submitted" ? 1 : 0;
+      const rejectedAudits = audit.status === "rejected" ? 1 : 0;
+      const approvedAudits = audit.status === "approved" ? 1 : 0;
+
+      return {
+        userId: audit.user._id,
+        assignedAudits,
+        submittedAudits,
+        rejectedAudits,
+        approvedAudits,
+      };
+    });
+
+    res.json({
+      total: totalAuditors,
+      currentPage: pageNumber,
+      data: auditorCounts,
+    });
+  } catch (error) {
+    console.error("Error fetching auditor audits:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

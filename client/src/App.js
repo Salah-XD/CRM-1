@@ -46,6 +46,7 @@ import {
 } from "./Components/Context/ProtectedRoute";
 import Check from "./Components/Pages/Check";
 import Arun from "./Components/Pages/Reference";
+import AuditTrack from "./Components/Pages/AuditorTrack";
 
 function App() {
   return (
@@ -55,6 +56,8 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         <Route path="/dashboard" element={<Dashboard />} />
+
+        <Route path="/audit-track" element={<AuditTrack />} />
 
         <Route element={<AccountAdminRoute />}>
         {/* Main Tables */}
