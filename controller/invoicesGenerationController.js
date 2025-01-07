@@ -1,4 +1,5 @@
-import puppeteer from "puppeteer"; // Import puppeteer directly
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 import { promises as fs } from "fs";
 import path from "path";
 import nodemailer from "nodemailer";
@@ -152,10 +153,14 @@ export const generateInvoice = async (req, res) => {
         `${company_address.line1}, ${company_address.line2}, ${company_address.city}, ${company_address.state} - ${company_address.pincode}`
       );
 
-    // Launch puppeteer directly without @sparticuz/chromium
-    browser = await puppeteer.launch({
-      headless: true, // Run headless by default
-    });
+   // Launch Puppeteer using Chromium
+   browser = await puppeteer.launch({
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
+    ignoreHTTPSErrors: true,
+  });
 
     const page = await browser.newPage();
 

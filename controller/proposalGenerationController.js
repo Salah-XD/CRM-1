@@ -1,4 +1,5 @@
-import puppeteer from "puppeteer";
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 import { promises as fs } from "fs";
 import path from "path";
 import nodemailer from "nodemailer";
@@ -200,9 +201,13 @@ export const generateProposal = async (req, res) => {
       .replace(/{{branch_name}}/g, branch_name)
       .replace(/{{ifsc_code}}/g, ifsc_code);
 
-    // Launch Puppeteer without chromium
-    browser = await puppeteer.launch({
-      headless: true,
+     // Launch Puppeteer using Chromium
+     browser = await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+      ignoreHTTPSErrors: true,
     });
 
     const page = await browser.newPage();
