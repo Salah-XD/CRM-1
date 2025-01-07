@@ -5,10 +5,9 @@ import nodemailer from "nodemailer";
 import mongoose from "mongoose";
 import Questionaries from "../models/questionariesModle.js";
 
-
 // Controller function to handle saving client data
 export const saveBusiness = async (req, res) => {
-console.log(req.body);
+  console.log(req.body);
   try {
     const {
       name,
@@ -23,7 +22,8 @@ console.log(req.body);
       added_by,
       status,
       gst_enable,
-      place_of_supply
+      customer_type,
+      place_of_supply,
     } = req.body;
 
     // Validate required fields
@@ -43,12 +43,13 @@ console.log(req.body);
       phone,
       email,
       gst_number,
-      address, 
+      address,
       added_by,
-      status, 
+      status,
       gst_enable,
       place_of_supply,
-      created_at: new Date(), 
+      customer_type,
+      created_at: new Date(),
     });
 
     // Save the new form to the database
@@ -82,6 +83,7 @@ export const updateBusiness = async (req, res) => {
       "address.pincode": pincode,
       place_of_supply,
       updated_by,
+      customer_type,
     } = req.body;
 
     // Validate required fields
@@ -109,7 +111,8 @@ export const updateBusiness = async (req, res) => {
       gst_number,
       address: { line1, line2, city, state, pincode },
       updated_by,
-      place_of_supply
+      place_of_supply,
+      customer_type,
     });
 
     // Update business fields
@@ -127,7 +130,8 @@ export const updateBusiness = async (req, res) => {
     existingBusiness.phone = phone || existingBusiness.phone;
     existingBusiness.email = email || existingBusiness.email;
     existingBusiness.gst_number = gst_number || existingBusiness.gst_number;
-    existingBusiness.place_of_supply = place_of_supply|| existingBusiness.place_of_supply;
+    existingBusiness.place_of_supply =
+      place_of_supply || existingBusiness.place_of_supply;
     existingBusiness.address = {
       line1: line1 || existingBusiness.address.line1,
       line2: line2 || existingBusiness.address.line2,
@@ -135,7 +139,8 @@ export const updateBusiness = async (req, res) => {
       state: state || existingBusiness.address.state,
       pincode: pincode || existingBusiness.address.pincode,
     };
-    existingBusiness.updated_by = updated_by || existingBusiness.updated_by;
+    existingBusiness.customer_type =
+      customer_type || existingBusiness.customer_type;
     existingBusiness.updated_at = new Date(); // Record update timestamp
 
     // Log the updated business for debugging
@@ -150,8 +155,6 @@ export const updateBusiness = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
-
 
 // Controller to fetch business details by form ID or ID
 export const getBusinessDetailsById = async (req, res) => {
@@ -189,7 +192,7 @@ export const saveOutlet = async (req, res) => {
       business,
       type_of_industry,
       unit,
-      no_of_production_line
+      no_of_production_line,
     } = req.body;
 
     // Create a new outlet instance with the provided data
@@ -202,7 +205,7 @@ export const saveOutlet = async (req, res) => {
       business,
       type_of_industry,
       unit,
-      no_of_production_line
+      no_of_production_line,
     });
 
     // Save the outlet to the database
@@ -218,7 +221,6 @@ export const saveOutlet = async (req, res) => {
 };
 // Update The outlet Information
 export const updateOutlet = async (req, res) => {
-
   try {
     const { outletId } = req.params;
     const {
@@ -265,8 +267,6 @@ export const updateOutlet = async (req, res) => {
   }
 };
 
-
-
 //Fetch Bussiness name to show in outlets
 export const getBusinesses = async (req, res) => {
   try {
@@ -279,7 +279,6 @@ export const getBusinesses = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-
 
 export const getAllBusinessDetails = async (req, res) => {
   try {
@@ -364,8 +363,6 @@ export const getAllBusinessDetails = async (req, res) => {
   }
 };
 
-
-
 export const countOutletsForBusinesses = async (req, res) => {
   try {
     // Aggregate outlets to count the number of outlets for each business
@@ -438,7 +435,7 @@ export const sendEmail = async (req, res) => {
     });
 
     // Check if the frontend already contains a placeholder for the form link
-    const emailContent = message.replace("{formlink}", formLink);  // Dynamically replace the placeholder in the message with the actual form link
+    const emailContent = message.replace("{formlink}", formLink); // Dynamically replace the placeholder in the message with the actual form link
 
     const mailOptions = {
       from: `<${process.env.EMAIL_USERNAME}>`,
@@ -456,8 +453,6 @@ export const sendEmail = async (req, res) => {
   }
 };
 
-
-
 export const getOutletDetailsById = async (req, res) => {
   try {
     const { businessId } = req.params;
@@ -471,13 +466,13 @@ export const getOutletDetailsById = async (req, res) => {
     // Check if businessId exists
     const businessExists = await Business.exists({ _id: businessId });
     if (!businessExists) {
-     // console.log("Business not found");
+      // console.log("Business not found");
       return res.status(404).json({ message: "Business not found" });
     }
 
     // Find the total count of outlets with the specified business ID
     const totalOutlets = await Outlet.countDocuments({ business: businessId });
-  //  console.log(`Total outlets found: ${totalOutlets}`);
+    //  console.log(`Total outlets found: ${totalOutlets}`);
 
     // Initialize query with pagination
     let query = Outlet.find({ business: businessId })
@@ -493,7 +488,7 @@ export const getOutletDetailsById = async (req, res) => {
     // Execute the query to get outlets
     const outlets = await query;
 
-   // console.log(`Found ${outlets.length} outlets`);
+    // console.log(`Found ${outlets.length} outlets`);
 
     if (!outlets.length) {
       return res.status(200).json({
@@ -513,11 +508,11 @@ export const getOutletDetailsById = async (req, res) => {
       contact_person: outlet.contact_person,
       no_of_food_handlers: outlet.no_of_food_handlers,
       gst_number: outlet.gst_number,
-      type_of_industry:outlet.type_of_industry,
-      unit:outlet.unit
+      type_of_industry: outlet.type_of_industry,
+      unit: outlet.unit,
     }));
 
-   // console.log(`Populated data: ${JSON.stringify(populatedData)}`);
+    // console.log(`Populated data: ${JSON.stringify(populatedData)}`);
 
     return res.status(200).json({
       message: "Data populated successfully",
@@ -532,10 +527,8 @@ export const getOutletDetailsById = async (req, res) => {
   }
 };
 
-
 //Controller to deltet the array of fields of outlet
 export const deleteOutlets = async (req, res) => {
-  
   try {
     const arrayOfOutletIds = req.body; // Assuming an array of arrays of IDs is sent in the request body
 
@@ -557,7 +550,6 @@ export const deleteOutlets = async (req, res) => {
   }
 };
 
-
 export const getParticularOutletDetails = async (req, res) => {
   const outletId = req.params.id;
 
@@ -575,13 +567,11 @@ export const getParticularOutletDetails = async (req, res) => {
       fssai_license_number: outlet.fssai_license_number,
       contact_number: outlet.contact_number,
       contact_person: outlet.contact_person,
-       type_of_industry:outlet.type_of_industry,
-       unit:outlet.unit,
-       no_of_production_line:outlet.no_of_production_line,
+      type_of_industry: outlet.type_of_industry,
+      unit: outlet.unit,
+      no_of_production_line: outlet.no_of_production_line,
       gst_number: outlet.gst_number,
     };
-
-    
 
     return res.status(200).json(response);
   } catch (error) {
@@ -589,7 +579,6 @@ export const getParticularOutletDetails = async (req, res) => {
     return res.status(500).json({ error: "Internal Server Error" });
   }
 };
-
 
 //Controller to get all the client name
 // export const getAllClientName = async (req, res) => {
@@ -673,7 +662,7 @@ export const getAllClientDetails = async (req, res) => {
     // Base query with added conditions
     let query = Business.find({
       added_by: "Client Form",
-      status: "pending", 
+      status: "pending",
     });
 
     // Apply search keyword if provided
@@ -734,7 +723,6 @@ export const getAllClientDetails = async (req, res) => {
   }
 };
 
-
 export const updateBusinessStatus = async (req, res) => {
   const { id } = req.params;
 
@@ -756,7 +744,6 @@ export const updateBusinessStatus = async (req, res) => {
   }
 };
 
-
 export const saveQuestionary = async (req, res) => {
   console.log(req.body);
   try {
@@ -768,12 +755,10 @@ export const saveQuestionary = async (req, res) => {
     } = req.body;
 
     if (!existing_consultancy_name || !fostac_agency_name || !business) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "Existing consultancy name, FOSTAC Agency Name, and Business are required.",
-        });
+      return res.status(400).json({
+        message:
+          "Existing consultancy name, FOSTAC Agency Name, and Business are required.",
+      });
     }
 
     const newQuestionary = new Questionaries({
@@ -790,8 +775,6 @@ export const saveQuestionary = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-
 
 export const getQuestionaryByBusiness = async (req, res) => {
   try {
@@ -813,8 +796,6 @@ export const getQuestionaryByBusiness = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-
 
 // controllers/questionaryController.js
 export const updateQuestionary = async (req, res) => {
@@ -853,16 +834,13 @@ export const updateQuestionary = async (req, res) => {
     // Save the updated questionary
     await questionary.save();
 
-   return res
-     .status(200)
-     .json({
-       success: true,
-       message: "Questionary updated successfully",
-       data: questionary,
-     });
+    return res.status(200).json({
+      success: true,
+      message: "Questionary updated successfully",
+      data: questionary,
+    });
   } catch (error) {
     console.error("Error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-

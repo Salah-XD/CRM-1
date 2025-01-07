@@ -32,7 +32,7 @@ const CompanyDetailSchema = new Schema({
   gstin: {
     type: String,
   },
-  PAN: {
+  pan: {
     type: String,
   }
  

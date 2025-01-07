@@ -1,9 +1,11 @@
-import puppeteer from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer";
 import { promises as fs } from "fs";
 import path from "path";
 import nodemailer from "nodemailer";
 import Proposal from "../models/proposalModel.js";
+import CompanyDetail from "../models/CompanyDetail.js";
+import BankDetail from "../models/BankDetailModel.js";
+import moment from "moment/moment.js";
 
 const __dirname = path.resolve();
 
@@ -14,8 +16,16 @@ export const generateProposal = async (req, res) => {
     const { to, cc, message } = req.body;
 
     // Fetch proposal details and read files concurrently
-    const [proposalDetails, htmlTemplate, imageData] = await Promise.all([
+    const [
+      proposalDetails,
+      companyDetails,
+      bankDetails,
+      htmlTemplate,
+      imageData,
+    ] = await Promise.all([
       Proposal.findById(proposalId).exec(),
+      CompanyDetail.findOne().exec(), // Fetch the first record from CompanyDetail
+      BankDetail.findOne().exec(), // Fetch the first record from BankDetail
       fs.readFile(path.join(__dirname, "templates", "proposal.html"), "utf-8"),
       fs.readFile(path.join(__dirname, "templates", "logo2.png"), {
         encoding: "base64",
@@ -25,6 +35,21 @@ export const generateProposal = async (req, res) => {
     if (!proposalDetails) {
       return res.status(404).send("Proposal not found");
     }
+
+    if (!BankDetail || !CompanyDetail) {
+      return res.status(500).send("Company or Bank details not found");
+    }
+
+    const { company_name, company_address, contact_number, email, gstin, PAN } =
+      companyDetails;
+
+    const {
+      account_holder_name,
+      account_number,
+      bank_name,
+      branch_name,
+      ifsc_code,
+    } = bankDetails;
 
     const {
       fbo_name,
@@ -39,8 +64,9 @@ export const generateProposal = async (req, res) => {
       same_state,
     } = proposalDetails;
 
-    // Calculate totals
+    const formattedDate = moment(proposal_date).format("MMMM D, YYYY");
 
+    // Calculate totals
     const total = outlets.reduce(
       (acc, outlet) =>
         acc + parseFloat(outlet.amount.$numberInt || outlet.amount),
@@ -67,39 +93,39 @@ export const generateProposal = async (req, res) => {
       ? `
   <tr>
     <td colspan="6" class="border text-right w-3/4 small-cell">
-      <strong>CGST [9%]</strong>
+      <strong class="font-medium">CGST [9%]</strong>
     </td>
-    <td class="border w-1/4 small-cell text-center">${cgst}</td>
+    <td class="border w-1/4 small-cell text-center"><strong class="font-medium">₹${cgst}</strong></td>
   </tr>
   <tr>
     <td colspan="6" class="border text-right w-3/4 small-cell">
-      <strong>SGST [9%]</strong>
+      <strong class="font-medium">SGST [9%]</strong>
     </td>
-    <td class="border w-1/4 small-cell text-center">${sgst}</td>
+    <td class="border w-1/4 small-cell text-center"><strong class="font-medium">₹${sgst}</strong></td>
   </tr>
 `
       : `
   <tr>
     <td colspan="6" class="border text-right w-3/4 small-cell">
-      <strong>IGST [18%]</strong>
+      <strong class="font-medium">IGST [18%]</strong>
     </td>
-    <td class="border w-1/4 small-cell text-center">${igst}</td>
+    <td class="border w-1/4 small-cell text-center"><strong class="font-medium">₹${igst}</strong></td>
   </tr>
 `;
 
     const tax2 = same_state
       ? `  <tr>
-              <td class="w-1/2 border px-4 py-1">CGST9 [9%]</td>
-              <td class="w-1/2 border px-4 py-1">${cgst}</td>
+              <td class="w-1/2 border px-4 py-1"><strong class="font-medium">CGST9 [9%]</strong></td>
+              <td class="w-1/2 border px-4 py-1"><strong class="font-medium">₹${cgst}</strong></td>
             </tr>
             <tr>
-              <td class="w-1/2 border px-4 py-1">SGST9 [9%]</td>
-              <td class="w-1/2 border px-4 py-1">${sgst}</td>
+              <td class="w-1/2 border px-4 py-1"><strong class="font-medium">SGST9 [9%]</strong></td>
+              <td class="w-1/2 border px-4 py-1"><strong class="font-medium">₹${sgst}</strong></td>
             </tr>
             <tr>`
       : ` <tr>
-              <td class="w-1/2 border px-4 py-1">IGST [18%]</td>
-              <td class="w-1/2 border px-4 py-1">${igst}</td>
+              <td class="w-1/2 border px-4 py-1"><strong class="font-medium">IGST [18%]</strong></td>
+              <td class="w-1/2 border px-4 py-1"><strong class="font-medium">₹${igst}</strong></td>
             </tr>`;
 
     // Parse proposal date
@@ -130,7 +156,7 @@ export const generateProposal = async (req, res) => {
         const unitCost = outlet.unit_cost?.$numberInt || outlet.unit_cost || 0;
         const amount = outlet.amount?.$numberInt || outlet.amount || 0;
 
-        return `
+        return ` 
         <tr>
           <td class="px-2 py-1 text-center">${outletName}</td>
           <td class="px-2 py-1 text-center">${description}</td>
@@ -152,7 +178,6 @@ export const generateProposal = async (req, res) => {
       .replace(/{{address}}/g, `${line1}, ${line2}`)
       .replace(/{{gst_number}}/g, gst_number)
       .replace(/{{proposalNumber}}/g, proposal_number)
-      .replace(/{{proposalDate}}/g, proposalDate.toLocaleDateString())
       .replace(/{{outletRows}}/g, outletRows)
       .replace(/{{imageData}}/g, imageData)
       .replace(/{{total}}/g, total)
@@ -161,25 +186,27 @@ export const generateProposal = async (req, res) => {
       .replace(/{{pincode}}/g, pincode)
       .replace(/{{overallTotal}}/g, overallTotal)
       .replace(/{{tax}}/g, tax)
-      .replace(/{{tax2}}/g, tax2);
+      .replace(/{{tax2}}/g, tax2)
+      .replace(/{{formattedDate}}/g, formattedDate)
+      .replace(/{{company_name}}/g, company_name)
+      .replace(/{{company_address}}/g, `${company_address.line1} ${company_address.line2}\n${company_address.city} ${company_address.state} ${company_address.pincode}`)
+      .replace(/{{contact_number}}/g, contact_number)
+      .replace(/{{email}}/g, email)
+      .replace(/{{gstin}}/g, gstin)
+      .replace(/{{PAN}}/g, PAN)
+      .replace(/{{account_holder_name}}/g, account_holder_name)
+      .replace(/{{account_number}}/g, account_number)
+      .replace(/{{bank_name}}/g, bank_name)
+      .replace(/{{branch_name}}/g, branch_name)
+      .replace(/{{ifsc_code}}/g, ifsc_code);
 
-    //const browser = await puppeteer.launch();
-
-    // Launch Puppeteer
+    // Launch Puppeteer without chromium
     browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
-      ignoreHTTPSErrors: true,
+      headless: true,
     });
 
     const page = await browser.newPage();
-    const baseUrl = `file://${__dirname}/templates/`;
-    await page.setContent(dynamicContent, {
-      waitUntil: "networkidle0",
-      baseUrl,
-    });
+    await page.setContent(dynamicContent, { waitUntil: "networkidle0" });
 
     // Generate PDF
     const pdfBuffer = await page.pdf({ format: "A4", printBackground: true });

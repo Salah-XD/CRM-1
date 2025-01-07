@@ -25,10 +25,9 @@ const BankDetailsSetting = () => {
         setIsFetching(false);
       }
     };
-  
+
     fetchBankDetails();
   }, [form]);
-  
 
   const handleSubmit = async (values) => {
     try {
@@ -48,6 +47,7 @@ const BankDetailsSetting = () => {
           onFinish={handleSubmit}
           initialValues={{
             bank_name: "",
+            branch_name: "",
             account_number: "",
             ifsc_code: "",
             account_holder_name: "",
@@ -69,14 +69,20 @@ const BankDetailsSetting = () => {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
+                name="branch_name"
+                label="Branch Name"
+                rules={[{ required: true, message: "Please enter the branch name" }]}
+              >
+                <Input placeholder="Enter branch name" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
                 name="account_number"
                 label="Account Number"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please enter the account number",
-                  },
-                ]}
+                rules={[{ required: true, message: "Please enter the account number" }]}
               >
                 <Input placeholder="Enter account number" />
               </Form.Item>
@@ -87,9 +93,7 @@ const BankDetailsSetting = () => {
               <Form.Item
                 name="ifsc_code"
                 label="IFSC Code"
-                rules={[
-                  { required: true, message: "Please enter the IFSC code" },
-                ]}
+                rules={[{ required: true, message: "Please enter the IFSC code" }]}
               >
                 <Input placeholder="Enter IFSC code" />
               </Form.Item>
@@ -100,18 +104,12 @@ const BankDetailsSetting = () => {
               <Form.Item
                 name="account_holder_name"
                 label="Account Holder Name"
-                rules={[
-                  {
-                    required: true,
-                    message: "Please enter the account holder name",
-                  },
-                ]}
+                rules={[{ required: true, message: "Please enter the account holder name" }]}
               >
                 <Input placeholder="Enter account holder name" />
               </Form.Item>
             </Col>
           </Row>
-         
           <Form.Item>
             <Button type="primary" htmlType="submit">
               Save

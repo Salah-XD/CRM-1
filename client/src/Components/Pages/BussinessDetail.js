@@ -222,8 +222,8 @@ const BusinessDetail = forwardRef(
                   message: "Please enter GST number",
                 },
                 {
-                  pattern: /^[A-Za-z0-9]{14}$/,
-                  message: "GST number must be 14 alphanumeric characters",
+                  pattern: /^[A-Za-z0-9]{15}$/,
+                  message: "GST number must be 15 alphanumeric characters",
                 },
               ]}
             >
@@ -234,19 +234,40 @@ const BusinessDetail = forwardRef(
               />
             </Form.Item>
             <Form.Item
-                  name="place_of_supply"
-                  className="w-1/4" 
-                  label={
-                    <span className="text-gray-600 font-semibold">Place of Supply</span>
-                  }
-                  // rules={[{ required: true, message: 'Please select the state or union territory' }]}
-                >
-                  <Select placeholder="Select state or union territory">
-                    {indianStatesAndUTs.map((state) => (
-                      <Option key={state} value={state}>{state}</Option>
-                    ))}
-                  </Select>
-                </Form.Item>
+              name="customer_type"
+              className="w-1/4"
+              label={
+                <span className="text-gray-600 font-semibold">
+                  Customer Type
+                </span>
+              }
+              rules={[
+                { required: true, message: "Please select customer type" },
+              ]}
+            >
+              <Select placeholder="Select customer type">
+                <Option value="MU">MU</Option>
+                <Option value="Non-MU">Non-MU</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item
+              name="place_of_supply"
+              className="w-1/4"
+              label={
+                <span className="text-gray-600 font-semibold">
+                  Place of Supply
+                </span>
+              }
+              // rules={[{ required: true, message: 'Please select the state or union territory' }]}
+            >
+              <Select placeholder="Select state or union territory">
+                {indianStatesAndUTs.map((state) => (
+                  <Option key={state} value={state}>
+                    {state}
+                  </Option>
+                ))}
+              </Select>
+            </Form.Item>
             <Form.Item
               name="type_of_industry"
               className="w-1/4"
@@ -291,6 +312,7 @@ const BusinessDetail = forwardRef(
                 </div>
               </Checkbox.Group>
             </Form.Item>
+            
             <Form.Item
               label={
                 <span className="text-gray-600 font-semibold">
@@ -352,6 +374,7 @@ const BusinessDetail = forwardRef(
                 />
               </Form.Item>
             </div>
+            
           </div>
 
           {/* <div className="sticky bottom-0 z-50 bg-white w-full py-4 px-6 flex justify-start shadow-top">

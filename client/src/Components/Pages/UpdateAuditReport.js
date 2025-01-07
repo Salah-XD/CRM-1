@@ -17,7 +17,7 @@ import {
 } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
 import axios from "axios";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import UpdateFssaiForm from "./UpdateFssaiForm";
 import { useAuth } from "../Context/AuthContext";
 import { useLocation } from "react-router-dom";
@@ -32,13 +32,16 @@ function AuditReport() {
   const [fileLists, setFileLists] = useState([]);
   const navigate = useNavigate();
   const params = useParams();
-  const [isModalVisible, setIsModalVisible] = useState(false);
   const [formData, setFormData] = useState({});
   const [sections, setSections] = useState([]);
   const [preloadedImages, setPreloadedImages] = useState({});
   const [form] = Form.useForm();
   const [isEditing, setIsEditing] = useState({}); // Track editing state for each section
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  const checklistId = searchParams.get("checklistId");
+  const category = searchParams.get("category");
   const { user } = useAuth();
 
   const toggleEditing = (sectionIndex) => {
@@ -53,8 +56,8 @@ function AuditReport() {
       try {
         setLoading(true);
         const { data } = await axios.get(
-          `/api/auditor/fetchingQuestionAnswer/${params.audit_id}`
-        ); // Replace with your actual endpoint
+          `/api/auditor/fetchingQuestionAnswer/${params.audit_id}?checkListId=${checklistId}` // Add checklistId to the query string
+        );
         setSections(data);
       } catch (error) {
         message.error("Failed to fetch section data.");
@@ -62,9 +65,10 @@ function AuditReport() {
         setLoading(false);
       }
     };
-
+  
     fetchSections();
-  }, []);
+  }, [checklistId]); // Add checklistId to the dependency array
+  
 
   useEffect(() => {
     // Assuming 'sections' is fetched from API and contains the data
@@ -85,7 +89,7 @@ function AuditReport() {
       try {
         setLoading(true);
         const { data } = await axios.get(
-          "/api/auditor/fetchLabelsWithQuestions"
+          `/api/auditor/fetchLabelsWithQuestions/${checklistId}`
         );
         console.log(data);
         setAuditItems(data);
@@ -315,18 +319,30 @@ function AuditReport() {
                       style={{ width: 120 }}
                       disabled={!isEditing[sectionIndex]}
                     >
-                      {question.mark === 2
-                        ? [0, 1, 2].map((value) => (
-                            <Option key={value} value={value}>
-                              {value}
-                            </Option>
-                          ))
+                       {question.mark === 2
+                        ? [
+                            // Generate options for 0, 1, 2
+                            <Option key="N/A" value="N/A">
+                              N/A
+                            </Option>,
+                            ...Array.from({ length: 3 }, (_, idx) => (
+                              <Option key={idx} value={idx}>
+                                {idx}
+                              </Option>
+                            )),
+                          ]
                         : question.mark === 4
-                        ? [0, 4].map((value) => (
-                            <Option key={value} value={value}>
-                              {value}
-                            </Option>
-                          ))
+                        ? [
+                            // Generate options for 0 and 4
+                            <Option key="N/A" value="N/A">
+                              N/A
+                            </Option>,
+                            ...[0, 4].map((value) => (
+                              <Option key={value} value={value}>
+                                {value}
+                              </Option>
+                            )),
+                          ]
                         : null}
                     </Select>
                   </Form.Item>
@@ -406,7 +422,9 @@ function AuditReport() {
     <AdminDashboard>
       <div className="p-8">
         <div className="flex justify-center mb-5">
-          <h1 className="text-xl font-medium">View/Update Audit Reports</h1>
+          <h1 className="text-xl font-medium">
+            View/Update Audit Reports <span>({category})</span>
+          </h1>
         </div>
 
         {/* Steps Component with Clickable Steps */}
@@ -422,7 +440,6 @@ function AuditReport() {
         {loading ? (
           <div className="flex justify-center mt-8">
             <Spin size="medium" />
-           
           </div>
         ) : (
           <div className="flex justify-between mt-8">
@@ -431,12 +448,17 @@ function AuditReport() {
                 ? "FSSAI License"
                 : auditItems[currentStep - 1]?.title}
             </h2>
-            <div> <Button
-              type="link"
-              onClick={goBack}
-              icon={<HomeOutlined />}
-              size="large"
-            >Home </Button></div>
+            <div>
+              {" "}
+              <Button
+                type="link"
+                onClick={goBack}
+                icon={<HomeOutlined />}
+                size="large"
+              >
+                Home{" "}
+              </Button>
+            </div>
           </div>
         )}
         {currentStep === 0 ? (

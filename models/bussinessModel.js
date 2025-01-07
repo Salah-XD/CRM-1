@@ -80,6 +80,10 @@ const businessSchema = new Schema({
     type: String,
 
   },
+  customer_type: {
+    type: String,
+    enum: ["MU", "Non-MU"],
+  },
 });
 
 const Business = model("Business", businessSchema);

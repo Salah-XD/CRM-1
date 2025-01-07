@@ -1,7 +1,6 @@
 import fs from "fs";
 import path from "path";
-import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer'; // Import Puppeteer
 import AuditResponse1 from "../models/auditReponseModel.js";
 import AuditManagement from "../models/auditMangement.js";
 import Label from "../models/labelModel.js";
@@ -14,7 +13,8 @@ const __dirname = path.dirname(__filename);
 export const generateAuditReport = async (req, res) => {
   let browser;
   try {
-    const { audit_id } = req.params;
+    console.log(req.body);
+    const { audit_id,checkListId} = req.body;
 
     if (!audit_id) {
       return res.status(400).json({ message: "Audit ID is required" });
@@ -28,7 +28,7 @@ export const generateAuditReport = async (req, res) => {
       return res.status(404).json({ message: "Audit not found" });
     }
 
-    const labels = await Label.find();
+    const labels = await Label.find({ checklistCategory: checkListId });
     const questions = await Question.find();
     const auditResponse1s = await AuditResponse1.find({ audit: audit_id });
 
@@ -78,49 +78,47 @@ export const generateAuditReport = async (req, res) => {
 
     // Generate dynamic sections HTML
     const sectionsHTML = sections
-      .map((section) => {
-        const questionsHTML = section.questions
-          .map(
-            (q, index) => `
-          <tr class="text-xs">
-            <td class="border px-2 py-1">${index + 1}</td>
-            <td class="border px-2 py-1">${q.description}</td>
-            <td class="border px-2 py-1">${q.comment}</td>
-            <td class="border px-2 py-1 text-center">${q.mark}</td>
-            <td class="border px-2 py-1 text-center">${q.marks}</td>
-          </tr>`
-          )
-          .join("");
-
-        return `
-        <h2 class="text-sm font-semibold my-2">${section.title}</h2>
-        <table class="w-full text-xs border border-gray-300">
-          <thead class="bg-gray-100">
-            <tr>
-              <th class="border px-2 py-1 text-left">S.No</th>
-              <th class="border px-2 py-1 text-left">Audit Question</th>
-              <th class="border px-2 py-1 text-left">Observations</th>
-              <th class="border px-2 py-1 text-center">Marks</th>
-              <th class="border px-2 py-1 text-center">Actual Score</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${questionsHTML}
-          </tbody>
-        </table>`;
-      })
-      .join("");
+    .map((section) => {
+      const questionsHTML = section.questions
+        .map(
+          (q, index) => `
+        <tr class="text-xs">
+          <td class="border px-2 py-1">${index + 1}</td>
+          <td class="border px-2 py-1">${q.description}</td>
+          <td class="border px-2 py-1">${q.comment}</td>
+          <td class="border px-2 py-1 text-center">${q.mark}</td>
+          <td class="border px-2 py-1 text-center">${q.marks}</td>
+        </tr>`
+        )
+        .join("");
+  
+      return `
+      <h2 class="text-sm font-semibold my-2">${section.title}</h2>
+      <table class="w-full text-xs border border-gray-300">
+        <thead>
+          <tr>
+            <th class="border px-2 py-1 text-left">S.No</th>
+            <th class="border px-2 py-1 text-left">Audit Question</th>
+            <th class="border px-2 py-1 text-left">Observations</th>
+            <th class="border px-2 py-1 text-center">Marks</th>
+            <th class="border px-2 py-1 text-center">Actual Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${questionsHTML}
+        </tbody>
+      </table>`;
+    })
+    .join("");
+  
 
     htmlTemplate = htmlTemplate.replace("{{AUDIT_SECTIONS}}", sectionsHTML);
 
     // Generate the PDF using Puppeteer
     browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
-      ignoreHTTPSErrors: true,
+      headless: true, // Puppeteer runs in headless mode by default
     });
+
     const page = await browser.newPage();
     await page.setContent(htmlTemplate, { waitUntil: "load" });
 

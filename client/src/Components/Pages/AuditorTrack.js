@@ -38,21 +38,22 @@ const AuditTrack = () => {
   const handleSearchChange = (e) => setSearchKeyword(e.target.value);
 
   const columns = [
-    { title: "Assigned Audits", dataIndex: "assignedAudits", key: "assignedAudits" },
-    { title: "Submitted Audits", dataIndex: "submittedAudits", key: "submittedAudits" },
-    { title: "Modified Audits", dataIndex: "modifiedAudits", key: "modifiedAudits" },
-    { title: "Approved Audits", dataIndex: "approvedAudits", key: "approvedAudits" },
+    { title: "Auditor", dataIndex: "userName", key: "userName" },
+    { title: "Assigned Audits", dataIndex: "totalAssigned", key: "totalAssigned" },
+    { title: "Submitted Audits", dataIndex: "totalSubmitted", key: "totalSubmitted" },
+    { title: "Modified Audits", dataIndex: "totalModified", key: "totalModified" },
+    { title: "Approved Audits", dataIndex: "totalApproved", key: "totalApproved" },
   ];
 
   return (
     <ConfigProvider>
       <div className="audit-track-container">
-        <Input
+        {/* <Input
           prefix={<SearchOutlined />}
           placeholder="Search by Users"
           onChange={handleSearchChange}
           style={{ marginBottom: 16 }}
-        />
+        /> */}
         <Table
           columns={columns}
           dataSource={tableData}

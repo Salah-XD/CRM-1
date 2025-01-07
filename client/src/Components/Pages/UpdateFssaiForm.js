@@ -96,49 +96,45 @@ const UpdateFssaiForm = () => {
   const firstSegment = pathSegments[0];
 
   const onFinish = async (values) => {
-    setLoading(true); // Start loading state
+    setLoading(true);
     const formData = new FormData();
-
-    // Append audit_id and fssai_number
     formData.append("audit_id", audit_id);
     formData.append("fssai_number", values.fssai_number);
 
-    // If a new image exists, append the file to formData
     if (newImage) {
       formData.append("file", newImage);
-      formData.append("fileName", newImage.name); // Send the filename
-    } else {
-      // Optionally, you can append a delete flag if the user wants to delete an image
-      formData.append("deleteImage", true); // Set this to false if not deleting
+      formData.append("fileName", newImage.name);
+    } else if (!fssaiImageUrl) {
+      formData.append("deleteImage", true);
     }
 
     try {
-      // Send data to the server using axios (use PUT for updates)
       const response = await axios.put(
         "/api/auditor/updateFssaiDetails",
         formData,
         {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
 
       if (response.status === 200) {
         message.success("FSSAI details updated successfully!");
-        console.log("Response:", response.data);
+        setFssaiNumber(values.fssai_number);
+        if (newImage) {
+          setFssaiImageUrl(previewUrl);
+        }
+        setNewImage(null);
+        setIsEditable(false);
       } else {
         message.error("Failed to update FSSAI details.");
       }
     } catch (error) {
-      console.error("Error updating FSSAI details:", error);
-      message.error(
-        error.response?.data?.message || "An error occurred while updating."
-      );
+      message.error(error.response?.data?.message || "An error occurred.");
     } finally {
-      setLoading(false); // Stop loading state
+      setLoading(false);
     }
   };
+
 
   return (
     <div>

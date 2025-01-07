@@ -59,9 +59,8 @@ const UpdateBusinessDetail = ({
   const { id } = useParams();
 
   const handleCancel = () => {
-  
-  setIsEditable(false);
-  setShowUpdateButtons(false);
+    setIsEditable(false);
+    setShowUpdateButtons(false);
   };
 
   useEffect(() => {
@@ -94,6 +93,7 @@ const UpdateBusinessDetail = ({
             "address.pincode": businessData.address?.pincode || "",
             enable_gst: !!businessData.gst_number, // Set initial state for GST checkbox
             place_of_supply: businessData.place_of_supply,
+            customer_type: businessData.customer_type,
           });
           setIsGstEnabled(!!businessData.gst_number); // Set state based on initial data
         } else {
@@ -273,8 +273,8 @@ const UpdateBusinessDetail = ({
                 message: "Please enter GST number",
               },
               {
-                pattern: /^[A-Za-z0-9]{14}$/,
-                message: "GST number must be 14 alphanumeric characters",
+                pattern: /^[A-Za-z0-9]{15}$/,
+                message: "GST number must be 15 alphanumeric characters",
               },
             ]}
           >
@@ -284,6 +284,21 @@ const UpdateBusinessDetail = ({
               disabled={!isEditable || !isGstEnabled}
             />
           </Form.Item>
+          <Form.Item
+              label="Customer Type"
+                className="w-1/4"
+              name="customer_type"
+              initialValue={initialValues?.customer_type}
+              rules={[
+                { required: true, message: "Please select the customer type" },
+              ]}
+            >
+              <Select disabled={!isEditable}>
+                <Option value="MU">MU</Option>
+                <Option value="Non-MU">Non-MU</Option>
+      
+              </Select>
+            </Form.Item>
           <Form.Item
             name="place_of_supply"
             className="w-1/4"
@@ -402,6 +417,7 @@ const UpdateBusinessDetail = ({
                 disabled={!isEditable}
               />
             </Form.Item>
+         
           </div>
         </div>
         <div

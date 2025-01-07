@@ -105,6 +105,7 @@ export const deleteSetting = async (req, res) => {
 
 
 export const saveOrUpdateProfile = async (req, res) => {
+  console.log(req.body);
   try {
     const {
       company_name,
@@ -112,7 +113,7 @@ export const saveOrUpdateProfile = async (req, res) => {
       contact_number,
       email,
       gstin,
-      PAN,
+      pan,
     } = req.body;
 
     // Validate input
@@ -130,7 +131,7 @@ export const saveOrUpdateProfile = async (req, res) => {
       companyDetail.contact_number = contact_number;
       companyDetail.email = email;
       companyDetail.gstin = gstin;
-      companyDetail.PAN = PAN;
+      companyDetail.pan = pan;
     } else {
       // Create a new profile
       companyDetail = new CompanyDetail({
@@ -139,7 +140,7 @@ export const saveOrUpdateProfile = async (req, res) => {
         contact_number,
         email,
         gstin,
-        PAN,
+        pan,
       });
     }
 

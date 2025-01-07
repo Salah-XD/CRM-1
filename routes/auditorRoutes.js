@@ -20,7 +20,7 @@ import {
   fetchingQuestionAnswer,
   getUserNameById,
   updateStartedDate,
-  deleteAuditById,updateFssaiDetails,auditManagementCount,getAuditorAuditCounts
+  deleteAuditById,updateFssaiDetails,auditManagementCount,getAuditorAuditCounts,createCheckListCategory,fetchAllChecklistCategories
 } from "../controller/auditorController.js";
 import { verifyToken } from "../middleware/auth.js";
 import multer from "multer";
@@ -69,10 +69,14 @@ router.put(
 // Route to save a new label
 router.post("/labels", saveLabel);
 
-// Route to add a question to a label
-router.post("/labels/:labelId/questions", addQuestionToLabel);
+router.post("/CheckListCategory", createCheckListCategory);
 
-router.get("/fetchLabelsWithQuestions", fetchLabelsWithQuestions);
+// Route to add a question to a label
+router.post("/questionForLabel", addQuestionToLabel);
+
+router.get("/fetchAllChecklistCategories",fetchAllChecklistCategories);
+
+router.get("/fetchLabelsWithQuestions/:checkListCategoryId", fetchLabelsWithQuestions);
 
 router.get("/fetchingQuestionAnswer/:auditId", fetchingQuestionAnswer);
 
@@ -86,9 +90,9 @@ router.post(
 
 router.get("/getUserNameById/:userId", getUserNameById);
 
-router.put("/updateStartedDate/:audit_id", updateStartedDate);
+router.put("/updateStartedDate", updateStartedDate);
 
-router.get("/generateAuditReport/:audit_id", generateAuditReport);
+router.post("/generateAuditReport", generateAuditReport);
 
 router.delete("/deleteAuditById/:id", deleteAuditById);
 

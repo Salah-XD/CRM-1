@@ -55,7 +55,7 @@ router.get(
 );
 
 // Route to fetch business details by ID
-router.get("/getBusinessDataById/:id", verifyToken, getBusinessDetailsById);
+router.get("/getBusinessDataById/:id",  getBusinessDetailsById);
 
 // Route to delete Business details
 router.delete("/deleteSelectedFields", verifyToken, deleteFields);

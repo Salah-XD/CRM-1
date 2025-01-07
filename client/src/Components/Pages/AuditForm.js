@@ -22,6 +22,7 @@ import dayjs from "dayjs";
 import { useAuth } from "../Context/AuthContext";
 import { useLocation } from "react-router-dom";
 import { DeleteOutlined, DownOutlined, MoreOutlined } from "@ant-design/icons";
+import ChecklistModal from "../Layout/ChecklistModal";
 const { Title, Text } = Typography;
 
 const AuditForm = () => {
@@ -36,9 +37,13 @@ const AuditForm = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [intialLoading, setIntialLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const location = useLocation();
   const { user } = useAuth();
+
+  const showModal = () => setModalVisible(true);
+  const closeModal = () => setModalVisible(false);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -67,29 +72,38 @@ const AuditForm = () => {
   const handleDownload = async () => {
     setLoading(true); // Start loading
     try {
-      const response = await axios.get(
-        `/api/auditor/generateAuditReport/${params.audit_id}`,
+      const payload = {
+        audit_id: params.audit_id,
+        checkListId: auditData.checkListId._id,
+      };
+  
+      console.log("This is the payload", payload);
+  
+      // Use `POST` to send the payload as the request body
+      const response = await axios.post(
+        `/api/auditor/generateAuditReport`,
+        payload,
         {
           responseType: "blob", // Specify the response is a file (PDF)
         }
       );
-
+  
       console.log("This is the response");
-
+  
       // Create a Blob from the PDF Stream
       const file = new Blob([response.data], { type: "application/pdf" });
-
+  
       // Create a link element
       const link = document.createElement("a");
       link.href = URL.createObjectURL(file);
-
+  
       // Set the file name for the download
       link.download = "audit-report.pdf";
-
+  
       // Append the link to the body and trigger a click event to download the file
       document.body.appendChild(link);
       link.click();
-
+  
       // Clean up
       document.body.removeChild(link);
     } catch (error) {
@@ -98,6 +112,7 @@ const AuditForm = () => {
       setLoading(false); // Stop loading
     }
   };
+  
 
   const handleModalOk = async () => {
     try {
@@ -138,25 +153,6 @@ const AuditForm = () => {
   const handleModalCancel = () => {
     setApprovalModalVisible(false);
     setComment(""); // Reset comment on cancel
-  };
-
-  const handleStartedDate = async () => {
-    try {
-      // Call the update function
-      const result = await axios.put(
-        `/api/auditor/updateStartedDate/${params.audit_id}`
-      );
-
-      message.success("Audit Started");
-      const firstSegment = location.pathname.split("/").filter(Boolean)[0]; // 'draft', 'assigned-audit', etc.
-
-      // Ensure the path is absolute by using `/`
-      navigate(`/${firstSegment}/audit-form/audit-report/${params.audit_id}`);
-    } catch (error) {
-      // Handle errors and update the status message
-      message.error("Failed to update audit start date.");
-      console.error(error);
-    }
   };
 
   const handleStatusUpdate = async () => {
@@ -249,8 +245,8 @@ const AuditForm = () => {
     // Determine the target path based on the first segment
     const targetPath =
       firstSegment === "assigned-audit"
-        ? `/${firstSegment}/audit-report/${params.audit_id}`
-        : `/${firstSegment}/audit-form/updateAuditReport/${params.audit_id}`;
+        ? `/${firstSegment}/audit-report/${params.audit_id}?&checklistId=${auditData.checkListId._id}&category=${auditData.checkListId.name}`
+        : `/${firstSegment}/audit-form/updateAuditReport/${params.audit_id}?&checklistId=${auditData.checkListId._id}&category=${auditData.checkListId.name}`;
 
     // Navigate to the target path
     navigate(targetPath);
@@ -392,7 +388,7 @@ const AuditForm = () => {
                             <Button
                               type="default" // Makes the Cancel button white with border
                               style={{ padding: 4, marginBottom: 16 }}
-                             onClick={handleAuditCancel}
+                              onClick={handleAuditCancel}
                             >
                               Cancel
                             </Button>
@@ -508,7 +504,8 @@ const AuditForm = () => {
                         backgroundColor: "#009688",
                         borderColor: "#009688",
                       }}
-                      onClick={handleStartedDate}
+                      // onClick={handleStartedDate}
+                      onClick={showModal}
                     >
                       Start Audit
                     </Button>
@@ -792,6 +789,7 @@ const AuditForm = () => {
               </Button>
             </div>
           </Modal>
+          <ChecklistModal visible={modalVisible} onClose={closeModal} />
         </div>
       </Spin>
     </AdminDashboard>

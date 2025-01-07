@@ -32,6 +32,10 @@ const auditSchema = new mongoose.Schema(
     started_at: {
       type: Date,
     },
+    checklistCategory: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "CheckListCategory",
+    },
 
     assigned_date: {
       type: Date,

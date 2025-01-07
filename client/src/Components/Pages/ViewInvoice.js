@@ -250,7 +250,7 @@ const ViewInvoice = () => {
     </p>
     <p style="color: #13A6B8;">
       GSTIN: ${companyProfile?.gstin || "GSTIN not available"} | PAN: ${
-    companyProfile?.PAN || "PAN not available"
+    companyProfile?.pan || "PAN not available"
   }
     </p>
   </div>

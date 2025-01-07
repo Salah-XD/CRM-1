@@ -7,6 +7,7 @@ import {
 } from "@ant-design/icons";
 import { Spin } from "antd"; // Import Spin
 import AdminDashboard from "../Layout/AdminDashboard";
+import AuditorTrack from "../Pages/AuditorTrack";
 
 const Dashboard = () => {
   const [filter, setFilter] = useState("overall");
@@ -138,7 +139,11 @@ const Dashboard = () => {
             </div>
           ))}
         </div>
+        <div className="mt-8">
+        <AuditorTrack />
       </div>
+      </div>
+    
     </AdminDashboard>
   );
 };

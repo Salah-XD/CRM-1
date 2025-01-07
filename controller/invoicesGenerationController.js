@@ -1,12 +1,13 @@
-//import puppeteer from "puppeteer";
-import puppeteer from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer"; // Import puppeteer directly
 import { promises as fs } from "fs";
 import path from "path";
 import nodemailer from "nodemailer";
 import numWords from "num-words";
 import Invoice from "../models/invoiceModel.js";
 import dotenv from "dotenv";
+import moment from "moment/moment.js";
+import CompanyDetail from "../models/CompanyDetail.js";
+import BankDetail from "../models/BankDetailModel.js";
 
 dotenv.config();
 
@@ -20,9 +21,24 @@ export const generateInvoice = async (req, res) => {
     const { to, cc, message } = req.body;
 
     const invoiceDetails = await Invoice.findById(invoiceId).exec();
+    const companyDetails = await CompanyDetail.findOne().exec(); // Fetch the first record from CompanyDetail
+    const bankDetails = await BankDetail.findOne().exec(); // Fetch the first record from BankDetail
+
+   
     if (!invoiceDetails) {
       return res.status(404).send("Invoice not found");
     }
+
+    const { company_name, company_address, contact_number, email, gstin, pan } =
+      companyDetails;
+
+    const {
+      account_holder_name,
+      account_number,
+      bank_name,
+      branch_name,
+      ifsc_code,
+    } = bankDetails;
 
     const {
       fbo_name,
@@ -41,6 +57,10 @@ export const generateInvoice = async (req, res) => {
       same_state,
     } = invoiceDetails;
 
+    const formattedDate = invoice_date
+      ? moment(invoice_date).format("MMMM D, YYYY")
+      : "";
+
     // Calculate subtotal, taxes, and total
     let subTotal = 0;
     const outletItems = outlets
@@ -49,7 +69,7 @@ export const generateInvoice = async (req, res) => {
         const amount = parseFloat(outlet.amount || 0);
         subTotal += amount;
 
-        return `
+        return ` 
           <tr>
             <td class="px-2 py-1 text-center">${outlet.outlet_name || ""}</td>
             <td class="px-2 py-1 text-center">${outlet.description || ""}</td>
@@ -64,7 +84,10 @@ export const generateInvoice = async (req, res) => {
       .join("");
 
     // Initialize tax variables
-    let cgst = 0, sgst = 0, gst = 0, overallTotal = 0;
+    let cgst = 0,
+      sgst = 0,
+      gst = 0,
+      overallTotal = 0;
 
     if (same_state) {
       cgst = parseFloat((subTotal * 0.09).toFixed(2));
@@ -76,9 +99,15 @@ export const generateInvoice = async (req, res) => {
     }
 
     let tax = same_state
-      ? `<p><span class="font-semibold">Add: CGST (9%):</span> ₹${cgst.toFixed(2)}</p>
-         <p><span class="font-semibold">Add: SGST (9%):</span> ₹${sgst.toFixed(2)}</p>`
-      : `<p><span class="font-semibold">Add: IGST:</span> ₹${gst.toFixed(2)}</p>`;
+      ? `<p><span class="font-semibold">Add: CGST (9%):</span> ₹${cgst.toFixed(
+          2
+        )}</p>
+         <p><span class="font-semibold">Add: SGST (9%):</span> ₹${sgst.toFixed(
+           2
+         )}</p>`
+      : `<p><span class="font-semibold">Add: IGST:</span> ₹${gst.toFixed(
+          2
+        )}</p>`;
 
     const totalInWords = numWords(Math.floor(overallTotal));
 
@@ -97,7 +126,7 @@ export const generateInvoice = async (req, res) => {
       .replace(/{{contact_number}}/g, phone)
       .replace(/{{address}}/g, `${line1}, ${line2 || ""}`)
       .replace(/{{invoice_number}}/g, invoice_number)
-      .replace(/{{invoice_date}}/g, new Date(invoice_date).toLocaleDateString())
+      .replace(/{{formattedDate}}/g, invoice_date)
       .replace(/{{outletItems}}/g, outletItems)
       .replace(/{{sub_total}}/g, `₹${subTotal.toFixed(2)}`)
       .replace(/{{overallTotal}}/g, `₹${overallTotal.toFixed(2)}`)
@@ -108,20 +137,27 @@ export const generateInvoice = async (req, res) => {
       .replace(/{{place_of_supply}}/g, place_of_supply)
       .replace(/{{pincode}}/g, pincode)
       .replace(/{{gst_number}}/g, gst_number)
-      .replace(/{{tax}}/g, tax);
+      .replace(/{{tax}}/g, tax)
+      .replace(/{{contact_number}}/g, contact_number)
+      .replace(/{{email}}/g, email)
+      .replace(/{{gstin}}/g, gstin)
+      .replace(/{{pan}}/g, pan)
+      .replace(/{{account_holder_name}}/g, account_holder_name)
+      .replace(/{{account_number}}/g, account_number)
+      .replace(/{{bank_name}}/g, bank_name)
+      .replace(/{{branch_name}}/g, branch_name)
+      .replace(/{{ifsc_code}}/g, ifsc_code)
+      .replace(
+        /{{company_address}}/g,
+        `${company_address.line1}, ${company_address.line2}, ${company_address.city}, ${company_address.state} - ${company_address.pincode}`
+      );
 
-    //browser = await puppeteer.launch();
-
+    // Launch puppeteer directly without @sparticuz/chromium
     browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
-      ignoreHTTPSErrors: true,
+      headless: true, // Run headless by default
     });
-    
+
     const page = await browser.newPage();
-    
 
     const baseUrl = `file://${__dirname}/templates/`;
     await page.setContent(dynamicContent, {

@@ -5,9 +5,12 @@ import { User, userRoles } from "../models/usersModel.js";
 import AuditManagement from "../models/auditMangement.js";
 import Question from "../models/questionSchema.js";
 import Label from "../models/labelModel.js";
+import CheckListCategoryModel from "../models/checkListCategoryModel.js";
 import AuditResponse from "../models/auditReponseModel.js";
-import uploadToCloudinary from "../helper/uploadToCloudinary.js";
-
+import {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+} from "../helper/uploadToCloudinary.js";
 
 // Create a new auditor
 export const createAuditor = async (req, res) => {
@@ -159,7 +162,6 @@ export const processProposalsWithOutlets = async (req, res) => {
           ?.replace(/,/, "/")
           .replace(/\s+/g, "");
 
-
         // Filter outlets with description "Hygiene Rating" and unassigned auditors
         if (
           outlet.is_assignedAuditor === false &&
@@ -182,10 +184,9 @@ export const processProposalsWithOutlets = async (req, res) => {
           });
 
           // Increment audit counter
-      
         }
-           
-        if(outlet.description==="Hygiene Rating"){
+
+        if (outlet.description === "Hygiene Rating") {
           auditCounter++;
         }
       });
@@ -204,9 +205,8 @@ export const processProposalsWithOutlets = async (req, res) => {
     const totalPages = Math.ceil(totalOutlets / sizePerPage);
 
     res.status(200).json({
-
       message: "Processed all proposals and outlets successfully",
-      total:totalOutlets,
+      total: totalOutlets,
       totalpages: totalPages, // Correct total pages
       currentPage: pageNumber,
       data: paginatedOutlets,
@@ -328,7 +328,7 @@ export const saveAuditRecord = async (req, res) => {
       outlet_name,
       status,
       assigned_date,
-      started_at : null,
+      started_at: null,
       location,
       audit_number,
       user,
@@ -441,10 +441,18 @@ export const getAuditById = async (req, res) => {
   try {
     const { id } = req.params; // Extract the audit ID from the route parameters
 
-    // Fetch the audit by ID and populate user and proposalId fields
-    const audit = await AuditManagement.findById(id)
+    // Base query for finding the audit
+    let query = AuditManagement.findById(id)
       .populate("user", "userName") // Populate the user field with userName from User model
       .populate("proposalId", "proposal_number"); // Populate the proposalId field with proposal_number from Proposal model
+
+    // Check if `checklistCategory` is present and populate it
+    const auditWithChecklist = await AuditManagement.findById(id);
+    if (auditWithChecklist && auditWithChecklist.checklistCategory) {
+      query = query.populate("checklistCategory", "name");
+    }
+
+    const audit = await query;
 
     // Check if the audit exists
     if (!audit) {
@@ -453,6 +461,7 @@ export const getAuditById = async (req, res) => {
         message: "Audit not found.",
       });
     }
+
     // Format the response using moment for all date fields
     const formatDateTime = (date) =>
       date ? moment(date).format("DD-MM-YYYY HH:mm:ss") : null;
@@ -476,7 +485,8 @@ export const getAuditById = async (req, res) => {
       modificationHistory: audit.modificationHistory || null,
       fssai_image_url: audit.fssai_image_url ? audit.fssai_image_url : null,
       fssai_number: audit.fssai_number ? audit.fssai_number : null,
-      assigned_date:audit.assigned_date || null,
+      assigned_date: audit.assigned_date || null,
+      checkListId: audit.checklistCategory || null,
       __v: audit.__v,
     };
 
@@ -495,6 +505,7 @@ export const getAuditById = async (req, res) => {
     });
   }
 };
+
 export const updateAuditById = async (req, res) => {
   console.log(req.body);
   try {
@@ -610,17 +621,55 @@ export const updateStatusHistoryByAuditId = async (req, res) => {
   }
 };
 
-export const saveLabel = async (req, res) => {
+export const createCheckListCategory = async (req, res) => {
   try {
     const { name } = req.body;
 
     if (!name) {
-      return res.status(400).json({ message: "Label name is required." });
+      return res.status(400).json({ message: "Name is required" });
     }
 
-    const label = new Label({ name });
+    // Check if a category with the same name already exists
+    const existingCategory = await CheckListCategoryModel.findOne({ name });
+    if (existingCategory) {
+      return res
+        .status(400)
+        .json({ message: "Category with this name already exists" });
+    }
+
+    // Assuming your Mongoose model is named CheckListCategoryModel
+    const category = new CheckListCategoryModel({ name });
+    await category.save();
+
+    res.status(201).json({
+      message: "Category created successfully",
+      data: category,
+    });
+  } catch (error) {
+    console.error("Error Creating Category:", error);
+    res.status(500).json({ message: "Failed to create category", error });
+  }
+};
+
+export const saveLabel = async (req, res) => {
+  try {
+    const { name, checklistCategory } = req.body;
+
+    // Check if the name and checklistCategory are provided
+    if (!name) {
+      return res.status(400).json({ message: "Label name is required." });
+    }
+    if (!checklistCategory) {
+      return res
+        .status(400)
+        .json({ message: "Checklist Category is required." });
+    }
+
+    // Create and save the new Label
+    const label = new Label({ name, checklistCategory });
     await label.save();
 
+    // Send response back
     res.status(201).json({
       message: "Label created successfully",
       data: label,
@@ -633,40 +682,33 @@ export const saveLabel = async (req, res) => {
 
 export const addQuestionToLabel = async (req, res) => {
   try {
-    const { labelId } = req.params;
-    const { question_text, marks } = req.body;
+    const { labelId, questions } = req.body;
 
-    if (!labelId || !question_text || marks === undefined) {
-      return res.status(400).json({
-        message: "Label ID, question text, and marks are required.",
+    //Validate that the question array is not empty
+    if (!Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({ message: "Questions array is required." });
+    }
+
+    //Intiliaze an array to store the questions
+    const questionArray = [];
+
+    //Iterate through the questions array and create a new question object
+    questions.forEach((question) => {
+      const { question_text, marks } = question;
+      const newQuestion = new Question({
+        question_text,
+        marks,
+        label: labelId,
       });
-    }
-
-    // Validate that marks is a non-negative number
-    if (typeof marks !== "number" || marks < 0) {
-      return res.status(400).json({
-        message: "Marks must be a non-negative number.",
-      });
-    }
-
-    // Find the label by ID
-    const label = await Label.findById(labelId);
-    if (!label) {
-      return res.status(404).json({ message: "Label not found." });
-    }
-
-    // Create a new question and associate it with the label
-    const question = new Question({
-      label: label._id,
-      question_text,
-      marks,
+      questionArray.push(newQuestion);
     });
 
-    await question.save();
+    //Save the questions to the database
+    const savedQuestions = await Question.insertMany(questionArray);
 
     res.status(201).json({
       message: "Question added to label successfully",
-      data: question,
+      data: savedQuestions,
     });
   } catch (error) {
     console.error("Error adding question to label:", error);
@@ -674,11 +716,28 @@ export const addQuestionToLabel = async (req, res) => {
   }
 };
 
+export const fetchAllChecklistCategories = async (req, res) => {
+  try {
+    //fetch alll the checklist categories
+
+    const checklistCategories = await CheckListCategoryModel.find();
+
+    res.status(200).json(checklistCategories);
+  } catch (error) {
+    console.error("Error fetching checklist categories:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to fetch checklist categories", error });
+  }
+};
+
 // Fetch all labels with their associated questions, including numbering
 export const fetchLabelsWithQuestions = async (req, res) => {
   try {
-    // Fetch all labels
-    const labels = await Label.find();
+    const { checkListCategoryId } = req.params;
+
+    //fetch all the label with the category id
+    const labels = await Label.find({ checklistCategory: checkListCategoryId });
 
     // Fetch associated questions for each label and map to the desired format
     const data = await Promise.all(
@@ -794,7 +853,6 @@ export const fetchLabelsWithQuestions = async (req, res) => {
 // Configure Multer for file upload
 // Helper function for uploading files to Cloudinary
 
-
 export const saveAuditResponses = async (req, res) => {
   const { data } = req.body;
   const files = req.files;
@@ -816,7 +874,10 @@ export const saveAuditResponses = async (req, res) => {
     // Upload all files to Cloudinary first and map them
     await Promise.all(
       files.map(async (file) => {
-        const uploadedResult = await uploadToCloudinary(file.buffer, "audit_files");
+        const uploadedResult = await uploadToCloudinary(
+          file.buffer,
+          "audit_files"
+        );
         uploadedFiles[file.originalname] = uploadedResult.secure_url; // Map file names to their URLs
       })
     );
@@ -905,11 +966,9 @@ export const updateAuditResponses = async (req, res) => {
       });
 
       if (!auditResponse) {
-        return res
-          .status(404)
-          .json({
-            message: `Audit response for auditId ${auditId} and questionId ${questionId} not found.`,
-          });
+        return res.status(404).json({
+          message: `Audit response for auditId ${auditId} and questionId ${questionId} not found.`,
+        });
       }
 
       let uploadedImageUrl = auditResponse.image_url; // Use the existing image URL by default
@@ -922,7 +981,10 @@ export const updateAuditResponses = async (req, res) => {
 
           try {
             // Uploading file buffer to Cloudinary
-            const uploadResult = await uploadToCloudinary(uploadedFile.buffer, "audit_images");
+            const uploadResult = await uploadToCloudinary(
+              uploadedFile.buffer,
+              "audit_images"
+            );
             uploadedImageUrl = uploadResult.secure_url;
           } catch (error) {
             console.error(
@@ -972,17 +1034,18 @@ export const updateAuditResponses = async (req, res) => {
   }
 };
 
-
 export const fetchingQuestionAnswer = async (req, res) => {
   try {
     const { auditId } = req.params; // Extract auditId from request parameters
+
+    const { checkListId } = req.query;
 
     if (!auditId) {
       return res.status(400).json({ message: "Audit ID is required" });
     }
 
-    // Fetch all labels
-    const labels = await Label.find();
+    //fetch all the label with the category id
+    const labels = await Label.find({ checklistCategory: checkListId });
 
     // Fetch associated questions for each label and map to the desired format
     const data = await Promise.all(
@@ -1049,16 +1112,20 @@ export const getUserNameById = async (req, res) => {
 };
 
 export const updateStartedDate = async (req, res) => {
-  const { audit_id } = req.params; // Get the audit_id of the AuditManagement record from route parameters
+  console.log(req.body);
+  const { audit_id, checkListId } = req.body; // Get audit_id and checkListId from request body
 
   try {
     // Get the current date and time
     const currentDateTime = moment().toISOString(); // Formats as ISO string for compatibility with MongoDB
 
-    // Find the AuditManagement record by ID and update the `started_at` field
+    // Find the AuditManagement record by ID and update the `started_at` and `checklistCategory` fields
     const updatedAuditManagement = await AuditManagement.findByIdAndUpdate(
       audit_id,
-      { started_at: currentDateTime },
+      {
+        started_at: currentDateTime,
+        checklistCategory: checkListId,
+      },
       { new: true, runValidators: true } // Return the updated document and ensure validations
     );
 
@@ -1082,7 +1149,6 @@ export const updateStartedDate = async (req, res) => {
   }
 };
 
-
 // Controller to delete an AuditManagement document and its associated responses
 export const deleteAuditById = async (req, res) => {
   const { id } = req.params; // Extract the audit ID from the request parameters
@@ -1092,100 +1158,126 @@ export const deleteAuditById = async (req, res) => {
     const audit = await AuditManagement.findById(id);
 
     if (!audit) {
-      return res.status(404).json({ message: 'Audit not found' });
+      return res.status(404).json({ message: "Audit not found" });
     }
 
     // Delete all AuditResponse documents with the matching audit_id
-    const responseDeleteResult = await AuditResponse.deleteMany({ audit_id: id });
+    const responseDeleteResult = await AuditResponse.deleteMany({
+      audit_id: id,
+    });
 
     // Delete the AuditManagement document
     const auditDeleteResult = await AuditManagement.findByIdAndDelete(id);
 
     return res.status(200).json({
-      message: 'Audit and associated responses deleted successfully',
+      message: "Audit and associated responses deleted successfully",
       auditDeleted: auditDeleteResult,
       responsesDeletedCount: responseDeleteResult.deletedCount,
     });
   } catch (error) {
-    console.error('Error deleting audit:', error);
-    return res.status(500).json({ message: 'Internal server error', error });
+    console.error("Error deleting audit:", error);
+    return res.status(500).json({ message: "Internal server error", error });
   }
 };
-
 
 // Update FSSAI Details Handler
 export const updateFssaiDetails = async (req, res) => {
-  const { fssai_number, audit_id } = req.body;
+  console.log(req.body);
+  const { fssai_number, audit_id, deleteImage } = req.body;
 
   try {
-    let uploadedImageUrl = "";
-
-    // Validate and convert audit_id to ObjectId
+    // Validate audit_id
     if (!audit_id) {
-      return res.status(400).json({ message: "Invalid audit ID format." });
+      return res.status(400).json({ message: "Audit ID is required." });
     }
 
-    // Handle file upload if a file is provided
-    if (req.file) {
+    // Check if the record exists
+    const existingRecord = await AuditManagement.findById(audit_id);
+    if (!existingRecord) {
+      return res.status(404).json({ message: "FSSAI record not found." });
+    }
+
+    // Handle image deletion
+    if (deleteImage === "true" && existingRecord.fssai_image_url) {
       try {
-        // Uploading the file buffer to Cloudinary
-        const uploadResult = await uploadToCloudinary(req.file.buffer, "audit_images");
-        uploadedImageUrl = uploadResult.secure_url;
-      } catch (uploadError) {
-        console.error("Error uploading file to Cloudinary:", uploadError);
-        return res.status(500).json({ message: "File upload failed" });
+        const publicId = existingRecord.fssai_image_url
+          .replace(/^.*\/audit_images\//, "audit_images/") // Keep folder + filename
+          .split(".")[0]; // Remove file extension
+
+        console.log("Extracted publicId:", publicId);
+
+        console.log(publicId);
+        await deleteFromCloudinary(publicId);
+      } catch (deleteError) {
+        console.error("Error deleting file from Cloudinary:", deleteError);
+        return res.status(500).json({ message: "Image deletion failed." });
       }
     }
 
-    // Prepare the fields to update
+    // Handle file upload
+    let uploadedImageUrl = "";
+    if (req.file && req.file.buffer) {
+      try {
+        const uploadResult = await uploadToCloudinary(
+          req.file.buffer,
+          "audit_images"
+        );
+        uploadedImageUrl = uploadResult.secure_url;
+      } catch (uploadError) {
+        console.error("Error uploading file to Cloudinary:", uploadError);
+        return res.status(500).json({ message: "File upload failed." });
+      }
+    }
+
+    // Prepare update data
     const updateData = { fssai_number };
     if (uploadedImageUrl) {
       updateData.fssai_image_url = uploadedImageUrl;
+    } else if (deleteImage === "true") {
+      updateData.fssai_image_url = "";
     }
 
-    // Use findByIdAndUpdate for updating by audit_id
+    // Update the record
     const updatedRecord = await AuditManagement.findByIdAndUpdate(
-      audit_id,       // Pass the ObjectId directly
-      updateData,     // Fields to update
-      { new: true }   // Return the updated document
+      audit_id,
+      updateData,
+      { new: true }
     );
 
-    if (!updatedRecord) {
-      return res.status(404).json({ message: "FSSAI record not found" });
-    }
-
     // Success Response
-    return res
-      .status(200)
-      .json({ message: "FSSAI details updated successfully", updatedRecord });
+    return res.status(200).json({
+      message: "FSSAI details updated successfully.",
+      updatedRecord,
+    });
   } catch (err) {
     console.error("Error updating FSSAI details:", err);
-    return res.status(500).json({ message: "An error occurred while updating FSSAI details" });
+    return res.status(500).json({
+      message: "An error occurred while updating FSSAI details.",
+    });
   }
 };
 
-
 const getDateRanges = (filter) => {
   switch (filter) {
-    case 'today':
+    case "today":
       return {
-        start: moment().startOf('day').toDate(),
-        end: moment().endOf('day').toDate(),
+        start: moment().startOf("day").toDate(),
+        end: moment().endOf("day").toDate(),
       };
-    case 'week':
+    case "week":
       return {
-        start: moment().startOf('week').toDate(),
-        end: moment().endOf('week').toDate(),
+        start: moment().startOf("week").toDate(),
+        end: moment().endOf("week").toDate(),
       };
-    case 'month':
+    case "month":
       return {
-        start: moment().startOf('month').toDate(),
-        end: moment().endOf('month').toDate(),
+        start: moment().startOf("month").toDate(),
+        end: moment().endOf("month").toDate(),
       };
-    case 'overall':
+    case "overall":
       return null; // No date range for overall count
     default:
-      throw new Error('Invalid filter');
+      throw new Error("Invalid filter");
   }
 };
 
@@ -1193,46 +1285,41 @@ export const auditManagementCount = async (req, res) => {
   try {
     const { filter } = req.query;
 
-
     const dateRange = getDateRanges(filter);
 
-
     let count;
-    const query = { 'statusHistory.status': 'approved' };
+    const query = { "statusHistory.status": "approved" };
 
     if (dateRange) {
       query.createdAt = { $gte: dateRange.start, $lte: dateRange.end };
-    } 
+    }
 
     // Using $elemMatch to ensure we query statusHistory array
     count = await AuditManagement.countDocuments(query);
 
-    console.log('Count result:', count);
+    console.log("Count result:", count);
 
     return res.status(200).json({
       success: true,
       count,
     });
   } catch (error) {
-    console.error('Error counting audit management records:', error);
+    console.error("Error counting audit management records:", error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to count audit management records',
+      message: "Failed to count audit management records",
       error: error.message,
     });
   }
 };
 
-// Controller function to fetch auditors and count their assigned audits
 export const getAuditorAuditCounts = async (req, res) => {
   try {
-    const { page = 1, pageSize = 10, sort, keyword } = req.query;
+    const { page = 1, pageSize = 10, keyword } = req.query;
 
-    // Convert page and pageSize to integers
     const pageNumber = parseInt(page, 10);
     const sizePerPage = parseInt(pageSize, 10);
 
-    // Validate page number and page size
     if (
       isNaN(pageNumber) ||
       pageNumber < 1 ||
@@ -1244,60 +1331,71 @@ export const getAuditorAuditCounts = async (req, res) => {
         .json({ message: "Invalid page or pageSize parameter" });
     }
 
-    // Create the base query
+    // Fetch all auditors (user with role "AUDITOR")
+    const totalAuditors = await User.find({ role: "AUDITOR" }).select(
+      "userName"
+    );
+    console.log("Auditors Found:", totalAuditors);
+
+    // Create the base query for AuditManagement
     let query = AuditManagement.find()
-      .populate("user", "role")  // Include the role of the user
+      .populate("user", "userName role") // Populate the user details
       .where("status")
-      .ne("assigned");  // Add any other conditions based on your needs
+      .ne("assigned"); // Exclude audits with status "assigned"
 
-    // Apply search keyword if provided
+    // Apply search filter if keyword is provided (search by userName)
     if (keyword) {
-      const searchRegex = new RegExp(keyword, "i"); // Case-insensitive regex
-      query = query.where("fbo_name").regex(searchRegex);
+      const searchRegex = new RegExp(keyword, "i");
+      query = query.where("user.userName").regex(searchRegex); // Search by userName
     }
 
-    // Determine the sort query based on the 'sort' parameter
-    let sortQuery = {};
-    switch (sort) {
-      case "assigned":
-        sortQuery = { assigned_date: -1 }; // Descending order for newer audits first
-        break;
-      case "submitted":
-        sortQuery = { statusHistory: { status: "submitted" } }; // Submitted audits first
-        break;
-      default:
-        sortQuery = { assigned_date: 1 }; // Default sorting (oldest first)
-        break;
-    }
+    // Fetch the audits with pagination
+    const audits = await query.select(
+      "user proposalId outletId status assigned_date"
+    ); // Select relevant fields for efficiency
+    console.log("Audits Found:", audits);
 
-    // Count total number of auditors (users with role 'Auditor')
-    const totalAuditors = await User.countDocuments({ role: "AUDITOR" });
+    // Create a count object to track counts per user
+    const userAuditCounts = {};
 
-    // Retrieve audits with pagination and sorting
-    const audits = await query
-      .skip((pageNumber - 1) * sizePerPage)
-      .limit(sizePerPage)
-      .sort(sortQuery)
-      .select("user proposalId outletId status assigned_date");
+    audits.forEach((audit) => {
+      const userName = audit.user?.userName || "Unknown"; // Safeguard for cases with no user info
 
-    // Calculate audit counts for each auditor
-    const auditorCounts = audits.map((audit) => {
-      const assignedAudits = audit.status === "assigned" ? 1 : 0;
-      const submittedAudits = audit.status === "submitted" ? 1 : 0;
-      const rejectedAudits = audit.status === "rejected" ? 1 : 0;
-      const approvedAudits = audit.status === "approved" ? 1 : 0;
+      // If this user hasn't been counted yet, initialize their data
+      if (!userAuditCounts[userName]) {
+        userAuditCounts[userName] = {
+          userName,
+          totalAssigned: 0,
+          totalSubmitted: 0,
+          totalModified: 0,
+          totalApproved: 0,
+        };
+      }
 
-      return {
-        userId: audit.user._id,
-        assignedAudits,
-        submittedAudits,
-        rejectedAudits,
-        approvedAudits,
-      };
+      // Increment the counts based on the audit's status
+      if (audit.status === "assigned") {
+        userAuditCounts[userName].totalAssigned++;
+      }
+      if (audit.status === "submitted") {
+        userAuditCounts[userName].totalSubmitted++;
+      }
+      if (audit.status === "rejected") {
+        userAuditCounts[userName].totalModified++;
+      }
+      if (audit.status === "approved") {
+        userAuditCounts[userName].totalApproved++;
+      }
     });
 
+    // Log the aggregated user counts for debugging
+    console.log("Aggregated Counts:", userAuditCounts);
+
+    // Convert the counts object into an array to send in the response
+    const auditorCounts = Object.values(userAuditCounts);
+
+    // Return the response with pagination information and auditor counts
     res.json({
-      total: totalAuditors,
+      total: totalAuditors.length,
       currentPage: pageNumber,
       data: auditorCounts,
     });

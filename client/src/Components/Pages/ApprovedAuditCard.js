@@ -136,7 +136,7 @@ const AuditDetails = () => {
     <AdminDashboard>
       <div className="bg-blue-50 m-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Assigned Audits</h2>
+          <h2 className="text-xl font-semibold">Approved Audits</h2>
         </div>
         <Spin spinning={intialLoading}>
           <div className="flex justify-end my-4">

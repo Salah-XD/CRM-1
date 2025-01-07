@@ -209,6 +209,17 @@ const CompanyAddressSetting = () => {
                 <Input placeholder="Enter email" />
               </Form.Item>
             </Col>
+            <Col span={12}>
+              <Form.Item
+                name="pan"
+                label="Pan Number"
+                rules={[
+                  { required: true, message: "Please enter the contact number" },
+                ]}
+              >
+                <Input placeholder="Enter pan number" />
+              </Form.Item>
+            </Col>
           </Row>
           <Form.Item>
             <Button type="primary" htmlType="submit">

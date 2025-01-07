@@ -30,9 +30,7 @@ import ModifiedAuditCard from "./Components/Pages/ModifiedAuditCard";
 import DraftAuditCard from "./Components/Pages/DraftAuditCard";
 import UpdateAuditReport from "./Components/Pages/UpdateAuditReport";
 import ApprovedAuditCard from "./Components/Pages/ApprovedAuditCard";
-import UpdateFssaiAudit from "./Components/Pages/UpdateFssaiForm";
 import SettingsPage from "./Components/Pages/SettingPage"; // Correct import path
-
 import CompanyAddressSetting from "./Components/Pages/CompanyAddressSetting"; // Update as per file path
 import BankDetailsSetting from "./Components/Pages/BankDetailsSetting"; // Update as per file path
 import NoteForm from "./Components/Pages/NoteForm"; // Update as per file path
@@ -44,8 +42,6 @@ import {
   AccountAdminRoute,
   AuditAdminRoute,
 } from "./Components/Context/ProtectedRoute";
-import Check from "./Components/Pages/Check";
-import Arun from "./Components/Pages/Reference";
 import AuditTrack from "./Components/Pages/AuditorTrack";
 
 function App() {
@@ -117,7 +113,7 @@ function App() {
             element={<AuditForm />}
           />
           <Route
-            path="/assigned-audit/audit-form/audit-report/:audit_id"
+            path="/assigned-audit/audit-form/audit-report"
             element={<AuditReport />}
           />
           <Route

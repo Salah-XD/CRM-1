@@ -86,9 +86,9 @@
       <div>
         <h2 class="text-lg font-bold" style="color: #13A6B8;">UNAVAR FOOD INSPECTION AND CERTIFICATION PRIVATE LIMITED
         </h2>
-        <p style="color: #13A6B8;">MM ILLAM MKN ROAD, ALANDUR CHENNAI - 600016.</p>
-        <p style="color: #13A6B8;">Tel: + 9894398096 | Email: vivekanand@unavar.com</p>
-        <p style="color: #13A6B8;">GSTIN: 33AADCU1306M1ZI | PAN: AADCU1306M</p>
+        <p style="color: #13A6B8;">{{company_address}}</p>
+        <p style="color: #13A6B8;">Tel:{{contact_number}} | Email:{{email}}</p>
+        <p style="color: #13A6B8;">GSTIN: {{gstin}} | PAN: {{pan}}</p>
       </div>
       <img src="data:image/png;base64,{{imageData}}" alt="Your Image Alt Text" width="80" height="80" />
     </div>
@@ -127,8 +127,8 @@
       <thead>
         <tr>
           <th class="px-2 py-1 text-center">Outlet Name</th>
-          <th class="px-2 py-1 text-center">Description</th>
           <th class="px-2 py-1 text-center">Service</th>
+          <th class="px-2 py-1 text-center">Criteria</th>
           <th class="px-2 py-1 text-center">Man Days</th>
           <th class="px-2 py-1 text-center">Qty</th>
           <th class="px-2 py-1 text-center">Unit Cost</th>
@@ -136,14 +136,7 @@
         </tr>
       </thead>
       <tbody>
-        <!-- <tr>
-            <td class="px-2 py-1">{{outlet_name}}</td>
-            <td class="px-2 py-1">{{no_of_food_handlers}}</td>
-            <td class="px-2 py-1">{{man_days}}</td>
-            <td class="px-2 py-1">{{unit_cost}}</td>
-            <td class="px-2 py-1">{{discount}}</td>
-            <td class="px-2 py-1">{{amount}}</td>
-          </tr> -->
+       
         {{outletItems}}
         <tr>
           <td class="px-2 py-1 font-bold text-right" colspan="6">Sub Total</td>
@@ -165,11 +158,11 @@
 
     <div class="bank-info my-2">
       <h2 class="text-md font-semibold text-gray-700">Bank Account Details</h2>
-      <p><span class="font-semibold">Account Holder's Name:</span> UNAVAR FOOD INSPECTION AND CERTIFICATION PVT LTD</p>
-      <p><span class="font-semibold">Bank Name:</span> HDFC BANK</p>
-      <p><span class="font-semibold">Bank Branch:</span> West Mambalam</p>
-      <p><span class="font-semibold">IFSC Code:</span> HDFC0000575</p>
-      <p><span class="font-semibold">Account No:</span> 50200078830737</p>
+      <p><span class="font-semibold">Account Holder's Name:</span>{{account_holder_name}}</p>
+      <p><span class="font-semibold">Bank Name:</span>{{bank_name}}</p>
+      <p><span class="font-semibold">Bank Branch:</span>{{branch_name}}</p>
+      <p><span class="font-semibold">IFSC Code:</span>{{ifsc_code}}</p>
+      <p><span class="font-semibold">Account No:</span>{{account_number}}</p>
     </div>
 
     <div class="declaration my-2">

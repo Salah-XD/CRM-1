@@ -148,13 +148,13 @@ const ViewProposal = () => {
       <td colspan="6" class="border text-right w-3/4 small-cell">
         <strong>CGST [9%]</strong>
       </td>
-      <td class="border w-1/4 small-cell text-center">₹${cgst}</td>
+      <td class="border w-1/4 small-cell text-center"><strong>₹${cgst}</strong></td>
     </tr>
     <tr>
       <td colspan="6" class="border text-right w-3/4 small-cell">
         <strong>SGST [9%]</strong>
       </td>
-      <td class="border w-1/4 small-cell text-center">₹${sgst}</td>
+      <td class="border w-1/4 small-cell text-center"><strong>₹${sgst}</strong></td>
     </tr>
   `
     : `
@@ -169,16 +169,16 @@ const ViewProposal = () => {
   const tax2 = proposalData.same_state
     ? `  <tr>
                 <td class="w-1/2 border px-4 py-1"><strong>CGST9 [9%]</strong></td>
-                <td class="w-1/2 border px-4 py-1">₹${cgst}</td>
+                <td class="w-1/2 border px-4 py-1"><strong class="font-medium" >₹${cgst}</strong></td>
               </tr>
               <tr>
                 <td class="w-1/2 border px-4 py-1"><strong>SGST9 [9%]</strong></td>
-                <td class="w-1/2 border px-4 py-1">₹${sgst}</td>
+                <td class="w-1/2 border px-4 py-1"><strong  class="font-medium">₹${sgst}</strong></td>
               </tr>
               <tr>`
     : ` <tr>
                 <td class="w-1/2 border px-4 py-1"><strong>IGST [18%]</strong></td>
-                <td class="w-1/2 border px-4 py-1"><strong>₹${igst}</strong></td>
+                <td class="w-1/2 border px-4 py-1"><strong  class="font-medium"><strong>₹${igst}</strong></td>
               </tr>`;
 
   const showModal = () => {
@@ -378,8 +378,8 @@ const ViewProposal = () => {
     <table class="border w-4/5 mx-auto">
       <tr>
         <td class="w-1/2 border p-2 align-top">
-          <strong>Company Address:</strong>
-          <div>${companyProfile?.company_name || "N/A"}</div>
+          <strong class="font-medium">Company Address:</strong>
+      
           <div>
             ${companyProfile?.company_address?.line1 || ""}, 
             ${companyProfile?.company_address?.line2 || ""}, 
@@ -387,14 +387,21 @@ const ViewProposal = () => {
             ${companyProfile?.company_address?.state || ""} - 
             ${companyProfile?.company_address?.pincode || ""}
           </div>
-          <div>Contact: +91-1234567890</div> <!-- Replace with dynamic contact -->
-          <div>Email: info@unavarfood.com</div> <!-- Replace with dynamic email -->
+         <div>
+  <strong class="font-medium">Contact:</strong> ${
+    companyProfile?.contact_number || ""
+  }
+</div>
+<div>
+  <strong class="font-medium">Email:</strong> ${companyProfile?.email || ""}
+</div>
+
         </td>
         <td class="w-1/2 border p-2 align-top">
-          <strong>Bank Details:</strong>
-          <div>Bank Name: ${bankDetails?.bank_name || "N/A"}</div>
-          <div>Account Number: ${bankDetails?.account_number || "N/A"}</div>
-          <div>IFSC Code: ${bankDetails?.ifsc_code || "N/A"}</div>
+          <strong class="font-medium">Bank Details:</strong>
+          <div ><strong class="font-medium">Bank Name:</strong> ${bankDetails?.bank_name || "N/A"}</div>
+          <div><strong class="font-medium">Account Number:</strong> ${bankDetails?.account_number || "N/A"}</div>
+          <div><strong class="font-medium">IFSC Code:</strong> ${bankDetails?.ifsc_code || "N/A"}</div>
         </td>
       </tr>
     </table>

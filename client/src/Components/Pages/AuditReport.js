@@ -21,7 +21,7 @@ import {
 } from "@ant-design/icons";
 import AdminDashboard from "../Layout/AdminDashboard";
 import axios from "axios";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams,useSearchParams  } from "react-router-dom";
 const { Step } = Steps;
 const { TextArea } = Input;
 const { Option } = Select;
@@ -32,15 +32,24 @@ function AuditReport() {
   const [auditItems, setAuditItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fileLists, setFileLists] = useState([]);
-  const navigate = useNavigate();
-  const params = useParams();
   const [fssaiNumber, setFssaiNumber] = useState("");
   const [fssaiFile, setFssaiFile] = useState(null);
   const [formData, setFormData] = useState({});
   const [sections, setSections] = useState([]);
   const [fileList, setFileList] = useState([]);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [searchParams] = useSearchParams();
+  const audit_id = searchParams.get("audit_id");
+  const checklistId = searchParams.get("checklistId");
+  const category = searchParams.get("category");
   const [form] = Form.useForm();
+  const navigate = useNavigate();
+  const params = useParams();
+  
+
+
+
+
 
   const handleFileChange = ({ fileList: newFileList }) => {
     const file = newFileList[0]?.originFileObj;
@@ -67,7 +76,7 @@ function AuditReport() {
       try {
         setLoading(true);
         const { data } = await axios.get(
-          "/api/auditor/fetchLabelsWithQuestions"
+          `/api/auditor/fetchLabelsWithQuestions/${checklistId}`
         );
         setSections(data);
       } catch (error) {
@@ -104,7 +113,7 @@ function AuditReport() {
       try {
         setLoading(true);
         const { data } = await axios.get(
-          "/api/auditor/fetchLabelsWithQuestions"
+          `/api/auditor/fetchLabelsWithQuestions//${checklistId}`
         );
         console.log(data);
         setAuditItems(data);
@@ -230,7 +239,7 @@ function AuditReport() {
       form.append(
         "data",
         JSON.stringify({
-          auditId: params.audit_id, // Example auditId
+          auditId: audit_id, // Example auditId
           responses,
           status: status, // Add status
           fssai_number: fssaiNumber,
@@ -515,10 +524,10 @@ function AuditReport() {
   );
 
   return (
-    <AdminDashboard>
+    <AdminDashboard> 
       <div className="p-8">
         <div className="flex justify-center mb-5">
-          <h1 className="text-xl font-medium">Audit Reports</h1>
+          <h1 className="text-xl font-medium">Audit Reports  <span>({category})</span> </h1>
         </div>
 
         <Steps current={currentStep}>
