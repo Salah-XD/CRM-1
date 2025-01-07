@@ -18,9 +18,9 @@ const CheckListCategorySchema = new Schema(
 );
 
 // Models
-const CheckListCategoryModel = mongoose.model(
+const CheckListCategory = mongoose.model(
   "CheckListCategory",
   CheckListCategorySchema
 );
 
-export default CheckListCategoryModel;
+export default CheckListCategory;
