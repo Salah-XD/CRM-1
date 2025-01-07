@@ -5,7 +5,7 @@ import { User, userRoles } from "../models/usersModel.js";
 import AuditManagement from "../models/auditMangement.js";
 import Question from "../models/questionSchema.js";
 import Label from "../models/labelModel.js";
-import CheckListCategoryModel from "../models/checkListCategoryModel.js";
+import CheckListCategoryModels from "../models/checkListCategoryModel.js";
 import AuditResponse from "../models/auditReponseModel.js";
 import {
   uploadToCloudinary,
@@ -630,15 +630,15 @@ export const createCheckListCategory = async (req, res) => {
     }
 
     // Check if a category with the same name already exists
-    const existingCategory = await CheckListCategoryModel.findOne({ name });
+    const existingCategory = await CheckListCategoryModels.findOne({ name });
     if (existingCategory) {
       return res
         .status(400)
         .json({ message: "Category with this name already exists" });
     }
 
-    // Assuming your Mongoose model is named CheckListCategoryModel
-    const category = new CheckListCategoryModel({ name });
+    // Assuming your Mongoose model is named CheckListCategoryModels
+    const category = new CheckListCategoryModels({ name });
     await category.save();
 
     res.status(201).json({
@@ -720,7 +720,7 @@ export const fetchAllChecklistCategories = async (req, res) => {
   try {
     //fetch alll the checklist categories
 
-    const checklistCategories = await CheckListCategoryModel.find();
+    const checklistCategories = await CheckListCategoryModels.find();
 
     res.status(200).json(checklistCategories);
   } catch (error) {

@@ -94,7 +94,7 @@ export const loginUser = async (req, res) => {
         _id: user._id // Include the actual user ObjectId in the payload
       },
       JWT_SECRET,
-      { expiresIn: "1h" } // Token expiry time
+      { expiresIn: "6h" } // Token expiry time
     );
 
     res.status(200).json({ success: true, token });
