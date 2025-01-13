@@ -7,6 +7,7 @@ import {
   Table,
   message,
   Select,
+  Spin,
   Button,
 } from "antd";
 import axios from "axios";
@@ -40,6 +41,7 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [loadingOutlets, setLoadingOutlets] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -114,7 +116,11 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
         })
         .catch((error) => {
           console.error("Error fetching outlets:", error);
+        })
+        .finally(() => {
+          setLoadingOutlets(false);
         });
+
       // Fetch proposal data to initialize the form
       axios
         .get(`/api/invoice/getProposalById/${proposalId}`)
@@ -462,21 +468,22 @@ const GenerateInvoiceModal = ({ visible, onOk, onCancel, proposalId }) => {
               <div className="text-center font-medium text-xl mb-5 rounded-md">
                 Select Outlets
               </div>
-              <Table
-                rowSelection={{
-                  type: "checkbox",
-                  onSelect: handleSelect,
-                  onSelectAll: handleSelectAll,
-                  getCheckboxProps: (record) => ({
-                    disabled: record.is_invoiced, // Disable row if 'is_invoiced' is true
-                  }),
-                }}
-                dataSource={outlets}
-                columns={outletsColumns}
-                rowKey="_id" // Ensure each row has a unique key (use _id here)
-                pagination={false}
-              />
-
+              <Spin spinning={loadingOutlets}>
+                <Table
+                  rowSelection={{
+                    type: "checkbox",
+                    onSelect: handleSelect,
+                    onSelectAll: handleSelectAll,
+                    getCheckboxProps: (record) => ({
+                      disabled: record.is_invoiced, // Disable row if 'is_invoiced' is true
+                    }),
+                  }}
+                  dataSource={outlets}
+                  columns={outletsColumns}
+                  rowKey="_id" // Ensure each row has a unique key (use _id here)
+                  pagination={false}
+                />
+              </Spin>
               <div className="text-center mt-4">
                 <Button
                   className="bg-buttonModalColor  text-white rounded"

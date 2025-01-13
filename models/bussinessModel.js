@@ -82,7 +82,7 @@ const businessSchema = new Schema({
   },
   customer_type: {
     type: String,
-    enum: ["MU", "Non-MU"],
+    enum: ["MOU", "Non-MOU"],
   },
 });
 

@@ -45,7 +45,7 @@ router.put("/updateProposalStatus/:proposalId", verifyToken, updateProposalStatu
 
 router.get("/getProposalById/:proposalId", getProposalById);
 
-router.get("/proposalCount",verifyToken, proposalCount);
+router.get("/proposalCount", proposalCount);
 
 router.get("/getFilteredInvoices/:invoiceId", getFilteredInvoices);
 

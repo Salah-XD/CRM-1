@@ -54,6 +54,7 @@ const UpdateBusinessDetail = ({
   const [isEditable, setIsEditable] = useState(false);
   const [showUpdateButtons, setShowUpdateButtons] = useState(false);
   const [isGstEnabled, setIsGstEnabled] = useState(true); // New state for GST checkbox
+  const [buttonLoading, setButtonLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
@@ -114,6 +115,7 @@ const UpdateBusinessDetail = ({
   }, [id, setBusinessId]);
 
   const handleSubmit = async (values) => {
+    setButtonLoading(true);
     try {
       const requestData = { ...values };
 
@@ -142,6 +144,8 @@ const UpdateBusinessDetail = ({
     } catch (error) {
       message.error("Error updating business data");
       console.error("Error: ", error);
+    } finally {
+      setButtonLoading(false);
     }
   };
 
@@ -285,20 +289,19 @@ const UpdateBusinessDetail = ({
             />
           </Form.Item>
           <Form.Item
-              label="Customer Type"
-                className="w-1/4"
-              name="customer_type"
-              initialValue={initialValues?.customer_type}
-              rules={[
-                { required: true, message: "Please select the customer type" },
-              ]}
-            >
-              <Select disabled={!isEditable}>
-                <Option value="MU">MU</Option>
-                <Option value="Non-MU">Non-MU</Option>
-      
-              </Select>
-            </Form.Item>
+            label="Customer Type"
+            className="w-1/4"
+            name="customer_type"
+            initialValue={initialValues?.customer_type}
+            rules={[
+              { required: true, message: "Please select the customer type" },
+            ]}
+          >
+            <Select disabled={!isEditable}>
+              <Option value="MOU">MU</Option>
+              <Option value="Non-MOU">Non-MU</Option>
+            </Select>
+          </Form.Item>
           <Form.Item
             name="place_of_supply"
             className="w-1/4"
@@ -318,6 +321,28 @@ const UpdateBusinessDetail = ({
                   {state}
                 </Option>
               ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="type_of_industry"
+            className="w-1/4"
+            label={
+              <span className="text-gray-600 font-semibold">
+                Type of Industry
+              </span>
+            }
+          >
+            <Select
+              placeholder="Select Type of Industry"
+              size="large"
+              mode="multiple"
+              disabled={!isEditable}
+            >
+              <Option value="Catering">Catering</Option>
+              <Option value="Manufacturing">Manufacturing</Option>
+              <Option value="Trade and retail">Trade and Retail</Option>
+              <Option value="Transportation">Transportation</Option>
             </Select>
           </Form.Item>
           <Form.Item
@@ -352,28 +377,6 @@ const UpdateBusinessDetail = ({
               <Option value="Institute Canteen">Institute Canteen</Option>
               <Option value="Industrial Canteen">Industrial Canteen</Option>
               <Option value="Temple Kitchen">Temple Kitchen</Option>
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name="type_of_industry"
-            className="w-1/4"
-            label={
-              <span className="text-gray-600 font-semibold">
-                Type of Industry
-              </span>
-            }
-          >
-            <Select
-              placeholder="Select Type of Industry"
-              size="large"
-              mode="multiple"
-              disabled={!isEditable}
-            >
-              <Option value="Catering">Catering</Option>
-              <Option value="Manufacturing">Manufacturing</Option>
-              <Option value="Trade and retail">Trade and Retail</Option>
-              <Option value="Transportation">Transportation</Option>
             </Select>
           </Form.Item>
 
@@ -417,7 +420,6 @@ const UpdateBusinessDetail = ({
                 disabled={!isEditable}
               />
             </Form.Item>
-         
           </div>
         </div>
         <div
@@ -428,10 +430,10 @@ const UpdateBusinessDetail = ({
           }`}
         >
           <Form.Item>
-            <Button type="primary" className="ml-6" htmlType="submit">
+            <Button type="primary" className="ml-6" loading={buttonLoading} htmlType="submit">
               Update
             </Button>
-            <Button type="primary" className="ml-6" onClick={handleCancel}>
+            <Button type="primary" className="ml-6"disabled={buttonLoading} onClick={handleCancel}>
               Cancel
             </Button>
           </Form.Item>

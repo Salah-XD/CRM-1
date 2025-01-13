@@ -1,22 +1,21 @@
-import React, { useState, useRef,useEffect} from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button, message, Steps, theme } from "antd";
 import BusinessDetail from "./BussinessDetail";
 import OutletDetail from "./OutletDetail";
 import QuestionnairesForm from "./QuestionnairesForm";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Helmet } from 'react-helmet';
+import { Helmet } from "react-helmet";
 
 import axios from "axios";
 
-const AddClientForm = ({ newClientTitle,title }) => {
+const AddClientForm = ({ newClientTitle, title }) => {
   const [current, setCurrent] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     businessDetail: {},
     outletDetail: { items: [] },
     questionnairesDetail: {},
   });
-
-
 
   const businessDetailRef = useRef();
   const outletDetailRef = useRef();
@@ -32,7 +31,6 @@ const AddClientForm = ({ newClientTitle,title }) => {
       window.scrollTo(0, 0);
     }
   }, [current]);
-
 
   const next = () => {
     if (current === 0) {
@@ -84,29 +82,30 @@ const AddClientForm = ({ newClientTitle,title }) => {
   };
 
   const handleSubmit = async (data) => {
+    setLoading(true); // Start loading indicator
     try {
       const businessResponse = await axios.post(
         "/api/saveClientData",
         data.businessDetail
       );
-
+  
       const businessData = businessResponse.data.data;
       const businessId = businessData._id;
-
+  
       const outletPromises = data.outletDetail.items.map((outlet) =>
         axios.post("/api/saveOutlet", {
           ...outlet,
           business: businessId,
         })
       );
-
+  
       await Promise.all(outletPromises);
-
+  
       await axios.post("/api/saveQuestionary", {
         ...data.questionnairesDetail,
         business: businessId,
       });
-
+  
       message.success("Client Added Successfully!");
       if (location.pathname === "/client-onboarding") {
         navigate("/client-success");
@@ -116,12 +115,14 @@ const AddClientForm = ({ newClientTitle,title }) => {
     } catch (error) {
       console.error("Error during submission process:", error);
       message.error("An error occurred during the submission.");
+    } finally {
+      setLoading(false); // Stop loading indicator
     }
   };
+  
 
-    const baseDivStyle =
-      location.pathname === "/client-onboarding" ? { marginLeft: 220 } : {};
-
+  const baseDivStyle =
+    location.pathname === "/client-onboarding" ? { marginLeft: 220 } : {};
 
   const steps = [
     {
@@ -172,8 +173,8 @@ const AddClientForm = ({ newClientTitle,title }) => {
 
   return (
     <>
-    <Helmet>
-    <title>{title || "Add Client"}</title>
+      <Helmet>
+        <title>{title || "Add Client"}</title>
       </Helmet>
       <div className="top-0 z-50 bg-white">
         <div className="mb-10 border shadow-bottom px-4 py-4 flex items-center">
@@ -196,19 +197,19 @@ const AddClientForm = ({ newClientTitle,title }) => {
       <div className="sticky bottom-0  z-50 bg-white w-full p-8 flex justify-start shadow-top">
         <div style={baseDivStyle}>
           <div>
+            {current > 0 && (
+              <Button disabled={loading} style={{ margin: "0 8px" }} onClick={prev}>
+                Previous
+              </Button>
+            )}
             {current < steps.length - 1 && (
               <Button type="primary" onClick={next}>
                 Next
               </Button>
             )}
             {current === steps.length - 1 && (
-              <Button type="primary" onClick={next}>
+              <Button type="primary" loading={loading} onClick={next}>
                 Submit
-              </Button>
-            )}
-            {current > 0 && (
-              <Button style={{ margin: "0 8px" }} onClick={prev}>
-                Previous
               </Button>
             )}
           </div>

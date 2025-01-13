@@ -4,8 +4,9 @@ import {
   Input,
   Button,
   Typography,
+  Spin,
   Form,
-  message as antdMessage,
+  message as antdMessage, 
 } from "antd";
 import { CopyOutlined } from "@ant-design/icons";
 import toast from "react-hot-toast";
@@ -28,6 +29,7 @@ const SendMailModal = ({ visible, onCancel, onSuccess }) => {
   };
 
   const fetchCustomMessage = async () => {
+    setLoading(true);
     try {
       const response = await axios.get(
         "api/setting/getSetting/66c41b85dedfff785c08df21"
@@ -39,6 +41,8 @@ const SendMailModal = ({ visible, onCancel, onSuccess }) => {
     } catch (error) {
       console.error("Error fetching custom message:", error);
       antdMessage.error("Failed to fetch custom message.");
+    }finally{
+      setLoading(false);
     }
   };
 
@@ -86,6 +90,7 @@ const SendMailModal = ({ visible, onCancel, onSuccess }) => {
   };
 
   return (
+    <Spin spinning={loading}>
     <Modal
       title="Send Mail"
       visible={visible}
@@ -166,12 +171,14 @@ const SendMailModal = ({ visible, onCancel, onSuccess }) => {
           <Button
             className="border-primary text-primary border-2 font-semibold"
             onClick={onCancel}
+            disabled={loading}
           >
             Cancel
           </Button>
         </div>
       </Form>
     </Modal>
+    </Spin>
   );
 };
 

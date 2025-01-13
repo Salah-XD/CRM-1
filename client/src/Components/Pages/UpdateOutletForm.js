@@ -261,9 +261,14 @@ const UpdateOutletForm = ({
             name="gst_number"
             rules={[
               {
-                pattern: /^[A-Za-z0-9]{14}$/,
-                message: "GST number must be 14 alphanumeric characters",
+               
+                message: "Please enter GST number",
               },
+              {
+                pattern: /^[A-Za-z0-9]{15}$/,
+                message: "GST number must be 15 alphanumeric characters",
+              },
+            
             ]}
           >
             <Input

@@ -53,6 +53,7 @@ const BusinessDetail = forwardRef(
     const [form] = Form.useForm();
     const location = useLocation();
     const [isGstEnabled, setIsGstEnabled] = useState(data.enable_gst ?? true);
+    
 
     useEffect(() => {
       form.setFieldsValue(data);
@@ -246,8 +247,8 @@ const BusinessDetail = forwardRef(
               ]}
             >
               <Select placeholder="Select customer type">
-                <Option value="MU">MU</Option>
-                <Option value="Non-MU">Non-MU</Option>
+                <Option value="MOU">MOU</Option>
+                <Option value="Non-MOU">Non-MOU</Option>
               </Select>
             </Form.Item>
             <Form.Item

@@ -13,6 +13,13 @@ import auditorRoutes from "./routes/auditorRoutes.js"
 import settingRoutes from "./routes/settingRoutes.js"
 import { v2 as cloudinary } from 'cloudinary';
 
+
+// import fs from 'fs';
+
+// fs.readdirSync('./models').forEach(file => {
+//   console.log(file);
+// });
+
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.API_KEY,

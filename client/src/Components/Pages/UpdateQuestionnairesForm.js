@@ -20,6 +20,7 @@ const UpdateQuestionnairesForm = () => {
       : "ml-6";
 
   const fetchFormData = async () => {
+
     try {
       const response = await axios.get(`/api/getQuestionaryByBusiness/${id}`);
       if (response.data?.success) {
@@ -46,7 +47,7 @@ const UpdateQuestionnairesForm = () => {
   }, [formData, form]);
 
   const handleFinish = async (values) => {
-    console.log("Form values: ", values);
+   setIsUpdating(true); // Set loading state to true
     setIsUpdating(true); // Set loading state to true
     try {
       const response = await axios.put(`/api/updateQuestionary/${id}`, values);
@@ -173,10 +174,10 @@ const UpdateQuestionnairesForm = () => {
           }`}
         >
           <Form.Item>
-            <Button type="primary" className="ml-6" htmlType="submit">
+            <Button type="primary" className="ml-6" loading={isUpdating} htmlType="submit">
               Update
             </Button>
-            <Button type="primary" className="ml-6" onClick={handleCancel} >
+            <Button type="primary" className="ml-6" disabled={isUpdating} onClick={handleCancel} >
               Cancel
             </Button>
           </Form.Item>

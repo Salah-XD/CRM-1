@@ -60,6 +60,7 @@ const GenerateProposalModal = ({
   const [prosposalId, setPropsalId] = useState();
   const [representaive, setRepesentaive] = useState([]);
   const [isFetching, setIsFetching] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [checkState, setCheckState] = useState("");
   const [sameState, setSameState] = useState(true);
   const handleCancel = () => {
@@ -221,6 +222,7 @@ const GenerateProposalModal = ({
   }, [visible, enquiryId, form, checkState]);
 
   const handleSubmit = async () => {
+    setLoading(true);
     try {
       // Validate form fields before submission
       await form.validateFields();
@@ -260,6 +262,8 @@ const GenerateProposalModal = ({
       message.success("Proposal generated and status updated successfully!");
     } catch (error) {
       message.error("Failed to generate proposal or update status.");
+    }finally{
+      setLoading(false);
     }
   };
 
@@ -878,7 +882,7 @@ const GenerateProposalModal = ({
               <div className="text-center mt-4">
                 <button
                   className="bg-buttonModalColor px-4 py-2 text-white rounded"
-                  htmlType="submit"
+                  htmlType="submit"  loading={loading}
                 >
                   Generate
                 </button>

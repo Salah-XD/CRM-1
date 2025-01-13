@@ -291,7 +291,7 @@ const ViewProposal = () => {
                   proposalData.contact_person
                 }<br />
                 <span class="font-medium">Contact Person Number: </span>${
-                  proposalData.contact_person
+                  proposalData.phone
                 }<br />
                 <span class="font-medium">FBO Address: </span>${
                   proposalData.address.line1 + "," + proposalData.address.line2

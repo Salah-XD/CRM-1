@@ -38,6 +38,11 @@ import MailSettingForm from "./Components/Pages/MailSettingForm"; // Update as p
 import MailSettingCC from "./Components/Pages/MailSettingCC"; // Update as per file path
 import UserListSetting from "./Components/Pages/UserListSetting"; // Update as per file path
 import FormLinkMailSetting from "./Components/Pages/FormLinkMailSetting";
+import EmployeeWorkForm from "./Components/Layout/EmployeeWorkForm";
+import EmployeeDashboard from "./Components/Layout/EmployeeDashboard";
+import PaymentFomWithTable from "./Components/Layout/PaymentFomWithTable";
+import InvoiceManagement from "./Components/Layout/InvoiceManagement";
+
 import {
   AccountAdminRoute,
   AuditAdminRoute,
@@ -45,15 +50,20 @@ import {
 import AuditTrack from "./Components/Pages/AuditorTrack";
 
 function App() {
+
   return (
     <>
       <Routes>
         <Route path="/" element={<LoginPage />} />
+        <Route path="/emp-form" element={<EmployeeWorkForm />} />
+        <Route path="/emp-dashboard" element={<EmployeeDashboard />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         <Route path="/dashboard" element={<Dashboard />} />
 
         <Route path="/audit-track" element={<AuditTrack />} />
+        <Route path="/payment-form" element={<PaymentFomWithTable />} />
+        <Route path="/invoice-mangement" element={<InvoiceManagement />} />
 
         <Route element={<AccountAdminRoute />}>
         {/* Main Tables */}

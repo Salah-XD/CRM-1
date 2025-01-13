@@ -1331,71 +1331,100 @@ export const getAuditorAuditCounts = async (req, res) => {
         .json({ message: "Invalid page or pageSize parameter" });
     }
 
-    // Fetch all auditors (user with role "AUDITOR")
-    const totalAuditors = await User.find({ role: "AUDITOR" }).select(
-      "userName"
-    );
-    console.log("Auditors Found:", totalAuditors);
+    // Base match filter
+    const matchFilter = {
+      status: { $ne: "assigned" }, // Exclude "assigned" audits
+    };
 
-    // Create the base query for AuditManagement
-    let query = AuditManagement.find()
-      .populate("user", "userName role") // Populate the user details
-      .where("status")
-      .ne("assigned"); // Exclude audits with status "assigned"
-
-    // Apply search filter if keyword is provided (search by userName)
+    // Add keyword search to the filter
     if (keyword) {
       const searchRegex = new RegExp(keyword, "i");
-      query = query.where("user.userName").regex(searchRegex); // Search by userName
+      matchFilter["userName"] = searchRegex; // Filter by userName
     }
 
-    // Fetch the audits with pagination
-    const audits = await query.select(
-      "user proposalId outletId status assigned_date"
-    ); // Select relevant fields for efficiency
-    console.log("Audits Found:", audits);
+    // Aggregation pipeline for fetching audits
+    const pipeline = [
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: "$user" },
+      {
+        $addFields: {
+          lastStatus: { $arrayElemAt: ["$statusHistory", -1] }, // Get the last entry in statusHistory
+        },
+      },
+      {
+        $group: {
+          _id: "$user.userName",
+          totalAssigned: {
+            $sum: {
+              $cond: [
+                { $eq: [{ $size: "$statusHistory" }, 0] }, // Check if statusHistory is empty
+                1,
+                0,
+              ],
+            },
+          },
+          totalDraft: {
+            $sum: {
+              $cond: [{ $eq: ["$lastStatus.status", "draft"] }, 1, 0],
+            },
+          },
+          totalModified: {
+            $sum: {
+              $cond: [{ $eq: ["$lastStatus.status", "modified"] }, 1, 0],
+            },
+          },
+          totalSubmitted: {
+            $sum: {
+              $cond: [{ $eq: ["$lastStatus.status", "submitted"] }, 1, 0],
+            },
+          },
+          totalApproved: {
+            $sum: {
+              $cond: [{ $eq: ["$lastStatus.status", "approved"] }, 1, 0],
+            },
+          },
+          totalStarted: {
+            $sum: {
+              $cond: [{ $eq: ["$lastStatus.status", "started"] }, 1, 0],
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          userName: "$_id",
+          totalAssigned: 1,
+          totalDraft: 1,
+          totalModified: 1,
+          totalSubmitted: 1,
+          totalApproved: 1,
+          totalStarted: 1,
+        },
+      },
+      {
+        $skip: (pageNumber - 1) * sizePerPage,
+      },
+      {
+        $limit: sizePerPage,
+      },
+    ];
 
-    // Create a count object to track counts per user
-    const userAuditCounts = {};
+    // Fetch the aggregated audit counts
+    const auditorCounts = await AuditManagement.aggregate(pipeline);
 
-    audits.forEach((audit) => {
-      const userName = audit.user?.userName || "Unknown"; // Safeguard for cases with no user info
+    // Fetch total auditor count for pagination
+    const totalAuditors = await User.countDocuments({ role: "AUDITOR" });
 
-      // If this user hasn't been counted yet, initialize their data
-      if (!userAuditCounts[userName]) {
-        userAuditCounts[userName] = {
-          userName,
-          totalAssigned: 0,
-          totalSubmitted: 0,
-          totalModified: 0,
-          totalApproved: 0,
-        };
-      }
-
-      // Increment the counts based on the audit's status
-      if (audit.status === "assigned") {
-        userAuditCounts[userName].totalAssigned++;
-      }
-      if (audit.status === "submitted") {
-        userAuditCounts[userName].totalSubmitted++;
-      }
-      if (audit.status === "rejected") {
-        userAuditCounts[userName].totalModified++;
-      }
-      if (audit.status === "approved") {
-        userAuditCounts[userName].totalApproved++;
-      }
-    });
-
-    // Log the aggregated user counts for debugging
-    console.log("Aggregated Counts:", userAuditCounts);
-
-    // Convert the counts object into an array to send in the response
-    const auditorCounts = Object.values(userAuditCounts);
-
-    // Return the response with pagination information and auditor counts
     res.json({
-      total: totalAuditors.length,
+      total: totalAuditors,
       currentPage: pageNumber,
       data: auditorCounts,
     });

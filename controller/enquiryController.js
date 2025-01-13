@@ -67,6 +67,7 @@ export const getAllEnquiryDetails = async (req, res) => {
     if (businessIds.length > 0) {
       enquiryQuery.business = { $in: businessIds };
     }
+    
 
     // Add sorting based on the sort parameter
     let sortQuery = {};

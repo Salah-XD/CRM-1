@@ -168,7 +168,16 @@ const OutletForm = ({
           label={
             <span className="text-gray-600 font-semibold">GST Number</span>
           }
-        
+          rules={[
+            {
+              
+              message: "Please enter GST number",
+            },
+            {
+              pattern: /^[A-Za-z0-9]{15}$/,
+              message: "GST number must be 15 alphanumeric characters",
+            },
+          ]}
         >
           <Input
             placeholder="Enter your GST number"
