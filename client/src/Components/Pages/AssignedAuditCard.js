@@ -213,6 +213,7 @@ const AuditDetails = () => {
                     auditNumber={audit.audit_number}
                     id={audit._id}
                     route="assigned-audit"
+                    service={audit.service}
                   />
                 </div>
               ))}

@@ -76,9 +76,9 @@ const AuditForm = () => {
         audit_id: params.audit_id,
         checkListId: auditData.checkListId._id,
       };
-  
+
       console.log("This is the payload", payload);
-  
+
       // Use `POST` to send the payload as the request body
       const response = await axios.post(
         `/api/auditor/generateAuditReport`,
@@ -87,23 +87,23 @@ const AuditForm = () => {
           responseType: "blob", // Specify the response is a file (PDF)
         }
       );
-  
+
       console.log("This is the response");
-  
+
       // Create a Blob from the PDF Stream
       const file = new Blob([response.data], { type: "application/pdf" });
-  
+
       // Create a link element
       const link = document.createElement("a");
       link.href = URL.createObjectURL(file);
-  
+
       // Set the file name for the download
       link.download = "audit-report.pdf";
-  
+
       // Append the link to the body and trigger a click event to download the file
       document.body.appendChild(link);
       link.click();
-  
+
       // Clean up
       document.body.removeChild(link);
     } catch (error) {
@@ -112,7 +112,6 @@ const AuditForm = () => {
       setLoading(false); // Stop loading
     }
   };
-  
 
   const handleModalOk = async () => {
     try {
@@ -260,6 +259,9 @@ const AuditForm = () => {
     form.submit(); // Trigger form submission
   };
 
+  //check if checklist is not in assigned  route
+  const isCheckListAssignedRoute = firstSegment === "assigned-audit";
+
   //Hiding and showing
   const isApprovedOrSubmitted =
     firstSegment === "approved" || firstSegment === "submittedForApproval";
@@ -282,6 +284,8 @@ const AuditForm = () => {
   };
 
   const isUserAuditor = user?.role === "AUDITOR";
+
+  const isUserAuditAdmin = user?.role === "AUDIT_ADMIN" || user?.role === "SUPER_ADMIN";
 
   // Check if the user role is 'Auditor' and firstSegment is 'assigned_audit'
   const shouldShowStartAuditButton =
@@ -319,8 +323,8 @@ const AuditForm = () => {
 
   const menu = (
     <Menu onClick={handleMenuClick}>
-      <Menu.Item key="edit">Edit</Menu.Item>
-      <Menu.Item key="delete">Delete</Menu.Item>
+      <Menu.Item disabled={!isUserAuditAdmin} key="edit">Edit</Menu.Item>
+      <Menu.Item  disabled={!isUserAuditAdmin} key="delete">Delete</Menu.Item>
     </Menu>
   );
 
@@ -328,7 +332,7 @@ const AuditForm = () => {
     // Toggle the isEditable state
     setIsEditable((prevState) => !prevState);
     console.log("Editable state toggled:", !isEditable);
-  };
+  }
 
   return (
     <AdminDashboard>
@@ -435,6 +439,18 @@ const AuditForm = () => {
                       <Input placeholder="02" disabled />
                     </Form.Item>
                   </Col>
+                  {!isCheckListAssignedRoute && (
+                    <Col span={12}>
+                      <Form.Item label="Checklist Category">
+                        <Input
+                          value={auditData.checkListId?.name || "N/A"} // Dynamically display checklist name or "N/A" if not available
+                          placeholder="02" // Default placeholder, can be adjusted if needed
+                          disabled // Keeps the field read-only
+                        />
+                      </Form.Item>
+                    </Col>
+                  )}
+
                   <Col span={24}>
                     <div className="flex mt-4">
                       <div>

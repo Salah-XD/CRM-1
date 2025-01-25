@@ -38,6 +38,7 @@ function AuditReport() {
   const [form] = Form.useForm();
   const [isEditing, setIsEditing] = useState({}); // Track editing state for each section
   const location = useLocation();
+  const [deletedImages, setDeletedImages] = useState([]);    
   const [searchParams] = useSearchParams();
 
   const checklistId = searchParams.get("checklistId");
@@ -104,79 +105,62 @@ function AuditReport() {
 
   const handleUpdateSection = async (sectionIndex) => {
     const sectionResponses = form.getFieldValue("responses");
-    console.log("sectionResponses:", sectionResponses);
-
+  
     try {
       setLoading(true);
-
-      // Prepare FormData
+  
       const formData = new FormData();
-
-      // Prepare the response objects with files
-      const updatedResponses = sections[sectionIndex].questions.map(
-        (question) => {
-          const questionId = question.questionId;
-          const fileEntry = fileLists[questionId]?.[0] || null;
-          console.log("File entry for question", questionId, fileEntry);
-
-          let file = sectionResponses[questionId]?.file || null;
-
-          // Handle file cases
-          if (Array.isArray(file)) {
-            file = file[0]?.url || null; // For arrays, get the URL
-          } else if (file && typeof file === "object") {
-            const fullFile = file.file || null;
-
-            console.log("this is the full file", fullFile);
-            if (fullFile) {
-              // Append file to FormData using originFileObj if available
-              formData.append("files", fullFile.originFileObj, fullFile.name); // Append actual file with its name
-            }
-            file = fullFile?.name || null; // Get file name
+  
+      const updatedResponses = sections[sectionIndex].questions.map((question) => {
+        const questionId = question.questionId;
+        const fileEntry = fileLists[questionId]?.[0] || null;
+  
+        let file = sectionResponses[questionId]?.file || null;
+  
+        if (Array.isArray(file)) {
+          file = file[0]?.url || null;
+        } else if (file && typeof file === "object") {
+          const fullFile = file.file || null;
+          if (fullFile) {
+            formData.append("files", fullFile.originFileObj, fullFile.name);
           }
-
-          // Return the structured response
-          return {
-            questionId,
-            comment: sectionResponses[questionId]?.comment || "",
-            selectedMark: sectionResponses[questionId]?.selectedMark || null,
-            file: file || null, // Use processed file
-          };
+          file = fullFile?.name || null;
         }
-      );
-
-      // Add structured data (e.g., comments, marks) to FormData
+  
+        return {
+          questionId,
+          comment: sectionResponses[questionId]?.comment || "",
+          selectedMark: sectionResponses[questionId]?.selectedMark || null,
+          file: file || null,
+        };
+      });
+  
+      // Add structured data to FormData
       const dataPayload = {
         auditId: params.audit_id,
         responses: updatedResponses,
+        deletedImages, // Add deletedImages to the payload
       };
       formData.append("data", JSON.stringify(dataPayload));
-
-      // Debugging FormData content
-      formData.forEach((value, key) => {
-        console.log(`FormData Key: ${key}, Value:`, value);
-      });
-
-      // Send FormData to backend
+  
       await axios.post(`/api/auditor/updateAuditResponses`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-
-      // Success feedback and state update
+  
       message.success("Section updated successfully!");
       toggleEditing(sectionIndex);
     } catch (error) {
       console.error("Error updating section:", error);
       message.error(
-        error.response?.data?.message ||
-          "An unexpected error occurred while updating the section."
+        error.response?.data?.message || "An error occurred while updating the section."
       );
     } finally {
       setLoading(false);
     }
   };
+  
 
   const goBack = () => {
     navigate(-1);
@@ -204,15 +188,31 @@ function AuditReport() {
   };
 
   const handleRemoveImage = (questionId) => {
+    console.log("hello");
     const updatedFileLists = { ...fileLists };
     const fileList = updatedFileLists[questionId];
+  
     if (fileList?.length > 0) {
-      URL.revokeObjectURL(fileList[0].url); // Revoke the URL to free memory
+      // Revoke the URL to free up memory
+      URL.revokeObjectURL(fileList[0]?.url);
+  
+      // Debugging: Check the questionId and image being flagged
+      console.log("Removing image for questionId:", questionId, "File:", fileList[0]);
+  
+      // Add the questionId to the deletedImages array
+      setDeletedImages((prev) => {
+        if (!prev.includes(questionId)) {
+          return [...prev, questionId];
+        }
+        return prev; // Avoid duplicates
+      });
     }
+  
+    // Clear the file list for the question
     updatedFileLists[questionId] = [];
     setFileLists(updatedFileLists);
   };
-
+  
   const handleBeforeUpload = (file) => {
     const isValidType = file.type === "image/jpeg" || file.type === "image/png";
     const isValidSize = file.size / 1024 / 1024 < 2; // 2MB

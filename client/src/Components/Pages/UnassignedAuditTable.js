@@ -47,6 +47,7 @@ const UnassignedAuditTable = () => {
   const [location, setLocation] = useState("");
   const [outletName, setOutletName] = useState("");
   const [fboName, setFboName] = useState("");
+  const [service, setService] = useState(""); 
   const [auditNumber, setAuditNumber] = useState("");
   const [selectedAuditor, setSelectedAuditor] = useState(null);
   const [proposalNumber, setProposalNumber] = useState("");
@@ -136,6 +137,7 @@ const UnassignedAuditTable = () => {
     setFboName(record.fbo_name);
     setAuditNumber(record.audit_number);
     setProposalNumber(record.proposal_number);
+    setService(record.service);
     setAuditModal(true);
   };
 
@@ -159,6 +161,7 @@ const UnassignedAuditTable = () => {
       status: "assigned",
       proposal_number: proposalNumber,
       location,
+      service
     };
 
     try {

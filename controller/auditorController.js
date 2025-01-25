@@ -109,6 +109,116 @@ const sendOutletData = async (outletData) => {
   }
 };
 
+// export const processProposalsWithOutlets = async (req, res) => {
+//   try {
+//     const { page = 1, pageSize = 10, sort, keyword } = req.query;
+
+//     // Convert page and pageSize to integers
+//     const pageNumber = parseInt(page, 10);
+//     const sizePerPage = parseInt(pageSize, 10);
+
+//     if (
+//       isNaN(pageNumber) ||
+//       pageNumber < 1 ||
+//       isNaN(sizePerPage) ||
+//       sizePerPage < 1
+//     ) {
+//       return res
+//         .status(400)
+//         .json({ message: "Invalid page or pageSize parameter" });
+//     }
+
+//     // Base query
+//     let query = Proposal.find().populate("enquiryId");
+
+//     // Apply search filter if a keyword is provided
+//     if (keyword) {
+//       const searchRegex = new RegExp(keyword, "i"); // Case-insensitive search
+//       query = query.where("fbo_name").regex(searchRegex);
+//     }
+
+//     // Sorting logic
+//     let sortQuery = {};
+//     switch (sort) {
+//       case "newproposal":
+//         sortQuery = { createdAt: -1 }; // Newest first
+//         break;
+//       case "oldproposal":
+//         sortQuery = { createdAt: 1 }; // Oldest first
+//         break;
+//       default:
+//         sortQuery = { createdAt: 1 }; // Default sorting (oldest first)
+//     }
+
+//     // Fetch all matching proposals
+//     const proposals = await query.sort(sortQuery);
+
+//     // Flatten all outlets into a single array
+//     const allOutlets = [];
+//     proposals.forEach((proposal) => {
+//       let auditCounter = 1; // Reset counter for each proposal
+//       proposal.outlets.forEach((outlet) => {
+//         let location = proposal.address?.line2
+//           ?.replace(/,/, "/")
+//           .replace(/\s+/g, "");
+
+//         // Filter outlets with description "Hygiene Rating" and unassigned auditors
+//         if (
+//           outlet.is_assignedAuditor === false &&
+//           outlet.description === "Hygiene Rating"
+//         ) {
+//           allOutlets.push({
+//             audit_number: `${auditCounter}`, // Include the audit counter in the response
+//             proposal_number: proposal.proposal_number,
+//             fbo_name: proposal.fbo_name,
+//             outlet_name: outlet.outlet_name,
+//             outlet_id: outlet._id,
+//             proposal_id: proposal._id,
+//             amount: outlet.amount,
+//             status: outlet.is_assignedAuditor,
+//             date_time: moment(proposal.createdAt).format(
+//               "MMMM Do YYYY, h:mm A" // Format: "November 22nd 2024, 3:45 PM"
+//             ),
+//             service: "Hygiene Rating", // Set service as "Hygiene Rating"
+//             location: location,
+//           });
+
+//           // Increment audit counter
+//         }
+
+//         if (outlet.description === "Hygiene Rating") {
+//           auditCounter++;
+//         }
+//       });
+//     });
+
+//     // Total number of outlets
+//     const totalOutlets = allOutlets.length;
+
+//     // Paginate outlets
+//     const paginatedOutlets = allOutlets.slice(
+//       (pageNumber - 1) * sizePerPage,
+//       pageNumber * sizePerPage
+//     );
+
+//     // Total pages
+//     const totalPages = Math.ceil(totalOutlets / sizePerPage);
+
+//     res.status(200).json({
+//       message: "Processed all proposals and outlets successfully",
+//       total: totalOutlets,
+//       totalpages: totalPages, // Correct total pages
+//       currentPage: pageNumber,
+//       data: paginatedOutlets,
+//     });
+//   } catch (error) {
+//     console.error("Error processing proposals and outlets:", error);
+//     res
+//       .status(500)
+//       .json({ message: "Error processing proposals and outlets", error });
+//   }
+// };
+
 export const processProposalsWithOutlets = async (req, res) => {
   try {
     const { page = 1, pageSize = 10, sort, keyword } = req.query;
@@ -163,10 +273,7 @@ export const processProposalsWithOutlets = async (req, res) => {
           .replace(/\s+/g, "");
 
         // Filter outlets with description "Hygiene Rating" and unassigned auditors
-        if (
-          outlet.is_assignedAuditor === false &&
-          outlet.description === "Hygiene Rating"
-        ) {
+        if (outlet.is_assignedAuditor === false) {
           allOutlets.push({
             audit_number: `${auditCounter}`, // Include the audit counter in the response
             proposal_number: proposal.proposal_number,
@@ -179,16 +286,15 @@ export const processProposalsWithOutlets = async (req, res) => {
             date_time: moment(proposal.createdAt).format(
               "MMMM Do YYYY, h:mm A" // Format: "November 22nd 2024, 3:45 PM"
             ),
-            service: "Hygiene Rating", // Set service as "Hygiene Rating"
+            service:outlet.description || "",
+
             location: location,
           });
 
           // Increment audit counter
         }
 
-        if (outlet.description === "Hygiene Rating") {
-          auditCounter++;
-        }
+        auditCounter++;
       });
     });
 
@@ -297,6 +403,7 @@ export const saveAuditRecord = async (req, res) => {
       location,
       audit_number,
       proposal_number,
+      service
     } = req.body;
 
     // Update the outlet to mark it as assigned to an auditor
@@ -333,6 +440,7 @@ export const saveAuditRecord = async (req, res) => {
       audit_number,
       user,
       proposal_number,
+      service
     });
 
     // Save the audit record to the database
@@ -409,6 +517,7 @@ export const getAudits = async (req, res) => {
       status_changed_at: audit.status_changed_at,
       createdAt: audit.createdAt,
       updatedAt: audit.updatedAt,
+      service:audit.service,
       __v: audit.__v,
     }));
 

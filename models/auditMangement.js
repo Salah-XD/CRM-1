@@ -89,6 +89,9 @@ const auditSchema = new mongoose.Schema(
     fssai_number: {
       type: String,
     },
+    service:{
+      type: String,
+    },
     fssai_image_url: {
       type: String,
     },
