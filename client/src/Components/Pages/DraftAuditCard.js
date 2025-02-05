@@ -203,6 +203,7 @@ const AuditDetails = () => {
                       date={new Date(audit.started_at).toLocaleDateString()}
                       proposalNumber={audit.proposal_number}
                       auditNumber={audit.audit_number}
+                      customer_type={audit.customer_type}
                       id={audit._id}
                       route="draft"
                     />

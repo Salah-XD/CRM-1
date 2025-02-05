@@ -206,6 +206,7 @@ const AuditDetails = () => {
                       proposalNumber={audit.proposal_number}
                       auditNumber={audit.audit_number}
                       id={audit._id}
+                      customer_type={audit.customer_type}
                       route="submittedForApproval"
                     />
                   </div>

@@ -13,7 +13,8 @@ const AuditCard = ({
   auditNumber,
   id,
   route,
-  service="TPA", // Add service prop
+  customer_type,
+  service
 }) => {
   const navigate = useNavigate();
 
@@ -38,15 +39,15 @@ const AuditCard = ({
     }
   };
 
-  // const service1="Hygiene Rating"; // Add service1 variable
+
 
   // Function to determine the border color based on the service
-  const getBorderColor = (service) => {
-    switch (service) {
-      case "TPA":
+  const getBorderColor = (customer_type) => {
+    switch (customer_type) {
+      case "MOU":
         return "border-green-500";
-      case "Hygiene Rating":
-        return "border-green-500";
+      case "Non-MOU":
+        return "border-blue-500";
       default:
         return "border-gray-300";
     }
@@ -55,7 +56,7 @@ const AuditCard = ({
   return (
     <div
       className={`audit-card p-4 md:w-72 bg-white shadow-lg rounded-lg cursor-pointer hover:shadow-xl transition-shadow duration-200 border-2 ${getBorderColor(
-        service
+        customer_type
       )}`}
       onClick={handleClick}
     >

@@ -36,7 +36,10 @@ const auditSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "CheckListCategory",
     },
-
+    customer_type: {
+      type: String,
+      enum: ["MOU", "Non-MOU"],
+    },
     assigned_date: {
       type: Date,
       default: Date.now,
@@ -89,7 +92,7 @@ const auditSchema = new mongoose.Schema(
     fssai_number: {
       type: String,
     },
-    service:{
+    service: {
       type: String,
     },
     fssai_image_url: {

@@ -283,10 +283,11 @@ export const processProposalsWithOutlets = async (req, res) => {
             proposal_id: proposal._id,
             amount: outlet.amount,
             status: outlet.is_assignedAuditor,
+            customer_type: proposal.customer_type,
             date_time: moment(proposal.createdAt).format(
               "MMMM Do YYYY, h:mm A" // Format: "November 22nd 2024, 3:45 PM"
             ),
-            service:outlet.description || "",
+            service: outlet.description || "",
 
             location: location,
           });
@@ -403,7 +404,8 @@ export const saveAuditRecord = async (req, res) => {
       location,
       audit_number,
       proposal_number,
-      service
+      service,
+      customer_type,
     } = req.body;
 
     // Update the outlet to mark it as assigned to an auditor
@@ -440,7 +442,8 @@ export const saveAuditRecord = async (req, res) => {
       audit_number,
       user,
       proposal_number,
-      service
+      service,
+      customer_type,
     });
 
     // Save the audit record to the database
@@ -515,9 +518,10 @@ export const getAudits = async (req, res) => {
       location: audit.location,
       audit_number: audit.audit_number,
       status_changed_at: audit.status_changed_at,
+      customer_type: audit.customer_type,
       createdAt: audit.createdAt,
       updatedAt: audit.updatedAt,
-      service:audit.service,
+      service: audit.service,
       __v: audit.__v,
     }));
 

@@ -298,8 +298,8 @@ const UpdateBusinessDetail = ({
             ]}
           >
             <Select disabled={!isEditable}>
-              <Option value="MOU">MU</Option>
-              <Option value="Non-MOU">Non-MU</Option>
+              <Option value="MOU">MOU</Option>
+              <Option value="Non-MOU">Non-MOU</Option>
             </Select>
           </Form.Item>
           <Form.Item

@@ -63,6 +63,7 @@ const GenerateProposalModal = ({
   const [loading, setLoading] = useState(false);
   const [checkState, setCheckState] = useState("");
   const [sameState, setSameState] = useState(true);
+  const [customerType, setCustomerType] = useState(""); 
   const handleCancel = () => {
     setItems([]);
     setItems([
@@ -165,6 +166,9 @@ const GenerateProposalModal = ({
           );
           const businessData = response.data;
 
+          
+          setCustomerType(businessData.customer_type)
+        
           setEmail(businessData.email);
 
           const addressLine1 = businessData.address?.line1 || "";
@@ -178,6 +182,8 @@ const GenerateProposalModal = ({
 
           // Concatenate city and state if both exist
           const line2 = [city, state].filter(Boolean).join(", ");
+
+          
 
           form.setFieldsValue({
             fbo_name: businessData.name,
@@ -238,6 +244,7 @@ const GenerateProposalModal = ({
         email: email,
         same_state: sameState,
         service: service,
+        customer_type:customerType
       };
 
       // Make POST request to create proposal

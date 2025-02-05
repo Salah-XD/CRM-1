@@ -25,7 +25,7 @@ router.post("/createProposalAndOutlet", verifyToken, createProposalAndOutlet);
 
 router.get(
   "/getBusinessDetailsByEnquiryId/:enquiryId",
-  verifyToken,
+  
   getBusinessDetailsByEnquiryId
 );
 

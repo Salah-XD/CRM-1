@@ -11,7 +11,7 @@ const outletSchema = new Schema({
     type: Number,
     default: 0,
   },
- 
+
   description: {
     type: String,
   },
@@ -42,10 +42,10 @@ const outletSchema = new Schema({
     type: Boolean,
     default: false,
   },
-  is_assignedAuditor:{
-    type:Boolean,
+  is_assignedAuditor: {
+    type: Boolean,
     default: false,
-  }
+  },
 });
 
 const proposalSchema = new Schema(
@@ -55,8 +55,8 @@ const proposalSchema = new Schema(
       ref: "Enquiry", // Correct reference to the Enquiry model
       required: true,
     },
-    representative:{
-       type: Schema.Types.ObjectId,
+    representative: {
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
@@ -122,16 +122,20 @@ const proposalSchema = new Schema(
     message: {
       type: String,
     },
-    same_state:{
-      type:Boolean,
-      require:true
+    same_state: {
+      type: Boolean,
+      require: true,
     },
-    note:{
-      type:String
+    note: {
+      type: String,
     },
-    service:{
-      type:String
-    }
+    service: {
+      type: String,
+    },
+    customer_type: {
+      type: String,
+      enum: ["MOU", "Non-MOU"],
+    },
   },
   {
     timestamps: true,

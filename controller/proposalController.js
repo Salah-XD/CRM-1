@@ -86,7 +86,7 @@ export const getBusinessDetailsByEnquiryId = async (req, res) => {
     // Find the business by ID
     const business = await Business.findOne(
       { _id: businessId },
-      "name address  gst_number contact_person phone email"
+      "name address  gst_number contact_person phone email customer_type"
     );
     if (!business) {
       return res.status(404).json({ message: "Business not found" });
@@ -125,6 +125,7 @@ export const createProposalAndOutlet = async (req, res) => {
       representative,
       same_state,
       service,
+      customer_type
     } = req.body;
 
     // Create a new Proposal instance with outlets
@@ -146,6 +147,7 @@ export const createProposalAndOutlet = async (req, res) => {
       same_state,
       enquiryId,
       service,
+      customer_type
     });
 
     // Save the Proposal to the database
