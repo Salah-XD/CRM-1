@@ -1,5 +1,5 @@
 import express from "express";
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 import connectDB from "./config/dbConnect.js";
 import cors from "cors";
 import morgan from "morgan";
@@ -8,30 +8,24 @@ import authenticatinRoutes from "./routes/authenticationRoutes.js";
 import enquiryRoutes from "./routes/enquiryRoutes.js";
 import proposalRoutes from "./routes/proposalRoutes.js";
 import invoiceRoutes from "./routes/invoiceRoutes.js";
-import agreementRoutes from "./routes/agreementRoutes.js"
-import auditorRoutes from "./routes/auditorRoutes.js"
-import settingRoutes from "./routes/settingRoutes.js"
-import { v2 as cloudinary } from 'cloudinary';
-
-
-// import fs from 'fs';
-
-// fs.readdirSync('./models').forEach(file => {
-//   console.log(file);
-// });
+import agreementRoutes from "./routes/agreementRoutes.js";
+import auditorRoutes from "./routes/auditorRoutes.js";
+import settingRoutes from "./routes/settingRoutes.js";
+import workLogRoutes from "./routes/workLogRoutes.js";
+import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.API_KEY,
-  api_secret: process.env.API_SECRET
+  api_secret: process.env.API_SECRET,
 });
 
- import path from "path";
- import { fileURLToPath } from "url";
+import path from "path";
+import { fileURLToPath } from "url";
+import paymentRoutes from "./routes/paymentRoutes.js";
 
 // Configure environment variables
 dotenv.config();
-
 
 // Create Express app
 const app = express();
@@ -40,28 +34,16 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-
-
-
 // // Serve React app
- app.use(express.static(path.join(__dirname, "./client/build")));
-
+app.use(express.static(path.join(__dirname, "./client/build")));
 
 // Connect to database and start server
 connectDB();
-
-
-
 
 // Middleware setup
 app.use(express.json());
 app.use(cors());
 app.use(morgan("dev"));
-
-
-
-
-//define    
 
 // API routes
 app.use("/api/", bussinessRoutes);
@@ -72,12 +54,13 @@ app.use("/api/agreement", agreementRoutes);
 app.use("/api/auth", authenticatinRoutes);
 app.use("/api/auditor", auditorRoutes);
 app.use("/api/setting", settingRoutes);
+app.use("/api/worklogs", workLogRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // All other routes (non-API routes) go to React app
- app.use("*", function (req, res) {
-   res.sendFile(path.join(__dirname, "./client/build/index.html"));
- })
-
+app.use("*", function (req, res) {
+  res.sendFile(path.join(__dirname, "./client/build/index.html"));
+});
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

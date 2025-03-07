@@ -42,6 +42,10 @@ import EmployeeWorkForm from "./Components/Layout/EmployeeWorkForm";
 import EmployeeDashboard from "./Components/Layout/EmployeeDashboard";
 import PaymentFomWithTable from "./Components/Layout/PaymentFomWithTable";
 import InvoiceManagement from "./Components/Layout/InvoiceManagement";
+import WorkLogTable from "./Components/Pages/WorkLogTable";
+import AdminWorkLogTable from "./Components/Pages/AdminWorkLogTable";
+import UpdteWorkLog from "./Components/Pages/UpdateWorkLog";
+import AuditorPayment from "./Components/Pages/AuditorPayment";
 
 import {
   AccountAdminRoute,
@@ -50,12 +54,12 @@ import {
 import AuditTrack from "./Components/Pages/AuditorTrack";
 
 function App() {
-
   return (
     <>
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/emp-form" element={<EmployeeWorkForm />} />
+
         <Route path="/emp-dashboard" element={<EmployeeDashboard />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
@@ -66,42 +70,53 @@ function App() {
         <Route path="/invoice-mangement" element={<InvoiceManagement />} />
 
         <Route element={<AccountAdminRoute />}>
-        {/* Main Tables */}
-        <Route path="/enquiry" element={<EnquiryTable />} />
-        <Route path="/client-approval" element={<ClientApprovalTable />} />
-        <Route path="/client-profile" element={<ClientTable />} />
-        <Route path="/invoice" element={<InvoiceTable />} />
-        <Route path="/proposal" element={<ProposalTable />} />
-        <Route path="/agreement" element={<AgreementTable />} />
-        <Route path="/add" element={<BusinessDetail />} />
-        
-        {/* View Specific Items */}
-        <Route path="/proposal/view-proposal/:proposalId" element={<ViewProposal />} />
-        <Route path="/invoice/view-invoice/:invoiceId" element={<ViewInvoice />} />
-        <Route path="/agreement/view-agreement/:agreementId" element={<ViewAgreement />} />
+          {/* Main Tables */}
+          <Route path="/enquiry" element={<EnquiryTable />} />
+          <Route path="/client-approval" element={<ClientApprovalTable />} />
+          <Route path="/client-profile" element={<ClientTable />} />
+          <Route path="/invoice" element={<InvoiceTable />} />
+          <Route path="/proposal" element={<ProposalTable />} />
+          <Route path="/agreement" element={<AgreementTable />} />
+          <Route path="/add" element={<BusinessDetail />} />
 
-        {/* Settings Page and Nested Routes */}
-        <Route path="/settings" element={<SettingsPage />}>
-      
-          <Route path="company-address" element={<CompanyAddressSetting />} />
-          <Route path="bank-details" element={<BankDetailsSetting />} />
-          <Route path="notes" element={<NoteForm />} />
-          <Route path="mail" element={<MailSettingForm />} />
-          <Route path="mail-message" element={<MailSettingForm />} />
-          <Route path="form-link-mail" element={<FormLinkMailSetting />} />
-          <Route path="cc-mails" element={<MailSettingCC />} />
-          <Route path="user" element={<UserListSetting />} />
+          {/* View Specific Items */}
+          <Route
+            path="/proposal/view-proposal/:proposalId"
+            element={<ViewProposal />}
+          />
+          <Route
+            path="/invoice/view-invoice/:invoiceId"
+            element={<ViewInvoice />}
+          />
+          <Route
+            path="/agreement/view-agreement/:agreementId"
+            element={<ViewAgreement />}
+          />
+
+          {/* Settings Page and Nested Routes */}
+          <Route path="/settings" element={<SettingsPage />}>
+            <Route path="company-address" element={<CompanyAddressSetting />} />
+            <Route path="bank-details" element={<BankDetailsSetting />} />
+            <Route path="notes" element={<NoteForm />} />
+            <Route path="mail" element={<MailSettingForm />} />
+            <Route path="mail-message" element={<MailSettingForm />} />
+            <Route path="form-link-mail" element={<FormLinkMailSetting />} />
+            <Route path="cc-mails" element={<MailSettingCC />} />
+            <Route path="user" element={<UserListSetting />} />
+          </Route>
+
+          {/* Add Client Profile with Business Detail */}
+          <Route
+            path="/client-profile/add-business"
+            element={
+              <AdminDashboard>
+                <AddClient newClientTitle={"Client Details Form"}>
+                  <BusinessDetail />
+                </AddClient>
+              </AdminDashboard>
+            }
+          />
         </Route>
-
-        {/* Add Client Profile with Business Detail */}
-        <Route path="/client-profile/add-business" element={
-          <AdminDashboard>
-            <AddClient newClientTitle={"Client Details Form"}>
-              <BusinessDetail />
-            </AddClient>
-          </AdminDashboard>
-        } />
-      </Route>
 
         <Route element={<AuditAdminRoute />}>
           {/* Main Audit Routes */}
@@ -115,6 +130,7 @@ function App() {
             element={<SubmittedForApproval />}
           />
 
+
           {/* Nested Routes for Audits - Avoid Repeating Main Route Segment */}
 
           {/* Assigned Audits */}
@@ -122,6 +138,10 @@ function App() {
             path="/assigned-audit/audit-form/:audit_id"
             element={<AuditForm />}
           />
+          <Route path="/work-log-table" element={<WorkLogTable />} />
+          <Route path="/auditor-payment" element={<AuditorPayment />} />
+          <Route path="/admin-work-log" element={<AdminWorkLogTable />} />
+          <Route path="/update-work-log" element={<UpdteWorkLog />} />
           <Route
             path="/assigned-audit/audit-form/audit-report"
             element={<AuditReport />}

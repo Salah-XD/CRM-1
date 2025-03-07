@@ -109,116 +109,6 @@ const sendOutletData = async (outletData) => {
   }
 };
 
-// export const processProposalsWithOutlets = async (req, res) => {
-//   try {
-//     const { page = 1, pageSize = 10, sort, keyword } = req.query;
-
-//     // Convert page and pageSize to integers
-//     const pageNumber = parseInt(page, 10);
-//     const sizePerPage = parseInt(pageSize, 10);
-
-//     if (
-//       isNaN(pageNumber) ||
-//       pageNumber < 1 ||
-//       isNaN(sizePerPage) ||
-//       sizePerPage < 1
-//     ) {
-//       return res
-//         .status(400)
-//         .json({ message: "Invalid page or pageSize parameter" });
-//     }
-
-//     // Base query
-//     let query = Proposal.find().populate("enquiryId");
-
-//     // Apply search filter if a keyword is provided
-//     if (keyword) {
-//       const searchRegex = new RegExp(keyword, "i"); // Case-insensitive search
-//       query = query.where("fbo_name").regex(searchRegex);
-//     }
-
-//     // Sorting logic
-//     let sortQuery = {};
-//     switch (sort) {
-//       case "newproposal":
-//         sortQuery = { createdAt: -1 }; // Newest first
-//         break;
-//       case "oldproposal":
-//         sortQuery = { createdAt: 1 }; // Oldest first
-//         break;
-//       default:
-//         sortQuery = { createdAt: 1 }; // Default sorting (oldest first)
-//     }
-
-//     // Fetch all matching proposals
-//     const proposals = await query.sort(sortQuery);
-
-//     // Flatten all outlets into a single array
-//     const allOutlets = [];
-//     proposals.forEach((proposal) => {
-//       let auditCounter = 1; // Reset counter for each proposal
-//       proposal.outlets.forEach((outlet) => {
-//         let location = proposal.address?.line2
-//           ?.replace(/,/, "/")
-//           .replace(/\s+/g, "");
-
-//         // Filter outlets with description "Hygiene Rating" and unassigned auditors
-//         if (
-//           outlet.is_assignedAuditor === false &&
-//           outlet.description === "Hygiene Rating"
-//         ) {
-//           allOutlets.push({
-//             audit_number: `${auditCounter}`, // Include the audit counter in the response
-//             proposal_number: proposal.proposal_number,
-//             fbo_name: proposal.fbo_name,
-//             outlet_name: outlet.outlet_name,
-//             outlet_id: outlet._id,
-//             proposal_id: proposal._id,
-//             amount: outlet.amount,
-//             status: outlet.is_assignedAuditor,
-//             date_time: moment(proposal.createdAt).format(
-//               "MMMM Do YYYY, h:mm A" // Format: "November 22nd 2024, 3:45 PM"
-//             ),
-//             service: "Hygiene Rating", // Set service as "Hygiene Rating"
-//             location: location,
-//           });
-
-//           // Increment audit counter
-//         }
-
-//         if (outlet.description === "Hygiene Rating") {
-//           auditCounter++;
-//         }
-//       });
-//     });
-
-//     // Total number of outlets
-//     const totalOutlets = allOutlets.length;
-
-//     // Paginate outlets
-//     const paginatedOutlets = allOutlets.slice(
-//       (pageNumber - 1) * sizePerPage,
-//       pageNumber * sizePerPage
-//     );
-
-//     // Total pages
-//     const totalPages = Math.ceil(totalOutlets / sizePerPage);
-
-//     res.status(200).json({
-//       message: "Processed all proposals and outlets successfully",
-//       total: totalOutlets,
-//       totalpages: totalPages, // Correct total pages
-//       currentPage: pageNumber,
-//       data: paginatedOutlets,
-//     });
-//   } catch (error) {
-//     console.error("Error processing proposals and outlets:", error);
-//     res
-//       .status(500)
-//       .json({ message: "Error processing proposals and outlets", error });
-//   }
-// };
-
 export const processProposalsWithOutlets = async (req, res) => {
   try {
     const { page = 1, pageSize = 10, sort, keyword } = req.query;
@@ -288,7 +178,7 @@ export const processProposalsWithOutlets = async (req, res) => {
               "MMMM Do YYYY, h:mm A" // Format: "November 22nd 2024, 3:45 PM"
             ),
             service: outlet.description || "",
-
+            type_of_industry: outlet.type_of_industry,
             location: location,
           });
 
@@ -406,6 +296,7 @@ export const saveAuditRecord = async (req, res) => {
       proposal_number,
       service,
       customer_type,
+      type_of_industry,
     } = req.body;
 
     // Update the outlet to mark it as assigned to an auditor
@@ -444,6 +335,7 @@ export const saveAuditRecord = async (req, res) => {
       proposal_number,
       service,
       customer_type,
+      type_of_industry,
     });
 
     // Save the audit record to the database
@@ -599,7 +491,10 @@ export const getAuditById = async (req, res) => {
       fssai_image_url: audit.fssai_image_url ? audit.fssai_image_url : null,
       fssai_number: audit.fssai_number ? audit.fssai_number : null,
       assigned_date: audit.assigned_date || null,
-      checkListId: audit.checklistCategory || null,
+      type_of_industry: audit.type_of_industry,
+      stepsStatus: audit.stepsStatus || null,
+      physical_date: audit.physical_date || null,
+      service: audit.service,
       __v: audit.__v,
     };
 
@@ -651,6 +546,7 @@ export const updateAuditById = async (req, res) => {
       audit.proposal_number = updates.proposal_number;
     if (updates.audit_number) audit.audit_number = updates.audit_number;
     if (updates.user) audit.user = updates.user;
+    if (updates.physical_date) audit.physical_date = updates.physical_date;
 
     // Optionally add to modification history
     audit.modificationHistory = audit.modificationHistory || [];
@@ -1544,5 +1440,59 @@ export const getAuditorAuditCounts = async (req, res) => {
   } catch (error) {
     console.error("Error fetching auditor audits:", error);
     res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateStepStatus = async (req, res) => {
+  console.log("Received request body:", req.body); // Log the request body
+
+  try {
+    const { audit_id, stepsStatus, physical_date } = req.body;
+
+    // Validate required fields
+    if (!audit_id) {
+      console.error("Bad Request: Missing audit_id");
+      return res
+        .status(400)
+        .json({ success: false, message: "Audit ID is required." });
+    }
+
+    if (!stepsStatus) {
+      console.error("Bad Request: Missing stepsStatus");
+      return res
+        .status(400)
+        .json({ success: false, message: "Step status is required." });
+    }
+
+    // Prepare update object
+    const updateData = { stepsStatus };
+
+    updateData.physical_date = physical_date;
+
+    // Find and update audit
+    const updatedAudit = await AuditManagement.findOneAndUpdate(
+      { _id: audit_id },
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedAudit) {
+      console.error("Bad Request: Audit not found", { audit_id });
+      return res
+        .status(404)
+        .json({ success: false, message: "Audit not found." });
+    }
+
+    console.log("Step status updated successfully:", updatedAudit);
+    return res.status(200).json({
+      success: true,
+      message: "Step status updated successfully.",
+      data: updatedAudit,
+    });
+  } catch (error) {
+    console.error("Internal Server Error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error." });
   }
 };

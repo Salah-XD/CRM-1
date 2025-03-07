@@ -26,7 +26,15 @@ const auditSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["assigned", "draft", "modified", "submitted", "approved"],
+      enum: [
+        "assigned",
+        "started",
+        "draft",
+        "modified",
+        "submitted",
+        "approved",
+        "rejected",
+      ],
       default: "assigned",
     },
     started_at: {
@@ -44,31 +52,45 @@ const auditSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    physical_date: {
+      type: Date,
+    },
     statusHistory: [
       {
         status: {
           type: String,
           enum: [
             "assigned",
+            "started",
             "draft",
             "modified",
             "submitted",
             "approved",
-            "started",
+            "rejected",
           ],
-          default: "assigned",
         },
         changedAt: {
           type: Date,
           default: Date.now,
         },
-        comment: String, // For comment when rejected
+        comment: String, // Optional comment (e.g., for rejections)
         userId: {
-          type: mongoose.Schema.Types.ObjectId, // Admin who rejected or approved
+          type: mongoose.Schema.Types.ObjectId, // Admin who changed status
           ref: "User",
         },
       },
     ],
+    stepsStatus: {
+      type: String,
+      enum: [
+        "Not Started",
+        "Physical Audit Completed",
+        "Documentation Work On",
+        "FSSAI Portal Updated",
+      ],
+      default: "Not Started", // Default to indicate it's not started
+    },
+
     modificationHistory: [
       {
         modifiedAt: {
@@ -94,9 +116,23 @@ const auditSchema = new mongoose.Schema(
     },
     service: {
       type: String,
+      enum: [
+        "TPA",
+        "Hygiene Rating",
+        "ER Station",
+        "ER Fruit and Vegetable Market",
+        "ER Hub",
+        "ER Campus",
+        "ER Worship Place",
+      ],
+      required: true,
     },
     fssai_image_url: {
       type: String,
+    },
+    type_of_industry: {
+      type: String,
+      enum: ["Catering", "Manufacturing", "Trade and Retail", "Transportation"],
     },
   },
   {

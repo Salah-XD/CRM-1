@@ -32,6 +32,24 @@ const outletSchema = new Schema(
       type: String,
       enum: ["Catering", "Manufacturing", "Trade and Retail", "Transportation"],
     },
+    vertical_of_industry: {
+      type: String,
+      enum: [
+        "Sweet Shop",
+        "Meat Retail",
+        "Hub",
+        "Market",
+        "General Manufacturing",
+        "Meat & Meat Processing",
+        "Dairy Processing",
+        "Catering",
+        "Transportation",
+        "Storage/Warehouse",
+        "Institute Canteen",
+        "Industrial Canteen",
+        "Temple Kitchen",
+      ],
+    },
     unit:{
       type:Number,
       

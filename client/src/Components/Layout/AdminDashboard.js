@@ -9,6 +9,8 @@ import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
   SettingOutlined,
+  CarryOutOutlined, 
+  CreditCardOutlined
 } from "@ant-design/icons";
 import { Layout, Menu, ConfigProvider, Button } from "antd";
 import AdminHeader from "./AdminHeader";
@@ -122,6 +124,13 @@ const AdminDashboard = ({ children }) => {
       roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN", "AUDIT_ADMIN", "AUDITOR"],
     },
     {
+      label: "Work Log",
+      key: "/admin-work-log",
+      icon: <CarryOutOutlined />,
+      link: "/admin-work-log",
+      roles: [ "SUPER_ADMIN", "AUDIT_ADMIN"],
+    },
+    {
       label: "Customers",
       key: "/customers",
       icon: <UserOutlined />,
@@ -220,12 +229,48 @@ const AdminDashboard = ({ children }) => {
       ],
     },
     {
+      label: "Work Log",
+      key: "/work-log",
+      icon: <CarryOutOutlined />,
+      link: "/work-log-table",
+      roles: [ "AUDITOR"],
+    },
+    {
+      label: "Payment  ",
+      key: "/",
+      icon: <CarryOutOutlined />,
+      link: "/auditor-payment",
+      roles: [ "AUDITOR"],
+    },
+    {
+      label: "Payment follow up",
+      key: "/payment-follow-up",
+      icon: <CreditCardOutlined />,
+      roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+      children: [
+        {
+          label: "All Payments",
+          key: "/all-payments",
+          link: "/all-payments",
+          roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+        },
+        {
+          label: "Requests received",
+          key: "/request received",
+          link: "/request-received",
+          roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
+        },
+        
+      ],
+    },
+    {
       label: "Settings",
       key: "/settings",
       icon: <SettingOutlined />,
       link: "/settings/company-address",
       roles: ["SUPER_ADMIN"],
     },
+
     {
       label: "Logout",
       key: "logout",
@@ -265,27 +310,26 @@ const AdminDashboard = ({ children }) => {
         <AdminHeader />
       </div>
       <Layout style={{ minHeight: "100vh", background: "#E6F7FF" }}>
-
-      <Sider
-  collapsible
-  collapsed={collapsed}
-  onCollapse={setCollapsed}
-  theme="light"
-  width={250}
-  collapsedWidth={80}
-  style={{
-    overflow: "auto",
-    height: "calc(100vh - 64px)",
-    position: "fixed",
-    left: 0,
-    top: 64,
-    bottom: 50,
-    background: "white",
-    borderRight: "1px solid #e8e8e8",
-  }}
->
- <style>
-    {`
+        <Sider
+          collapsible
+          collapsed={collapsed}
+          onCollapse={setCollapsed}
+          theme="light"
+          width={250}
+          collapsedWidth={80}
+          style={{
+            overflow: "auto",
+            height: "calc(100vh - 64px)",
+            position: "fixed",
+            left: 0,
+            top: 64,
+            bottom: 50,
+            background: "white",
+            borderRight: "1px solid #e8e8e8",
+          }}
+        >
+          <style>
+            {`
       /* Custom scrollbar styles */
       ::-webkit-scrollbar {
         width: 6px; /* Thinner scrollbar */
@@ -305,7 +349,7 @@ const AdminDashboard = ({ children }) => {
         scroll-behavior: smooth;
       }
     `}
-  </style>
+          </style>
 
           <div className="sider-menu">
             <div className="sider-menu-content">

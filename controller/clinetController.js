@@ -193,6 +193,7 @@ export const saveOutlet = async (req, res) => {
       type_of_industry,
       unit,
       no_of_production_line,
+      vertical_of_industry,
     } = req.body;
 
     // Create a new outlet instance with the provided data
@@ -206,6 +207,7 @@ export const saveOutlet = async (req, res) => {
       type_of_industry,
       unit,
       no_of_production_line,
+      vertical_of_industry,
     });
 
     // Save the outlet to the database

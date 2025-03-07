@@ -205,6 +205,7 @@ const AuditDetails = () => {
                       id={audit._id}
                       route="approved"
                       customer_type={audit.customer_type}
+                      service={audit.service}
                     />
                   </div>
                 ))}

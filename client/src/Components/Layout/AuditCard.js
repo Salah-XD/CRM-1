@@ -18,6 +18,10 @@ const AuditCard = ({
 }) => {
   const navigate = useNavigate();
 
+  if(service==="Hygiene Rating") service="HR";
+  
+  if(service==="ER Fruit and Vegetable Market") service="EF & VM";
+
   const handleClick = () => {
     navigate(`/${route}/audit-form/${id}`);
   };

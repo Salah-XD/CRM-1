@@ -21,8 +21,11 @@ import moment from "moment";
 import dayjs from "dayjs";
 import { useAuth } from "../Context/AuthContext";
 import { useLocation } from "react-router-dom";
-import { DeleteOutlined, DownOutlined, MoreOutlined } from "@ant-design/icons";
+import { MoreOutlined } from "@ant-design/icons";
 import ChecklistModal from "../Layout/ChecklistModal";
+import CurrentStepModal from "../Layout/CurrentStepModal";
+import { get } from "lodash";
+
 const { Title, Text } = Typography;
 
 const AuditForm = () => {
@@ -38,12 +41,56 @@ const AuditForm = () => {
   const [loading, setLoading] = useState(false);
   const [intialLoading, setIntialLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
+  const [currentStepModalVisible, setCurrentStepModalVisible] = useState(false);
 
   const location = useLocation();
   const { user } = useAuth();
 
-  const showModal = () => setModalVisible(true);
+  const showModal = () => {
+    setModalVisible(true);
+  };
   const closeModal = () => setModalVisible(false);
+
+  const openCurrentStepModal = () => setCurrentStepModalVisible(true);
+  const closeCurrentStepModal = () => setCurrentStepModalVisible(false);
+
+  //   setLoading(true);
+  //   try {
+  //     const response = await axios.get(
+  //       "/api/auditor/fetchAllChecklistCategories"
+  //     );
+  //     console.log(response);
+  //     const matchedCategory = response.data.find(
+  //       (cat) => cat.type_of_industry === type_of_industry
+  //     );
+
+  //     if (matchedCategory) {
+  //       setSelectedCategory(matchedCategory._id);
+  //       setValue(matchedCategory.name);
+  //     } else {
+  //       message.warning("No matching category found.");
+  //     }
+  //   } catch (error) {
+  //     message.error("Failed to fetch checklist categories.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  // const handleStart = async () => {
+  //   if (!selectedCategory) {
+  //     await fetchCategories(); // Ensure category is set before navigating
+  //   }
+
+  //   if (selectedCategory) {
+  //     const firstSegment = location.pathname.split("/").filter(Boolean)[0];
+  //     navigate(
+  //       `/${firstSegment}/audit-form/audit-report/?audit_id=${params.audit_id}&checklistId=${selectedCategory}&category=${value}`
+  //     );
+  //   } else {
+  //     message.error("No checklist category selected.");
+  //   }
+  // };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -188,6 +235,7 @@ const AuditForm = () => {
       );
       if (response.data.success) {
         setAuditData(response.data.data);
+        console.log("This is the audit data", auditData);
         form.setFieldsValue(response.data.data); // Populate form fields
       } else {
         message.error(response.data.message);
@@ -262,6 +310,9 @@ const AuditForm = () => {
   //check if checklist is not in assigned  route
   const isCheckListAssignedRoute = firstSegment === "assigned-audit";
 
+  const isServiceHygieneRatingTPA =
+    auditData.service === "Hygiene Rating" || auditData.service === "TPA";
+
   //Hiding and showing
   const isApprovedOrSubmitted =
     firstSegment === "approved" || firstSegment === "submittedForApproval";
@@ -275,6 +326,15 @@ const AuditForm = () => {
     firstSegment === "modified" ||
     firstSegment === "assigned-audit";
 
+  const isHygieneAndTpa =
+    auditData.service === "Hygiene Rating" || auditData.service === "TPA";
+
+  const isNotHygieneAndTpa =
+    auditData.service !== "Hygiene Rating" &&
+    auditData.service != "TPA" &&
+    firstSegment === "assigned-audit" &&
+    user?.role === "AUDITOR";
+
   const isViewModifyButtonDisabled = firstSegment === "assigned-audit";
 
   const viewModifyButtonStyles = {
@@ -285,7 +345,8 @@ const AuditForm = () => {
 
   const isUserAuditor = user?.role === "AUDITOR";
 
-  const isUserAuditAdmin = user?.role === "AUDIT_ADMIN" || user?.role === "SUPER_ADMIN";
+  const isUserAuditAdmin =
+    user?.role === "AUDIT_ADMIN" || user?.role === "SUPER_ADMIN";
 
   // Check if the user role is 'Auditor' and firstSegment is 'assigned_audit'
   const shouldShowStartAuditButton =
@@ -323,8 +384,12 @@ const AuditForm = () => {
 
   const menu = (
     <Menu onClick={handleMenuClick}>
-      <Menu.Item disabled={!isUserAuditAdmin} key="edit">Edit</Menu.Item>
-      <Menu.Item  disabled={!isUserAuditAdmin} key="delete">Delete</Menu.Item>
+      <Menu.Item disabled={!isUserAuditAdmin} key="edit">
+        Edit
+      </Menu.Item>
+      <Menu.Item disabled={!isUserAuditAdmin} key="delete">
+        Delete
+      </Menu.Item>
     </Menu>
   );
 
@@ -332,7 +397,7 @@ const AuditForm = () => {
     // Toggle the isEditable state
     setIsEditable((prevState) => !prevState);
     console.log("Editable state toggled:", !isEditable);
-  }
+  };
 
   return (
     <AdminDashboard>
@@ -439,7 +504,14 @@ const AuditForm = () => {
                       <Input placeholder="02" disabled />
                     </Form.Item>
                   </Col>
-                  {!isCheckListAssignedRoute && (
+
+                  <Col span={12}>
+                    <Form.Item label="Service" name="service">
+                      <Input placeholder="02" disabled />
+                    </Form.Item>
+                  </Col>
+
+                  {!isCheckListAssignedRoute && isServiceHygieneRatingTPA && (
                     <Col span={12}>
                       <Form.Item label="Checklist Category">
                         <Input
@@ -451,13 +523,32 @@ const AuditForm = () => {
                     </Col>
                   )}
 
-                  <Col span={24}>
-                    <div className="flex mt-4">
-                      <div>
-                        <h1 className="mr-5 ">Audit Date:</h1>
-                      </div>
+                  <Col span={12}>
+                    <Form.Item
+                      label="Audit Date"
+                      name="assigned_date"
+                      getValueProps={(i) => ({ value: dayjs(i) })}
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please select the start date!",
+                        },
+                      ]} // Optional validation
+                    >
+                      <DatePicker
+                        style={{ width: "100%" }}
+                        placeholder="Select date"
+                        format="DD-MM-YYYY"
+                        // Conditionally disable the field
+                        allowClear={false}
+                      />
+                    </Form.Item>
+                  </Col>
+                  {auditData.physical_date && (
+                    <Col span={12}>
                       <Form.Item
-                        name="assigned_date"
+                        label="Physical Date"
+                        name="physical_date"
                         getValueProps={(i) => ({ value: dayjs(i) })}
                         rules={[
                           {
@@ -474,8 +565,8 @@ const AuditForm = () => {
                           allowClear={false}
                         />
                       </Form.Item>
-                    </div>
-                  </Col>
+                    </Col>
+                  )}
                 </Row>
                 <div
                   style={{
@@ -484,7 +575,7 @@ const AuditForm = () => {
                     marginTop: "24px",
                   }}
                 >
-                  {isApprovedOrSubmitted && (
+                  {isApprovedOrSubmitted && isHygieneAndTpa && (
                     <>
                       <Button
                         type="primary"
@@ -513,7 +604,7 @@ const AuditForm = () => {
                     </>
                   )}
 
-                  {shouldShowStartAuditButton && (
+                  {shouldShowStartAuditButton && isHygieneAndTpa && (
                     <Button
                       type="primary"
                       style={{
@@ -524,6 +615,19 @@ const AuditForm = () => {
                       onClick={showModal}
                     >
                       Start Audit
+                    </Button>
+                  )}
+
+                  {isNotHygieneAndTpa && ( // Hide the button for 'Hygiene Rating' and 'TPA' services
+                    <Button
+                      type="primary"
+                      style={{
+                        backgroundColor: "#009688",
+                        borderColor: "#009688",
+                      }}
+                      onClick={openCurrentStepModal}
+                    >
+                      Update Status
                     </Button>
                   )}
                   {shouldRenderViewModifyButton && (
@@ -553,6 +657,7 @@ const AuditForm = () => {
                       Submit
                     </Button>
                   )}
+
                   {user?.role &&
                     firstSegment === "submittedForApproval" &&
                     (user.role === "SUPER_ADMIN" ||
@@ -623,7 +728,7 @@ const AuditForm = () => {
                             </span>
                             <br />
                             <Text type="secondary">
-                              {auditData?.assigned_date
+                              {auditData.assigned_date
                                 ? moment(auditData.assigned_date).format(
                                     "DD/MM/YYYY HH:mm"
                                   )
@@ -806,6 +911,10 @@ const AuditForm = () => {
             </div>
           </Modal>
           <ChecklistModal visible={modalVisible} onClose={closeModal} />
+          <CurrentStepModal
+            visible={currentStepModalVisible}
+            onClose={closeCurrentStepModal}
+          />
         </div>
       </Spin>
     </AdminDashboard>

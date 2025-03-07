@@ -117,7 +117,9 @@ const OutletForm = ({
             </span>
           }
           name="type_of_industry"
-          rules={[{ required: true, message: "Please select an industry Type" }]}
+          rules={[
+            { required: true, message: "Please select an industry Type" },
+          ]}
         >
           <Select
             placeholder="Select industry Type"
@@ -131,6 +133,7 @@ const OutletForm = ({
             <Option value="Transportation">Transportation</Option>
           </Select>
         </Form.Item>
+
         {industryType && (
           <Form.Item
             label={
@@ -147,7 +150,7 @@ const OutletForm = ({
             />
           </Form.Item>
         )}
-           {industryType==="Manufacturing" && (
+        {industryType === "Manufacturing" && (
           <Form.Item
             label={
               <span className="text-gray-600 font-semibold">
@@ -164,13 +167,43 @@ const OutletForm = ({
           </Form.Item>
         )}
         <Form.Item
+          name="vertical_of_industry"
+          className="w-1/4"
+          label={
+            <span className="text-gray-600 font-semibold">
+              Vertical of Industry
+            </span>
+          }
+        >
+          <Select
+            placeholder="Select Industry Vertical"
+            size={"large"}
+          
+          >
+            <Option value="Sweet Shop">Sweet Shop</Option>
+            <Option value="Meat Retail">Meat Retail</Option>
+            <Option value="Hub">Hub</Option>
+            <Option value="Market">Market</Option>
+            <Option value="General Manufacturing">General Manufacturing</Option>
+            <Option value="Meat & Meat Processing">
+              Meat & Meat Processing
+            </Option>
+            <Option value="Dairy Processing">Dairy Processing</Option>
+            <Option value="Catering">Catering</Option>
+            <Option value="Transportation">Transportation</Option>
+            <Option value="Storage/Warehouse">Storage/Warehouse</Option>
+            <Option value="Institute Canteen">Institute Canteen</Option>
+            <Option value="Industrial Canteen">Industrial Canteen</Option>
+            <Option value="Temple Kitchen">Temple Kitchen</Option>
+          </Select>
+        </Form.Item>
+        <Form.Item
           name="gst_number"
           label={
             <span className="text-gray-600 font-semibold">GST Number</span>
           }
           rules={[
             {
-              
               message: "Please enter GST number",
             },
             {
@@ -189,7 +222,6 @@ const OutletForm = ({
             <span className="text-gray-600 font-semibold">Contact Number</span>
           }
           name="contact_number"
-
         >
           <Input
             placeholder="Enter primary contact number"
@@ -201,7 +233,6 @@ const OutletForm = ({
             <span className="text-gray-600 font-semibold">Contact Person</span>
           }
           name="contact_person"
-
         >
           <Input
             placeholder="Enter contact person name"

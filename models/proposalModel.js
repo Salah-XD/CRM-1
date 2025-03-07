@@ -131,11 +131,22 @@ const proposalSchema = new Schema(
     },
     service: {
       type: String,
+      enum: [
+        "TPA",
+        "Hygiene Rating",
+        "ER Station",
+        "ER Fruit and Vegetable Market",
+        "ER Hub",
+        "ER Campus",
+        "ER Worship Place",
+      ],
+      required: true, // Add this if the field is mandatory
     },
     customer_type: {
       type: String,
       enum: ["MOU", "Non-MOU"],
     },
+   
   },
   {
     timestamps: true,

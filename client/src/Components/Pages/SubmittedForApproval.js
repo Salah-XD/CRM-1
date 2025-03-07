@@ -208,6 +208,7 @@ const AuditDetails = () => {
                       id={audit._id}
                       customer_type={audit.customer_type}
                       route="submittedForApproval"
+                      service={audit.service}
                     />
                   </div>
                 ))}

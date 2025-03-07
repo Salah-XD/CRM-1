@@ -28,10 +28,8 @@ import AdminDashboard from "../Layout/AdminDashboard";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { ExclamationCircleFilled } from "@ant-design/icons";
-import GenerateProposalSendMail from "./GenerateProposalSendMail";
-import GenerateAgreementModal from "./GenrateAgreementModal";
-import GenrateInvoiceModal from "./GenrateInvoiceModal";
-import UpdateGenerateProposalModal from "./UpdateGenrateProposalModal";
+import PaymentModal from "../Layout/PaymentModal";
+import { useAuth } from "../Context/AuthContext";
 
 const { confirm } = Modal;
 
@@ -51,11 +49,10 @@ const debounce = (func, delay) => {
 // Define your debounce delay (e.g., 300ms)
 const debounceDelay = 300;
 
-const ProposalTable = () => {
+const AuditorPayment = () => {
   const [flattenedTableData, setFlattenedTableData] = useState([]);
   const [sortData, setSortData] = useState("alllist");
   const [selectionType, setSelectionType] = useState("checkbox");
-  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [selectedRows, setSelectedRows] = useState([]);
   const [tableParams, setTableParams] = useState({
     pagination: {
@@ -64,8 +61,10 @@ const ProposalTable = () => {
       total: 0,
     },
   });
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
   const [isModalVisibleInvoice, setIsModalVisibleInvoice] = useState(false);
+  const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -74,25 +73,15 @@ const ProposalTable = () => {
   const [proposalId, setProposalId] = useState(null);
   const [showSendMailModal, setShowSendMailModal] = useState(false);
   const [UpdateProposal, setUpdateProposal] = useState(false);
+  const { user } = useAuth();
+  
   const navigate = useNavigate();
 
   // Toggling
 
-  const handleOk = () => {
-    setIsModalVisible(false);
-  };
+const handleCancelPayment = () => {
 
-  const handleCancel = () => {
-    setIsModalVisible(false);
-  };
-
-  const handleInvoiceOk = () => {
-    setIsModalVisibleInvoice(false);
-  };
-
-  const handleInvoiceCancel = () => {
-    fetchData();
-    setIsModalVisibleInvoice(false);
+    setIsPaymentModalVisible(false);
   };
 
   const showModalInvoice = (proposalId) => {
@@ -128,10 +117,16 @@ const ProposalTable = () => {
     setProposalId(null);
   };
 
+  const handleRecordPayment = (proposal_id) => {
+    setProposalId(proposal_id);
+    setIsPaymentModalVisible(true);
+ 
+  };
+
   // Fetch data function
   const fetchData = useCallback(() => {
     setLoading(true);
-    const url = "/api/proposal/getAllProposalDetails";
+    const url = `/api/payment/getAllProposalDetails/${user._id}`;
 
     axios
       .get(url, {
@@ -372,101 +367,65 @@ const ProposalTable = () => {
     </Menu>
   );
 
-  const columns = [
+const columns = [
     {
-      title: "FBO Name",
-      dataIndex: "fbo_name",
-      key: "fbo_name",
+        title: "Proposal Number",
+        dataIndex: "proposal_number",
+        key: "proposal_number",
     },
     {
-      title: "Date created",
-      dataIndex: "date_created",
-      key: "date_created",
+        title: "FBO Name",
+        dataIndex: "fbo_name",
+        key: "fbo_name",
     },
     {
-      title: "Total No. of Outlets",
-      dataIndex: "totalOutlets",
-      key: "totalOutlets",
+        title: "No. of Outlets",
+        dataIndex: "totalOutlets",
+        key: "totalOutlets",
     },
     {
-      title: "No. of Outlets Invoiced",
-      dataIndex: "invoicedOutlets",
-      key: "invoicedOutlets",
+        title: "Outlets Pending for Invoicing",
+        dataIndex: "notInvoicedOutlets",
+        key: "notInvoicedOutlets",
     },
-
     {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status, record) => {
-        const statusOptions = [
-          "Mail Sent",
-          "Mail not sent",
-          "Partial Invoiced",
-          "Sale closed",
-          "Dropped",
-          "Pending",
-        ];
-
-        const getTagColor = (option) => {
-          switch (option) {
-            case "Mail Sent":
-              return "volcano";
-            case "Partial Invoiced":
-            case "Sale Closed":
-              return "green";
-            case "Dropped":
-              return "red";
-            case "Mail not sent":
-            case "Pending":
-              return "grey";
-            default:
-              return "blue";
-          }
-        };
-
-        return (
-          <Select
-            defaultValue={status}
-            style={{
-              width: "auto",
-              minWidth: "120px",
-              border: "none",
-              boxShadow: "none",
-              padding: "0",
-            }}
-            dropdownStyle={{
-              width: "auto",
-              border: "none", // Remove border from dropdown
-            }}
-            onChange={(value) => handleStatusChange(value, record)}
-          >
-            {statusOptions.map((option) => (
-              <Select.Option key={option} value={option}>
-                <Tag color={getTagColor(option)}>{option.toUpperCase()}</Tag>
-              </Select.Option>
-            ))}
-          </Select>
-        );
-      },
+        title: "Proposal Value",
+        dataIndex: "Proposal_value",
+        key: "Proposal_value",
     },
-
     {
-      title: "Action",
-      key: "action",
-      render: (_, record) => (
-        <Dropdown
-          overlay={menu(record)}
-          trigger={["click"]}
-          placement="bottomLeft"
-          arrow
-          danger
-        >
-          <Button type="link" icon={<MoreOutlined />} />
-        </Dropdown>
-      ),
+        title: "Payment Received",
+        dataIndex: "Payment_Received",
+        key: "Payment_Received",
     },
-  ];
+    {
+        title: "Record Payment",
+        key: "record_payment",
+        render: (_, record) => (
+            <Button
+                className="bg-blue-500 text-white hover:bg-blue-700"
+                onClick={() => handleRecordPayment(record._id)}
+            >
+                Record Payment
+            </Button>
+        ),
+    },
+    // {
+    //   title: "Action",
+    //   key: "action",
+    //   render: (_, record) => (
+    //     <Dropdown
+    //       overlay={menu(record)}
+    //       trigger={["click"]}
+    //       placement="bottomLeft"
+    //       arrow
+    //       danger
+    //     >
+    //       <Button type="link" icon={<MoreOutlined />} />
+    //     </Dropdown>
+    //   ),
+    // },
+];
 
   // Fetch data when shouldFetch changes
   useEffect(() => {
@@ -515,17 +474,17 @@ const ProposalTable = () => {
     <AdminDashboard>
       <div className="bg-blue-50 m-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Proposal Table</h2>
+          <h2 className="text-xl font-semibold">Payment Record</h2>
           <div className="space-x-2">
             <Space wrap>
-              <Button
+              {/* <Button
                 onClick={showDeleteConfirm}
                 icon={<DeleteOutlined />}
                 disabled={selectedRowKeys.length === 0}
                 shape="round"
               >
                 Delete
-              </Button>
+              </Button> */}
             </Space>
             {/* <Button shape="round" icon={<FilterOutlined />} size="default">
               Filters
@@ -630,35 +589,9 @@ const ProposalTable = () => {
           </ConfigProvider>
         </div>
       </div>
-      <GenerateAgreementModal
-        visible={isModalVisible}
-        onOk={handleOk}
-        onCancel={handleCancel}
-        proposalId={proposalId}
-      />
-      <GenrateInvoiceModal
-        proposalId={proposalId}
-        visible={isModalVisibleInvoice}
-        onOk={handleInvoiceOk}
-        onCancel={handleInvoiceCancel}
-      />
-      <UpdateGenerateProposalModal
-        visible={UpdateProposal}
-        onOk={handleOk}
-        onCancel={handleUpdatePropsoalCancel}
-        proposalId={proposalId}
-      />
-      <GenerateProposalSendMail
-        visible={showSendMailModal}
-        onClose={showCloseSendMail}
-        id={proposalId}
-        name="proposal"
-        route="generateProposal"
-        title="Genrate Proposal"
-        buttonTitle="Go to Proposal"
-      />
+    <PaymentModal visible={isPaymentModalVisible}  proposalId={proposalId}  handleCancel={handleCancelPayment} />
     </AdminDashboard>
   );
 };
 
-export default ProposalTable;
+export default AuditorPayment;

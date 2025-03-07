@@ -20,7 +20,7 @@ import {
   fetchingQuestionAnswer,
   getUserNameById,
   updateStartedDate,
-  deleteAuditById,updateFssaiDetails,auditManagementCount,getAuditorAuditCounts,createCheckListCategory,fetchAllChecklistCategories
+  deleteAuditById,updateFssaiDetails,auditManagementCount,getAuditorAuditCounts,createCheckListCategory,fetchAllChecklistCategories,updateStepStatus
 } from "../controller/auditorController.js";
 import { verifyToken } from "../middleware/auth.js";
 import multer from "multer";
@@ -100,7 +100,9 @@ router.put("/updateFssaiDetails",  upload.single("file"), updateFssaiDetails);
 
 router.get("/auditManagementCount", auditManagementCount);
 
-router.get("/getAuditorAuditCounts",getAuditorAuditCounts)
+router.get("/getAuditorAuditCounts",getAuditorAuditCounts);
+
+router.put("/updateStepsStatus", updateStepStatus);
 
 
 

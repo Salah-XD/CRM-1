@@ -74,7 +74,7 @@ const businessSchema = new Schema({
   },
   gst_enable: {
     type: Boolean,
-    default: false, // Default to false
+    default: false, 
   },
   place_of_supply: {
     type: String,

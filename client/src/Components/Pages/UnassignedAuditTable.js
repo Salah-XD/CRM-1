@@ -47,11 +47,12 @@ const UnassignedAuditTable = () => {
   const [location, setLocation] = useState("");
   const [outletName, setOutletName] = useState("");
   const [fboName, setFboName] = useState("");
-  const [service, setService] = useState(""); 
+  const [service, setService] = useState("");
   const [auditNumber, setAuditNumber] = useState("");
   const [selectedAuditor, setSelectedAuditor] = useState(null);
   const [proposalNumber, setProposalNumber] = useState("");
   const [customer_type, setCustomerType] = useState("");
+  const [type_of_industry, setTypeOfIndustry] = useState("");
   const params = useParams();
   const navigate = useNavigate();
 
@@ -140,7 +141,11 @@ const UnassignedAuditTable = () => {
     setProposalNumber(record.proposal_number);
     setCustomerType(record.customer_type);
     setService(record.service);
-    setAuditModal(true);
+    setTypeOfIndustry(record.type_of_industry);
+
+    if (auditorName) {
+      setAuditModal(true); // Open modal when an auditor is selected
+    }
   };
 
   const handleCloseModal = () => {
@@ -164,7 +169,8 @@ const UnassignedAuditTable = () => {
       proposal_number: proposalNumber,
       location,
       service,
-      customer_type
+      customer_type,
+      type_of_industry,
     };
 
     try {
@@ -173,7 +179,7 @@ const UnassignedAuditTable = () => {
         requestData
       );
       message.success("The auditor has been allocated");
-      
+
       fetchData();
       setAuditorName("");
       setAuditorId("");
@@ -203,31 +209,31 @@ const UnassignedAuditTable = () => {
       render: (text, record) => {
         return (
           <Select
-          value={record.auditor_name || "not-selected"} // Set default value if none is selected
-          style={{ width: 150 }}
-          onChange={(value) => {
-            if (value === "not-selected") {
-              handleAuditorChange("", { auditor_id: null, ...record }); // Handle "Not Selected"
-            } else {
-              const [auditorName, auditorId] = value.split("|"); // Decode value
-              handleAuditorChange(
-                auditorName,
-                { auditor_id: auditorId, ...record } // Pass the row's data
-              );
-            }
-          }}
-        >
-          <Option value="not-selected">Not Selected</Option> {/* Add Not Selected option */}
-          {auditors.map((auditor) => (
-            <Option
-              key={auditor._id}
-              value={`${auditor.userName}|${auditor._id}`}
-            >
-              {auditor.userName}
-            </Option>
-          ))}
-        </Select>
-        
+            value={record.auditor_name || "not-selected"} // Set default value if none is selected
+            style={{ width: 150 }}
+            onChange={(value) => {
+              if (value === "not-selected") {
+                handleAuditorChange("", { auditor_id: null, ...record }); // Handle "Not Selected"
+              } else {
+                const [auditorName, auditorId] = value.split("|"); // Decode value
+                handleAuditorChange(
+                  auditorName,
+                  { auditor_id: auditorId, ...record } // Pass the row's data
+                );
+              }
+            }}
+          >
+            <Option value="not-selected">Not Selected</Option>{" "}
+            {/* Add Not Selected option */}
+            {auditors.map((auditor) => (
+              <Option
+                key={auditor._id}
+                value={`${auditor.userName}|${auditor._id}`}
+              >
+                {auditor.userName}
+              </Option>
+            ))}
+          </Select>
         );
       },
     },
