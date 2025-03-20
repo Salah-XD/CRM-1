@@ -37,6 +37,10 @@ const __dirname = path.dirname(__filename);
 // // Serve React app
 app.use(express.static(path.join(__dirname, "./client/build")));
 
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+
+
 // Connect to database and start server
 connectDB();
 

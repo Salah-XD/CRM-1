@@ -49,7 +49,7 @@ const debounce = (func, delay) => {
 // Define your debounce delay (e.g., 300ms)
 const debounceDelay = 300;
 
-const AuditorPayment = () => {
+const AllPaymentRequest = () => {
   const [flattenedTableData, setFlattenedTableData] = useState([]);
   const [sortData, setSortData] = useState("alllist");
   const [selectionType, setSelectionType] = useState("checkbox");
@@ -474,7 +474,7 @@ const columns = [
     <AdminDashboard>
       <div className="bg-blue-50 m-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Payment Record</h2>
+          <h2 className="text-xl font-semibold">All Payments</h2>
           <div className="space-x-2">
             <Space wrap>
               {/* <Button
@@ -541,7 +541,7 @@ const columns = [
                   fontWeight: sortData === "alllist" ? "normal" : "500",
                 }}
               >
-                New Proposal
+                New Requests
               </Radio.Button>
             </Radio.Group>
           </ConfigProvider>
@@ -575,7 +575,10 @@ const columns = [
             }}
           >
             <Table
-             
+             rowSelection={{
+              type: selectionType,
+              ...rowSelection,
+            }}
               columns={columns}
               dataSource={flattenedTableData}
               rowKey={(record) => record.key}
@@ -591,4 +594,4 @@ const columns = [
   );
 };
 
-export default AuditorPayment;
+export default AllPaymentRequest;

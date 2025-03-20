@@ -4,7 +4,17 @@ import multer from "multer";
 import  path from "path";
 import fs from "fs";
 import AuditManagement from "../models/auditMangement.js";
-import AuditorPayment from "../models/auditorPaymentModal.js";
+import AuditorPayment from "../models/auditorPaymentModel.js";
+import { User } from "../models/usersModel.js";
+import { fileURLToPath } from "url";
+import moment from "moment";
+
+
+// Get the correct directory name in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+
 
 // Create a new payment
 export const createPayment = async (req, res) => {
@@ -173,7 +183,7 @@ export const getAllProposalDetails = async (req, res) => {
         fbo_name: proposal.fbo_name,
         totalOutlets,
         notInvoicedOutlets,
-        Proposal_value: overallTotal,
+        Proposal_value: `₹${overallTotal.toFixed(2)}` || "₹0.00",
       };
     });
 
@@ -187,6 +197,114 @@ export const getAllProposalDetails = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+
+export const getAllProposalDetailsForPayment = async (req, res) => {
+  try {
+    const { page = 1, pageSize = 10, sort, keyword, status } = req.query;
+
+    const pageNumber = parseInt(page, 10);
+    const sizePerPage = parseInt(pageSize, 10);
+
+    if (isNaN(pageNumber) || pageNumber < 1 || isNaN(sizePerPage) || sizePerPage < 1) {
+      return res.status(400).json({ message: "Invalid page or pageSize parameter" });
+    }
+
+    // Step 1: Get all valid proposal IDs from AuditorPayment with optional status filter
+    let paymentQuery = {};
+    if (status) {
+      paymentQuery.status = status;
+    }
+
+    const payments = await AuditorPayment.find(paymentQuery).select("proposalId amountReceived referenceNumber status");
+    const validPayments = payments.filter((payment) => payment.proposalId); // Remove undefined/null proposalId
+    const proposalIds = validPayments.map((payment) => payment.proposalId.toString());
+
+    if (proposalIds.length === 0) {
+      return res.json({ total: 0, currentPage: pageNumber, data: [] });
+    }
+
+    // Step 2: Query proposals using valid proposalIds
+    let query = Proposal.find({ _id: { $in: proposalIds } });
+
+    // Step 3: Apply search filter if provided
+    if (keyword) {
+      const searchRegex = new RegExp(keyword, "i");
+      query = query.where("fbo_name").regex(searchRegex);
+    }
+
+    // Step 4: Sorting logic
+    let sortQuery = {};
+    switch (sort) {
+      case "newproposal":
+        sortQuery = { createdAt: -1 };
+        break;
+      case "alllist":
+        sortQuery = { createdAt: 1 };
+        break;
+      default:
+        sortQuery = { createdAt: 1 };
+        break;
+    }
+
+    // Step 5: Count total proposals for pagination
+    const totalProposals = await Proposal.countDocuments(query.getQuery());
+
+    // Step 6: Fetch paginated proposals
+    const proposals = await query
+      .skip((pageNumber - 1) * sizePerPage)
+      .limit(sizePerPage)
+      .sort(sortQuery)
+      .select("proposal_number fbo_name outlets proposal_date status createdAt updatedAt");
+
+    // Create a Map for quick lookup of payment details
+    const paymentMap = new Map();
+    validPayments.forEach((payment) => {
+      paymentMap.set(payment.proposalId.toString(), payment);
+    });
+
+    // Step 7: Calculate proposal values and merge payment details
+    const proposalsWithPayments = proposals.map((proposal) => {
+      const totalOutlets = proposal.outlets.length;
+      const notInvoicedOutlets = proposal.outlets.filter((outlet) => !outlet.is_invoiced).length;
+
+      // Calculate Proposal Value
+      const total = proposal.outlets.reduce(
+        (acc, outlet) => acc + parseFloat(outlet.amount?.$numberInt || outlet.amount || 0),
+        0
+      );
+      const gst = total * 0.18;
+      const overallTotal = total + gst;
+
+      // Get payment details
+      const payment = paymentMap.get(proposal._id.toString()) || {};
+      
+      return {
+        _id: proposal._id,
+        proposal_number: proposal.proposal_number,
+        fbo_name: proposal.fbo_name,
+        totalOutlets,
+        notInvoicedOutlets,
+        Proposal_value: `₹${overallTotal.toFixed(2)}` || "₹0.00",
+        amountReceived: payment.amountReceived || 0,
+        referenceNumber: payment.referenceNumber || "N/A",
+        paymentStatus: payment.status || "pending",
+      };
+    });
+
+    res.json({
+      total: totalProposals,
+      currentPage: pageNumber,
+      data: proposalsWithPayments,
+    });
+  } catch (error) {
+    console.error("Error fetching proposals for payment:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
 
 
 
@@ -212,8 +330,9 @@ const upload = multer({ storage });
 
 
 export const saveAuditorPayment = async (req, res) => {
+  console.log("Request Body:", req.body);
+  console.log("Uploaded File:", req.file || "No file uploaded"); // Fix this
 
-  console.log(req.body);
   try {
     const { proposalId, amountReceived, referenceNumber, auditor_id } = req.body;
 
@@ -221,21 +340,17 @@ export const saveAuditorPayment = async (req, res) => {
       return res.status(400).json({ message: "All fields are required." });
     }
 
-    // Handling multiple file uploads (images, PDFs)
-    const referenceDocuments = req.files
-      ? req.files.map((file) => ({
-          fileName: file.filename,
-          fileType: file.mimetype, // e.g., "image/png", "application/pdf"
-          filePath: `payment-reference/${file.filename}`,
-        }))
-      : [];
+    // Use req.file instead of req.files
+    const referenceDocument = req.file
+      ? `payment-reference/${req.file.filename}`
+      : "";
 
     const newPayment = new AuditorPayment({
-      proposal: proposalId,
+      proposalId,
       amountReceived,
       referenceNumber,
-      referenceDocuments,
-      auditor: auditor_id,
+      referenceDocument,
+      auditorId: auditor_id,
     });
 
     await newPayment.save();
@@ -246,3 +361,195 @@ export const saveAuditorPayment = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const getAuditorPaymentById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: "Payment ID is required." });
+    }
+
+    const payment = await AuditorPayment.findOne({ _id: id }).populate({
+      path: 'auditorId',
+      model: User,
+      select: 'userName'
+    });
+
+    if (!payment) {
+      return res.status(404).json({ message: "Pending payment details not found." });
+    }
+
+    res.status(200).json({
+      ...payment.toObject(),
+      auditor_name: payment.auditorId ? payment.auditorId.userName : null
+    });
+  } catch (error) {
+    console.error("Error fetching pending auditor payment details:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+export const updateAuditorPaymentStatus = async (req, res) => {
+
+  console.log("Request Body:", req.body);
+  try {
+    const { id } = req.params; // id represents auditorId
+    const { status } = req.body;
+
+    if (!id || !status) {
+      return res.status(400).json({ message: "Auditor ID and status are required." });
+    }
+
+    const validStatuses = ["pending", "accepted", "rejected"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status value." });
+    }
+
+    const payment = await AuditorPayment.findOneAndUpdate(
+      { _id: id },
+      { status },
+      { new: true, runValidators: true }
+    );
+
+    if (!payment) {
+      return res.status(404).json({ message: "Auditor payment not found." });
+    }
+
+    res.status(200).json({
+      message: "Auditor payment status updated successfully.",
+      payment,
+    });
+  } catch (error) {
+    console.error("Error updating auditor payment status:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+
+export const getAllProposalDetailsAdmin = async (req, res) => {
+  try {
+    console.log("Request body:", req.body);
+
+    // Step 1: Extract query parameters
+    const { page = 1, pageSize = 10, sort, status = "pending" } = req.query;
+
+    const pageNumber = parseInt(page, 10);
+    const sizePerPage = parseInt(pageSize, 10);
+
+    if (isNaN(pageNumber) || pageNumber < 1 || isNaN(sizePerPage) || sizePerPage < 1) {
+      return res.status(400).json({ message: "Invalid page or pageSize parameter" });
+    }
+
+    // Step 2: Sorting logic
+    let sortQuery = { createdAt: 1 }; // Default sorting (oldest first)
+    if (sort === "newproposal") sortQuery = { createdAt: -1 };
+    else if (sort === "alllist") sortQuery = { createdAt: 1 };
+
+    // Step 3: Fetch auditor payments with status filter & pagination
+    const auditorPayments = await AuditorPayment.find({ status }) // Filter by AuditorPayment.status
+      .populate({
+        path: "auditorId",
+        model: User,
+        select: "userName", // Get auditor's userName
+      })
+      .populate({
+        path: "proposalId",
+        select: "proposal_number fbo_name outlets proposal_date status createdAt updatedAt ",
+      })
+      .sort(sortQuery)
+      .skip((pageNumber - 1) * sizePerPage)
+      .limit(sizePerPage);
+
+    console.log("Fetched AuditorPayments:", auditorPayments.length);
+
+    if (!auditorPayments.length) {
+      return res.json({ total: 0, currentPage: pageNumber, data: [] });
+    }
+
+    // Step 4: Extract required fields
+    const proposalsWithAuditor = auditorPayments.map((payment) => {
+      const proposal = payment.proposalId;
+      const auditor = payment.auditorId;
+
+      // ✅ Calculate Proposal Value, GST (18%), and Overall Total
+      const totalProposalValue = proposal.outlets.reduce(
+        (acc, outlet) => acc + parseFloat(outlet.amount?.$numberInt || outlet.amount || 0),
+        0
+      );
+      const gst = totalProposalValue * 0.18;
+      const overallTotal = totalProposalValue + gst;
+
+      return {
+         // Include AuditorPayment ID
+          _id: proposal._id,
+          proposal_number: proposal.proposal_number,
+          fbo_name: proposal.fbo_name,
+          totalOutlets: proposal.outlets.length,
+          notInvoicedOutlets: proposal.outlets.filter((outlet) => !outlet.is_invoiced).length,
+          proposal_date: moment(proposal.proposal_date).format("DD MMM YYYY"),
+          auditor_payment_date: moment(proposal.updatedAt).format("DD MMM YYYY"),
+          status: proposal.status,
+          auditor_id: payment.auditorId, // Get auditorId from AuditorPayment model
+        auditor_name: auditor ? auditor.userName : "N/A", // Get userName from User model
+         // Date from AuditorPayment model
+          Proposal_value: `₹${overallTotal.toFixed(2)}`, // ✅ Proposal Value
+        
+      };
+    });
+
+    // Step 5: Get total count for pagination
+    const totalCount = await AuditorPayment.countDocuments({ status });
+
+    res.json({
+      total: totalCount,
+      currentPage: pageNumber,
+      data: proposalsWithAuditor,
+    });
+  } catch (error) {
+    console.error("Error fetching proposals:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+export const deleteFields = async (req, res) => {
+  try {
+    const arrayOfAuditorPaymentIds = req.body;
+
+    // Validate input
+    if (!Array.isArray(arrayOfAuditorPaymentIds)) {
+      return res
+        .status(400)
+        .json({ error: "Invalid input: Expected an array of AuditorPayment IDs" });
+    }
+
+    // Find all AuditorPayments to get their referenceDocument paths
+    const auditorPayments = await AuditorPayment.find({
+      _id: { $in: arrayOfAuditorPaymentIds },
+    });
+
+    // Delete associated reference document images
+    auditorPayments.forEach((payment) => {
+      if (payment.referenceDocument) {
+        const filePath = path.join(__dirname, "../uploads", payment.referenceDocument);
+        fs.unlink(filePath, (err) => {
+          if (err) console.error(`Failed to delete file: ${filePath}`, err);
+          else console.log(`Deleted file: ${filePath}`);
+        });
+      }
+    });
+
+    // Delete AuditorPayment records
+    await AuditorPayment.deleteMany({ _id: { $in: arrayOfAuditorPaymentIds } });
+
+    res.status(200).json({ message: "Auditor Payments and associated documents deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting AuditorPayments:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+

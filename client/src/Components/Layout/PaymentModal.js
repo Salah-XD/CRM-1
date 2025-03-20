@@ -15,23 +15,30 @@ const PaymentModal = ({ visible, handleCancel,proposalId}) => {
     try {
       const values = await form.validateFields();
       const formData = new FormData();
-      
-
+  
       formData.append("amountReceived", values.amountReceived);
       formData.append("referenceNumber", values.referenceNumber);
       formData.append("proposalId", proposalId);
       formData.append("auditor_id", user._id);
-      
-      // Append file (if uploaded)
+
+      const test=values.referenceDocument[0].originFileObj;
+      console.log(test);
+  
+      // Append file if uploaded
       if (values.referenceDocument && values.referenceDocument.length > 0) {
-        formData.append("referenceDocument", values.referenceDocument[0].originFileObj);
+        formData.append("referenceDocument", values.referenceDocument[0].originFileObj); 
       }
 
+      // Log formData for debugging
+      for (let pair of formData.entries()) {
+        console.log(`${pair[0]}: ${pair[1]}`);
+      }
+  
       // Send data to backend
       const response = await axios.post("/api/payment/saveAuditorPayment", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
+  
       message.success(response.data.message);
       form.resetFields();
       handleCancel();
@@ -40,6 +47,7 @@ const PaymentModal = ({ visible, handleCancel,proposalId}) => {
       message.error("Failed to save payment details");
     }
   };
+  
 
   return (
     <Modal

@@ -30,6 +30,7 @@ import toast from "react-hot-toast";
 import { ExclamationCircleFilled } from "@ant-design/icons";
 import PaymentModal from "../Layout/PaymentModal";
 import { useAuth } from "../Context/AuthContext";
+import PaymentConfirmationModal from "../Layout/PaymentConfirmationModal";
 
 const { confirm } = Modal;
 
@@ -49,7 +50,7 @@ const debounce = (func, delay) => {
 // Define your debounce delay (e.g., 300ms)
 const debounceDelay = 300;
 
-const AuditorPayment = () => {
+const PaymentRequestTable = () => {
   const [flattenedTableData, setFlattenedTableData] = useState([]);
   const [sortData, setSortData] = useState("alllist");
   const [selectionType, setSelectionType] = useState("checkbox");
@@ -72,15 +73,15 @@ const AuditorPayment = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [proposalId, setProposalId] = useState(null);
   const [showSendMailModal, setShowSendMailModal] = useState(false);
+  const [auditorPaynmentId, setAuditorPaymentId] = useState(null);
   const [UpdateProposal, setUpdateProposal] = useState(false);
   const { user } = useAuth();
-  
+
   const navigate = useNavigate();
 
   // Toggling
 
-const handleCancelPayment = () => {
-
+  const handleCancelPayment = () => {
     setIsPaymentModalVisible(false);
   };
 
@@ -117,36 +118,37 @@ const handleCancelPayment = () => {
     setProposalId(null);
   };
 
-  const handleRecordPayment = (proposal_id) => {
+  const handleRecordPayment = (proposal_id,auditorPaymentId) => {
+    setAuditorPaymentId(auditorPaymentId);
     setProposalId(proposal_id);
     setIsPaymentModalVisible(true);
- 
   };
 
   // Fetch data function
   const fetchData = useCallback(() => {
     setLoading(true);
-    const url = `/api/payment/getAllProposalDetails/${user._id}`;
-
+    const url = `/api/payment/getAllProposalDetailsAdmin`;
+  
     axios
       .get(url, {
         params: {
           page: tableParams.pagination.current,
           pageSize: tableParams.pagination.pageSize,
-          sort: `${sortData}`,
+          sort: sortData, // No need for template literal `${sortData}`
           keyword: searchKeyword,
+          status: "pending", // ✅ Pass status as a query parameter instead
         },
       })
       .then((response) => {
         const { data } = response;
         const { data: responseData, total, currentPage } = data;
-
+  
         const flattenedData = responseData.map((row, index) => ({
           ...row,
           key: `${row._id}-${index}`, // Combine _id with index for a unique key
         }));
         setFlattenedTableData(flattenedData);
-
+  
         setTableParams((prevState) => ({
           ...prevState,
           pagination: {
@@ -155,7 +157,7 @@ const handleCancelPayment = () => {
             current: currentPage,
           },
         }));
-
+  
         setLoading(false);
       })
       .catch((error) => {
@@ -168,6 +170,7 @@ const handleCancelPayment = () => {
     sortData,
     searchKeyword,
   ]);
+  
 
   // Fetch initial data on component mount
   useEffect(() => {
@@ -204,7 +207,7 @@ const handleCancelPayment = () => {
       cancelText: "No",
       onOk() {
         axios
-          .delete("/api/proposal/deleteFields", { data: selectedRows })
+          .delete("/api/payment/deleteFields", { data: selectedRows })
           .then((response) => {
             const currentPage = tableParams.pagination.current;
             const pageSize = tableParams.pagination.pageSize;
@@ -246,7 +249,7 @@ const handleCancelPayment = () => {
       cancelText: "No",
       onOk() {
         axios
-          .delete("/api/proposal/deleteFields", { data: [id] }) // Send ID as an array
+          .delete("/api/payment/deleteFields", { data: [id] }) // Send ID as an array
           .then((response) => {
             const currentPage = tableParams.pagination.current;
             const pageSize = tableParams.pagination.pageSize;
@@ -280,9 +283,6 @@ const handleCancelPayment = () => {
 
   // Handle Menu
   const handleMenuClick = (record, { key }) => {
-    console.log("Menu clicked for record:", record); // Debugging
-    console.log("Record _id:", record._id); // Debugging
-
     switch (key) {
       case "generate_agreement":
         showModalAgreement(record._id);
@@ -297,7 +297,7 @@ const handleCancelPayment = () => {
         break;
 
       case "delete":
-        showSingleDeleteConfirm(record._id);
+        showSingleDeleteConfirm(record.auditor_paymentId);
         break;
 
       case "view":
@@ -314,118 +314,88 @@ const handleCancelPayment = () => {
       onClick={(e) => handleMenuClick(record, e)}
       style={{ padding: "8px" }}
     >
-      <Menu.Item
-        key="generate_agreement"
-        style={{ margin: "8px 0", backgroundColor: "#E0F7FA" }}
-      >
-        <span
-          style={{ color: "#00796B", fontWeight: "bold", fontSize: "12px" }}
-        >
-          Generate Agreement
-        </span>
-      </Menu.Item>
-      <Menu.Item
-        key="generate_invoice"
-        style={{ margin: "8px 0", backgroundColor: "#E0F7FA" }}
-      >
-        <span
-          style={{ color: "#00796B", fontWeight: "bold", fontSize: "12px" }}
-        >
-          Generate Invoice
-        </span>
-      </Menu.Item>
-      <Menu.Item
-        key="view"
-        style={{ margin: "8px 0", backgroundColor: "#E1BEE7" }}
-      >
-        <span
-          style={{ color: "#4A148C", fontWeight: "bold", fontSize: "12px" }}
-        >
-          <EyeOutlined /> View
-        </span>
-      </Menu.Item>
-      <Menu.Item
-        key="send_mail"
-        style={{ margin: "8px 0", backgroundColor: "#FFE0B2" }}
-      >
-        <span
-          style={{ color: "#E65100", fontWeight: "bold", fontSize: "12px" }}
-        >
-          <MailOutlined /> Send Mail
-        </span>
-      </Menu.Item>
-      <Menu.Item
-        key="delete"
-        style={{ margin: "8px 0", backgroundColor: "#FFCDD2" }}
-      >
-        <span
-          style={{ color: "#B71C1C", fontWeight: "bold", fontSize: "12px" }}
-        >
-          <DeleteOutlined /> Delete
-        </span>
-      </Menu.Item>
+        <Menu.Item
+              key="delete"
+              style={{ margin: "8px 0", backgroundColor: "#FFCDD2" }}
+            >
+              <span
+                style={{ color: "#B71C1C", fontWeight: "bold", fontSize: "12px" }}
+              >
+                <DeleteOutlined /> Delete
+              </span>
+            </Menu.Item>
     </Menu>
   );
 
-const columns = [
+  const columns = [
     {
-        title: "Proposal Number",
-        dataIndex: "proposal_number",
-        key: "proposal_number",
+      title: "Auditor Name",
+      dataIndex: "auditor_name",
+      key: "auditor_name",
     },
     {
-        title: "FBO Name",
-        dataIndex: "fbo_name",
-        key: "fbo_name",
+      title: "Request Date",
+      dataIndex: "auditor_payment_date",
+      key: "auditor_payment_date",
     },
     {
-        title: "No. of Outlets",
-        dataIndex: "totalOutlets",
-        key: "totalOutlets",
+      title: "Proposal Number",
+      dataIndex: "proposal_number",
+      key: "proposal_number",
     },
     {
-        title: "Outlets Pending for Invoicing",
-        dataIndex: "notInvoicedOutlets",
-        key: "notInvoicedOutlets",
+      title: "FBO Name",
+      dataIndex: "fbo_name",
+      key: "fbo_name",
     },
     {
-        title: "Proposal Value",
-        dataIndex: "Proposal_value",
-        key: "Proposal_value",
+      title: "No. of Outlets",
+      dataIndex: "totalOutlets",
+      key: "totalOutlets",
     },
     {
-        title: "Payment Received",
-        dataIndex: "Payment_Received",
-        key: "Payment_Received",
+      title: "Outlets Pending for Invoicing",
+      dataIndex: "notInvoicedOutlets",
+      key: "notInvoicedOutlets",
     },
     {
-        title: "Record Payment",
-        key: "record_payment",
-        render: (_, record) => (
-            <Button
-                className="bg-blue-500 text-white hover:bg-blue-700"
-                onClick={() => handleRecordPayment(record._id)}
-            >
-                Record Payment
-            </Button>
-        ),
+      title: "Proposal Value",
+      dataIndex: "Proposal_value",
+      key: "Proposal_value",
     },
-    // {
-    //   title: "Action",
-    //   key: "action",
-    //   render: (_, record) => (
-    //     <Dropdown
-    //       overlay={menu(record)}
-    //       trigger={["click"]}
-    //       placement="bottomLeft"
-    //       arrow
-    //       danger
-    //     >
-    //       <Button type="link" icon={<MoreOutlined />} />
-    //     </Dropdown>
-    //   ),
-    // },
-];
+    {
+      title: "Payment Received",
+      dataIndex: "Payment_Received",
+      key: "Payment_Received",
+    },
+    {
+      title: "Verify Payment",
+      key: "verify_payment",
+      render: (_, record) => (
+        <Button
+          className="bg-blue-500 text-white hover:bg-blue-700"
+          onClick={() => handleRecordPayment(record._id,record.auditor_paymentId)}
+        >
+          Verify
+        </Button>
+      ),
+    },
+    {
+      title: "Action",
+      key: "action",
+      render: (_, record) => (
+        <Dropdown
+          overlay={menu(record)}
+          trigger={["click"]}
+          placement="bottomLeft"
+          arrow
+          danger
+        >
+          <Button type="link" icon={<MoreOutlined />} />
+        </Dropdown>
+      ),
+    },
+  ];
 
   // Fetch data when shouldFetch changes
   useEffect(() => {
@@ -474,17 +444,17 @@ const columns = [
     <AdminDashboard>
       <div className="bg-blue-50 m-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Payment Record</h2>
+          <h2 className="text-xl font-semibold">Payment Requests</h2>
           <div className="space-x-2">
             <Space wrap>
-              {/* <Button
+              <Button
                 onClick={showDeleteConfirm}
                 icon={<DeleteOutlined />}
                 disabled={selectedRowKeys.length === 0}
                 shape="round"
               >
                 Delete
-              </Button> */}
+              </Button> 
             </Space>
             {/* <Button shape="round" icon={<FilterOutlined />} size="default">
               Filters
@@ -541,7 +511,7 @@ const columns = [
                   fontWeight: sortData === "alllist" ? "normal" : "500",
                 }}
               >
-                New Proposal
+                New Requests
               </Radio.Button>
             </Radio.Group>
           </ConfigProvider>
@@ -575,7 +545,10 @@ const columns = [
             }}
           >
             <Table
-             
+              rowSelection={{
+                type: selectionType,
+                ...rowSelection,
+              }}
               columns={columns}
               dataSource={flattenedTableData}
               rowKey={(record) => record.key}
@@ -586,9 +559,14 @@ const columns = [
           </ConfigProvider>
         </div>
       </div>
-    <PaymentModal visible={isPaymentModalVisible}  proposalId={proposalId}  handleCancel={handleCancelPayment} />
+      <PaymentConfirmationModal
+        visible={isPaymentModalVisible}
+        proposalId={proposalId}
+        auditorPaymentId={auditorPaynmentId}
+        handleCancel={handleCancelPayment}
+      />
     </AdminDashboard>
   );
 };
 
-export default AuditorPayment;
+export default PaymentRequestTable;

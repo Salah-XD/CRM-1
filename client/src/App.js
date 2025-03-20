@@ -46,6 +46,8 @@ import WorkLogTable from "./Components/Pages/WorkLogTable";
 import AdminWorkLogTable from "./Components/Pages/AdminWorkLogTable";
 import UpdteWorkLog from "./Components/Pages/UpdateWorkLog";
 import AuditorPayment from "./Components/Pages/AuditorPayment";
+import PaymentRequestTable from "./Components/Pages/PaymentRequestTable";
+import AllPaymentRequest from "./Components/Pages/AllPaymentRequest";
 
 import {
   AccountAdminRoute,
@@ -125,6 +127,10 @@ function App() {
           <Route path="/draft" element={<DraftAuditCard />} />
           <Route path="/modified" element={<ModifiedAuditCard />} />
           <Route path="/approved" element={<ApprovedAuditCard />} />
+          <Route path="/payment-request" element={<PaymentRequestTable />} />
+          <Route path="/all-payment" element={<AllPaymentRequest />} />
+
+
           <Route
             path="/submittedForApproval"
             element={<SubmittedForApproval />}

@@ -55,7 +55,7 @@ const AdminDashboard = ({ children }) => {
     const findSelectedKey = (items, segment) => {
       for (const item of items) {
         if (item.link && item.link.startsWith(segment)) {
-          return item.key;
+          return item.key; 
         }
         if (item.children) {
           const childKey = findSelectedKey(item.children, segment);
@@ -184,7 +184,7 @@ const AdminDashboard = ({ children }) => {
       ],
     },
     {
-      label: "HR Audit Management",
+      label: "Audit Management",
       key: "/audit",
       icon: <FileTextOutlined />,
       roles: ["SUPER_ADMIN", "AUDIT_ADMIN", "AUDITOR"],
@@ -250,14 +250,14 @@ const AdminDashboard = ({ children }) => {
       children: [
         {
           label: "All Payments",
-          key: "/all-payments",
-          link: "/all-payments",
+          key: "/all-payment",
+          link: "/all-payment",
           roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
         },
         {
-          label: "Requests received",
-          key: "/request received",
-          link: "/request-received",
+          label: "Requests Received",
+          key: "/payment-request",
+          link: "/payment-request",
           roles: ["SUPER_ADMIN", "AUDIT_ADMIN"],
         },
         

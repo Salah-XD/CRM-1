@@ -6,6 +6,11 @@ import {
   getPaymentById,
   getAllProposalDetails,
   saveAuditorPayment,
+  getAllProposalDetailsForPayment,
+  getAuditorPaymentById,
+  updateAuditorPaymentStatus,
+  getAllProposalDetailsAdmin,
+  deleteFields
 } from "../controller/paymentController.js";
 import multer from "multer";
 
@@ -14,7 +19,7 @@ const router = express.Router();
 // Multer setup for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/payment-references");
+    cb(null, "uploads/payment-reference");
   },
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);
@@ -25,7 +30,7 @@ const upload = multer({ storage });
 // Define the route with Multer for handling file uploads
 router.post(
   "/saveAuditorPayment",
-  upload.single("referenceDocument"),
+  upload.single("referenceDocument"), 
   saveAuditorPayment
 );
 
@@ -33,7 +38,17 @@ router.post("/payments", createPayment);
 router.get("/payments", getAllPayments);
 router.get("/payments/:id", getPaymentById);
 
-//Get all the proposal for the paymet with the given auditor id only
+
 router.get("/getAllProposalDetails/:auditor_id", getAllProposalDetails);
+
+router.get("/getAllProposalDetailsAdmin",getAllProposalDetailsAdmin);
+
+router.get("/getAllProposalDetails",getAllProposalDetailsForPayment);
+
+router.get("/getAuditorPaymentById/:id", getAuditorPaymentById);
+
+router.put("/updatePaymentStatus/:id", updateAuditorPaymentStatus);
+
+router.delete("/deleteFields", deleteFields);
 
 export default router;
