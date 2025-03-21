@@ -238,7 +238,7 @@ const AdminDashboard = ({ children }) => {
     {
       label: "Payment  ",
       key: "/",
-      icon: <CarryOutOutlined />,
+      icon: <CreditCardOutlined />,
       link: "/auditor-payment",
       roles: [ "AUDITOR"],
     },

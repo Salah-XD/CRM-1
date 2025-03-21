@@ -395,8 +395,8 @@ const columns = [
     },
     {
         title: "Payment Received",
-        dataIndex: "Payment_Received",
-        key: "Payment_Received",
+        dataIndex: "paymentReceived",
+        key: "paymentReceived",
     },
     {
         title: "Record Payment",

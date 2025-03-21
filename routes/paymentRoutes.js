@@ -10,7 +10,9 @@ import {
   getAuditorPaymentById,
   updateAuditorPaymentStatus,
   getAllProposalDetailsAdmin,
-  deleteFields
+  deleteFields,
+  updateAuditorPayment,
+  getAllProposalDetailsWithPayment
 } from "../controller/paymentController.js";
 import multer from "multer";
 
@@ -43,6 +45,8 @@ router.get("/getAllProposalDetails/:auditor_id", getAllProposalDetails);
 
 router.get("/getAllProposalDetailsAdmin",getAllProposalDetailsAdmin);
 
+router.get("/getAllProposalDetailsWithPayment",getAllProposalDetailsWithPayment);
+
 router.get("/getAllProposalDetails",getAllProposalDetailsForPayment);
 
 router.get("/getAuditorPaymentById/:id", getAuditorPaymentById);
@@ -50,5 +54,7 @@ router.get("/getAuditorPaymentById/:id", getAuditorPaymentById);
 router.put("/updatePaymentStatus/:id", updateAuditorPaymentStatus);
 
 router.delete("/deleteFields", deleteFields);
+
+router.put("/updateAuditorPayment", upload.single("referenceDocument"),  updateAuditorPayment);
 
 export default router;

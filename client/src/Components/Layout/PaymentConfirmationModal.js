@@ -87,33 +87,46 @@ const PaymentConfirmationModal = ({ visible, handleCancel, proposalId,auditorPay
   };
 
   const handleSubmit = async () => {
+    if (!auditorPaymentId) {
+      message.error("Auditor Payment ID is missing for updating.");
+      return;
+    }
+  
     try {
       const values = await form.validateFields();
       const formData = new FormData();
-
+  
       formData.append("auditor_name", values.auditor_name);
       formData.append("amountReceived", values.amountReceived);
       formData.append("referenceNumber", values.referenceNumber);
+      formData.append("referenceDocument", values.referenceDocument);
       formData.append("proposalId", proposalId);
       formData.append("auditor_id", user._id);
-
+      formData.append("paymentId", auditorPaymentId);
+  
       if (fileList.length > 0) {
         formData.append("referenceDocument", fileList[0].originFileObj);
       }
-
-      await axios.post("/api/payment/saveAuditorPayment", formData, {
+  
+      console.log("Updating with Form Data:", Object.fromEntries(formData.entries()));
+  
+      await axios.put("/api/payment/updateAuditorPayment", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
-      message.success("Payment details saved successfully");
+  
+      message.success("Payment details updated successfully");
       form.resetFields();
       setFileList([]);
       setIsEditing(false);
       handleCancel();
     } catch (error) {
-      message.error("Failed to save payment details");
+      console.error("Error during update:", error);
+      message.error("Failed to update payment details");
     }
   };
+  
+  
+  
 
   const handleConfirm = async (status) => {
     try {
@@ -121,7 +134,7 @@ const PaymentConfirmationModal = ({ visible, handleCancel, proposalId,auditorPay
         status,
       });
 
-      message.success(`Payment ${status === "accept" ? "accepted" : "rejected"} successfully`);
+      message.success(`Payment ${status === "accepted" ? "accepted" : "rejected"} successfully`);
       handleCancel();
     } catch (error) {
       message.error(`Failed to ${status} payment`);

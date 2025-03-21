@@ -115,6 +115,95 @@ export const deletePayment = async (req, res) => {
   }
 };
 
+export const getAllProposalDetailsWithPayment = async (req, res) => {
+  try {
+    const { page = 1, pageSize = 10, sort, keyword } = req.query;
+
+    const pageNumber = parseInt(page, 10);
+    const sizePerPage = parseInt(pageSize, 10);
+
+    if (isNaN(pageNumber) || pageNumber < 1 || isNaN(sizePerPage) || sizePerPage < 1) {
+      return res.status(400).json({ message: "Invalid page or pageSize parameter" });
+    }
+
+    // Step 1: Query proposals directly from Proposal model
+    let query = Proposal.find();
+
+    // Step 2: Apply search filter if provided
+    if (keyword) {
+      const searchRegex = new RegExp(keyword, "i");
+      query = query.where("fbo_name").regex(searchRegex);
+    }
+
+    // Step 3: Sorting logic
+    let sortQuery = {};
+    switch (sort) {
+      case "newproposal":
+        sortQuery = { createdAt: -1 };
+        break;
+      case "alllist":
+        sortQuery = { createdAt: 1 };
+        break;
+      default:
+        sortQuery = { createdAt: 1 };
+        break;
+    }
+
+    // Step 4: Count total proposals for pagination
+    const totalProposals = await Proposal.countDocuments(query.getQuery());
+
+    // Step 5: Fetch paginated proposals
+    const proposals = await query
+      .skip((pageNumber - 1) * sizePerPage)
+      .limit(sizePerPage)
+      .sort(sortQuery)
+      .select("proposal_number fbo_name outlets proposal_date status createdAt updatedAt");
+
+    // Step 6: Calculate proposal values
+    const proposalsWithCounts = await Promise.all(
+      proposals.map(async (proposal) => {
+        const totalOutlets = proposal.outlets.length;
+        const notInvoicedOutlets = proposal.outlets.filter((outlet) => !outlet.is_invoiced).length;
+
+        // Calculate Proposal Value
+        const total = proposal.outlets.reduce(
+          (acc, outlet) => acc + parseFloat(outlet.amount?.$numberInt || outlet.amount || 0),
+          0
+        );
+        const gst = total * 0.18;
+        const overallTotal = total + gst;
+
+        // Calculate Payment Received
+        const payments = await AuditorPayment.find({
+          proposalId: proposal._id,
+          status: 'accepted',
+        });
+        const paymentReceived = payments.reduce((sum, payment) => sum + parseFloat(payment.amountReceived || 0), 0);
+
+        return {
+          _id: proposal._id,
+          proposal_number: proposal.proposal_number,
+          fbo_name: proposal.fbo_name,
+          totalOutlets,
+          notInvoicedOutlets,
+          Proposal_value: `₹${overallTotal.toFixed(2)}` || "₹0.00",
+          paymentReceived: `₹${paymentReceived.toFixed(2)}` || "₹0.00",
+        };
+      })
+    );
+
+    res.json({
+      total: totalProposals,
+      currentPage: pageNumber,
+      data: proposalsWithCounts,
+    });
+  } catch (error) {
+    console.error("Error fetching proposals:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
 export const getAllProposalDetails = async (req, res) => {
   try {
     const { auditor_id } = req.params;
@@ -165,27 +254,37 @@ export const getAllProposalDetails = async (req, res) => {
       .select("proposal_number fbo_name outlets proposal_date status createdAt updatedAt");
 
     // Step 7: Calculate proposal values
-    const proposalsWithCounts = proposals.map((proposal) => {
-      const totalOutlets = proposal.outlets.length;
-      const notInvoicedOutlets = proposal.outlets.filter((outlet) => !outlet.is_invoiced).length;
+    const proposalsWithCounts = await Promise.all(
+      proposals.map(async (proposal) => {
+        const totalOutlets = proposal.outlets.length;
+        const notInvoicedOutlets = proposal.outlets.filter((outlet) => !outlet.is_invoiced).length;
 
-      // Calculate Proposal Value
-      const total = proposal.outlets.reduce(
-        (acc, outlet) => acc + parseFloat(outlet.amount?.$numberInt || outlet.amount || 0),
-        0
-      );
-      const gst = total * 0.18;
-      const overallTotal = total + gst;
+        // Calculate Proposal Value
+        const total = proposal.outlets.reduce(
+          (acc, outlet) => acc + parseFloat(outlet.amount?.$numberInt || outlet.amount || 0),
+          0
+        );
+        const gst = total * 0.18;
+        const overallTotal = total + gst;
 
-      return {
-        _id: proposal._id,
-        proposal_number: proposal.proposal_number,
-        fbo_name: proposal.fbo_name,
-        totalOutlets,
-        notInvoicedOutlets,
-        Proposal_value: `₹${overallTotal.toFixed(2)}` || "₹0.00",
-      };
-    });
+        // Calculate Payment Received
+        const payments = await AuditorPayment.find({
+          proposalId: proposal._id,
+          status: 'accepted',
+        });
+        const paymentReceived = payments.reduce((sum, payment) => sum + parseFloat(payment.amountReceived || 0), 0);
+
+        return {
+          _id: proposal._id,
+          proposal_number: proposal.proposal_number,
+          fbo_name: proposal.fbo_name,
+          totalOutlets,
+          notInvoicedOutlets,
+          Proposal_value: `₹${overallTotal.toFixed(2)}` || "₹0.00",
+          paymentReceived: `₹${paymentReceived.toFixed(2)}` || "₹0.00",
+        };
+      })
+    );
 
     res.json({
       total: totalProposals,
@@ -197,6 +296,7 @@ export const getAllProposalDetails = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 
 
@@ -362,6 +462,55 @@ export const saveAuditorPayment = async (req, res) => {
   }
 };
 
+export const updateAuditorPayment = async (req, res) => {
+  console.log("Request Body:", req.body);
+  console.log("Uploaded File:", req.file || "No file uploaded");
+
+  try {
+    const { paymentId, proposalId, amountReceived, referenceNumber } = req.body;
+
+    if (!paymentId || !proposalId || !amountReceived || !referenceNumber) {
+      return res.status(400).json({ message: "All fields are required." });
+    }
+
+    const existingPayment = await AuditorPayment.findById(paymentId);
+    console.log("Existing Payment:", existingPayment);
+    if (!existingPayment) {
+      return res.status(404).json({ message: "Payment not found." });
+    }
+
+    // Delete old reference document if a new one is uploaded
+    if (req.file && existingPayment.referenceDocument) {
+      const filePath = path.resolve(existingPayment.referenceDocument);
+      console.log("Deleting old reference document:", filePath);
+      try {
+        if (fs.existsSync(filePath)) {
+          await fs.promises.unlink(filePath);
+          console.log("Old reference document deleted.");
+        }
+      } catch (err) {
+        console.error("Error deleting old reference document:", err);
+      }
+    }
+
+    // Update payment details
+    existingPayment.proposalId = proposalId;
+    existingPayment.amountReceived = amountReceived;
+    existingPayment.referenceNumber = referenceNumber;
+    existingPayment.referenceDocument = req.file 
+      ? `payment-reference/${req.file.filename}` 
+      : existingPayment.referenceDocument;
+
+    await existingPayment.save();
+
+    res.status(200).json({ message: "Auditor payment details updated successfully!" });
+  } catch (error) {
+    console.error("Error updating auditor payment:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
 export const getAuditorPaymentById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -449,11 +598,11 @@ export const getAllProposalDetailsAdmin = async (req, res) => {
     else if (sort === "alllist") sortQuery = { createdAt: 1 };
 
     // Step 3: Fetch auditor payments with status filter & pagination
-    const auditorPayments = await AuditorPayment.find({ status }) // Filter by AuditorPayment.status
+    const auditorPayments = await AuditorPayment.find({ status })
       .populate({
         path: "auditorId",
         model: User,
-        select: "userName", // Get auditor's userName
+        select: "userName",
       })
       .populate({
         path: "proposalId",
@@ -469,36 +618,53 @@ export const getAllProposalDetailsAdmin = async (req, res) => {
       return res.json({ total: 0, currentPage: pageNumber, data: [] });
     }
 
-    // Step 4: Extract required fields
-    const proposalsWithAuditor = auditorPayments.map((payment) => {
-      const proposal = payment.proposalId;
-      const auditor = payment.auditorId;
+    // Step 4: Extract required fields and calculate Payment Received
+    const proposalsWithAuditor = await Promise.all(
+      auditorPayments.map(async (payment) => {
+        const proposal = payment.proposalId;
+        const auditor = payment.auditorId;
 
-      // ✅ Calculate Proposal Value, GST (18%), and Overall Total
-      const totalProposalValue = proposal.outlets.reduce(
-        (acc, outlet) => acc + parseFloat(outlet.amount?.$numberInt || outlet.amount || 0),
-        0
-      );
-      const gst = totalProposalValue * 0.18;
-      const overallTotal = totalProposalValue + gst;
+        const totalProposalValue = proposal.outlets.reduce(
+          (acc, outlet) => acc + parseFloat(outlet.amount?.$numberInt || outlet.amount || 0),
+          0
+        );
+        const gst = totalProposalValue * 0.18;
+        const overallTotal = totalProposalValue + gst;
 
-      return {
-         // Include AuditorPayment ID
+        // Calculate Payment Received
+        const paymentReceived = await AuditorPayment.aggregate([
+          {
+            $match: {
+              proposalId: proposal._id,
+              status: "accepted",
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              totalReceived: { $sum: "$amountReceived" },
+            },
+          },
+        ]);
+
+        const totalReceived = paymentReceived?.[0]?.totalReceived || 0;
+
+        return {
           _id: proposal._id,
           proposal_number: proposal.proposal_number,
+          auditor_paymentId: payment._id,
           fbo_name: proposal.fbo_name,
           totalOutlets: proposal.outlets.length,
           notInvoicedOutlets: proposal.outlets.filter((outlet) => !outlet.is_invoiced).length,
-          proposal_date: moment(proposal.proposal_date).format("DD MMM YYYY"),
-          auditor_payment_date: moment(proposal.updatedAt).format("DD MMM YYYY"),
-          status: proposal.status,
-          auditor_id: payment.auditorId, // Get auditorId from AuditorPayment model
-        auditor_name: auditor ? auditor.userName : "N/A", // Get userName from User model
-         // Date from AuditorPayment model
-          Proposal_value: `₹${overallTotal.toFixed(2)}`, // ✅ Proposal Value
-        
-      };
-    });
+          status: payment.status,
+          auditor_id: auditor?._id,
+          auditor_name: auditor?.userName || "N/A",
+          Proposal_value: `₹${overallTotal.toFixed(2)}`,
+          paymentReceived: `₹${totalReceived.toFixed(2)}`,
+          amounToVerify: `₹${payment.amountReceived.toFixed(2)}`,
+        };
+      })
+    );
 
     // Step 5: Get total count for pagination
     const totalCount = await AuditorPayment.countDocuments({ status });

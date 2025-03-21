@@ -118,7 +118,8 @@ const PaymentRequestTable = () => {
     setProposalId(null);
   };
 
-  const handleRecordPayment = (proposal_id,auditorPaymentId) => {
+  const handleRecordPayment = (proposal_id, auditorPaymentId) => {
+    console.log("this is auditor payment id", auditorPaymentId);
     setAuditorPaymentId(auditorPaymentId);
     setProposalId(proposal_id);
     setIsPaymentModalVisible(true);
@@ -128,7 +129,7 @@ const PaymentRequestTable = () => {
   const fetchData = useCallback(() => {
     setLoading(true);
     const url = `/api/payment/getAllProposalDetailsAdmin`;
-  
+
     axios
       .get(url, {
         params: {
@@ -142,13 +143,13 @@ const PaymentRequestTable = () => {
       .then((response) => {
         const { data } = response;
         const { data: responseData, total, currentPage } = data;
-  
+
         const flattenedData = responseData.map((row, index) => ({
           ...row,
           key: `${row._id}-${index}`, // Combine _id with index for a unique key
         }));
         setFlattenedTableData(flattenedData);
-  
+
         setTableParams((prevState) => ({
           ...prevState,
           pagination: {
@@ -157,7 +158,7 @@ const PaymentRequestTable = () => {
             current: currentPage,
           },
         }));
-  
+
         setLoading(false);
       })
       .catch((error) => {
@@ -170,7 +171,6 @@ const PaymentRequestTable = () => {
     sortData,
     searchKeyword,
   ]);
-  
 
   // Fetch initial data on component mount
   useEffect(() => {
@@ -314,16 +314,16 @@ const PaymentRequestTable = () => {
       onClick={(e) => handleMenuClick(record, e)}
       style={{ padding: "8px" }}
     >
-        <Menu.Item
-              key="delete"
-              style={{ margin: "8px 0", backgroundColor: "#FFCDD2" }}
-            >
-              <span
-                style={{ color: "#B71C1C", fontWeight: "bold", fontSize: "12px" }}
-              >
-                <DeleteOutlined /> Delete
-              </span>
-            </Menu.Item>
+      <Menu.Item
+        key="delete"
+        style={{ margin: "8px 0", backgroundColor: "#FFCDD2" }}
+      >
+        <span
+          style={{ color: "#B71C1C", fontWeight: "bold", fontSize: "12px" }}
+        >
+          <DeleteOutlined /> Delete
+        </span>
+      </Menu.Item>
     </Menu>
   );
 
@@ -333,11 +333,7 @@ const PaymentRequestTable = () => {
       dataIndex: "auditor_name",
       key: "auditor_name",
     },
-    {
-      title: "Request Date",
-      dataIndex: "auditor_payment_date",
-      key: "auditor_payment_date",
-    },
+
     {
       title: "Proposal Number",
       dataIndex: "proposal_number",
@@ -364,9 +360,36 @@ const PaymentRequestTable = () => {
       key: "Proposal_value",
     },
     {
-      title: "Payment Received",
-      dataIndex: "Payment_Received",
-      key: "Payment_Received",
+      title: "Total Payment Received",
+      dataIndex: "paymentReceived",
+      key: "paymentReceived",
+    },
+    {
+      title: "Amount to verify",
+      dataIndex: "amounToVerify",
+      key: "amountToVerify",
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (status) => {
+        let color;
+        switch (status) {
+          case "accepted":
+            color = "green";
+            break;
+          case "rejected":
+            color = "red";
+            break;
+          case "pending":
+            color = "orange";
+            break;
+          default:
+            color = "gray";
+        }
+        return <Tag color={color}>{status.toUpperCase()}</Tag>;
+      },
     },
     {
       title: "Verify Payment",
@@ -374,7 +397,9 @@ const PaymentRequestTable = () => {
       render: (_, record) => (
         <Button
           className="bg-blue-500 text-white hover:bg-blue-700"
-          onClick={() => handleRecordPayment(record._id,record.auditor_paymentId)}
+          onClick={() =>
+            handleRecordPayment(record._id, record.auditor_paymentId)
+          }
         >
           Verify
         </Button>
@@ -454,7 +479,7 @@ const PaymentRequestTable = () => {
                 shape="round"
               >
                 Delete
-              </Button> 
+              </Button>
             </Space>
             {/* <Button shape="round" icon={<FilterOutlined />} size="default">
               Filters
