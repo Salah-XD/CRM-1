@@ -48,7 +48,9 @@ import UpdteWorkLog from "./Components/Pages/UpdateWorkLog";
 import AuditorPayment from "./Components/Pages/AuditorPayment";
 import PaymentRequestTable from "./Components/Pages/PaymentRequestTable";
 import AllPaymentRequest from "./Components/Pages/AllPaymentRequest";
-import WorkLog from "./Components/Pages/test";
+import WorkLog2 from "./Components/Pages/test";
+
+
 
 import {
   AccountAdminRoute,
@@ -60,7 +62,7 @@ function App() {
   return (
     <>
       <Routes>
-        <Route path="/arun" element={<WorkLog />} />
+        <Route path="/arun" element={<WorkLog2 />} />
         <Route path="/" element={<LoginPage />} />
         <Route path="/emp-form" element={<EmployeeWorkForm />} />
 
@@ -147,6 +149,8 @@ function App() {
             element={<AuditForm />}
           />
           <Route path="/work-log-table" element={<WorkLogTable />} />
+          <Route path="/work-log/:date" element={<WorkLogTable />} />
+          <Route path = "/WorkLog2" element = {<WorkLog2 />} />
           <Route path="/auditor-payment" element={<AuditorPayment />} />
           <Route path="/admin-work-log" element={<AdminWorkLogTable />} />
           <Route path="/update-work-log" element={<UpdteWorkLog />} />

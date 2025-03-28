@@ -6,7 +6,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 const { Option } = Select;
 
-const ChecklistModal = ({ visible, onClose }) => {
+const ChecklistModal = ({ visible, onClose, service, vertical_of_industry }) => {
   const [categories, setCategories] = useState([]);
   const [value, setValue] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -22,12 +22,21 @@ const ChecklistModal = ({ visible, onClose }) => {
     }
   }, [visible]);
 
+  useEffect(() => {
+    if (service === 'TPA' && vertical_of_industry) {
+      const matchedCategory = categories.find(category => category.name === vertical_of_industry);
+      if (matchedCategory) {
+        setSelectedCategory(matchedCategory._id);
+        setValue(matchedCategory.name);
+        setButtonDisabled(false);
+      }
+    }
+  }, [service, vertical_of_industry, categories]);
+
   const fetchCategories = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        "/api/auditor/fetchAllChecklistCategories"
-      );
+      const response = await axios.get("/api/auditor/fetchAllChecklistCategories");
       setCategories(response.data);
     } catch (error) {
       message.error("Failed to fetch checklist categories.");
@@ -39,36 +48,25 @@ const ChecklistModal = ({ visible, onClose }) => {
   const handleCategoryChange = (value) => {
     setSelectedCategory(value);
     setButtonDisabled(!value);
-
-    // Find and console the selected category's name
-    const selectedCategoryName = categories.find(
-      (category) => category._id === value
-    )?.name;
+    const selectedCategoryName = categories.find(category => category._id === value)?.name;
     setValue(selectedCategoryName);
   };
 
   const handleStart = async () => {
     try {
       const payload = {
-        audit_id: params.audit_id, // Assuming `params.audit_id` is defined somewhere in your component
-        checkListId: selectedCategory, // Use the selected category ID
+        audit_id: params.audit_id,
+        checkListId: selectedCategory,
       };
 
-      // Call the update function
-      const result = await axios.put("/api/auditor/updateStartedDate", payload);
+      await axios.put("/api/auditor/updateStartedDate", payload);
 
       message.success("Audit Started");
-      const firstSegment = location.pathname.split("/").filter(Boolean)[0]; // 'draft', 'assigned-audit', etc.
+      const firstSegment = location.pathname.split("/").filter(Boolean)[0];
 
-      // Ensure the path is absolute by using `/`
-      navigate(`/${firstSegment}/audit-form/audit-report/?audit_id=${ params.audit_id}&checklistId=${selectedCategory}&category=${value}`);
-
-      // Handle the start button click action here
-      console.log("Starting with category:", selectedCategory);
-      console.log("Starting with category:", value);
-      onClose(); // Close the modal after starting
+      navigate(`/${firstSegment}/audit-form/audit-report/?audit_id=${params.audit_id}&checklistId=${selectedCategory}&category=${value}`);
+      onClose();
     } catch (error) {
-      // Handle errors and update the status message
       message.error("Failed to update audit start date.");
       console.error(error);
     }
@@ -91,6 +89,7 @@ const ChecklistModal = ({ visible, onClose }) => {
             style={{ width: "100%" }}
             onChange={handleCategoryChange}
             value={selectedCategory}
+            disabled={service === 'TPA'}
           >
             {categories.map((category) => (
               <Option key={category._id} value={category._id}>

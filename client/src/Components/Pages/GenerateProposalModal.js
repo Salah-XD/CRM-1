@@ -44,6 +44,7 @@ const GenerateProposalModal = ({
       amount: 0,
 
       no_of_production_line: 0,
+      vertical_of_industry: "",
     },
   ]);
   const [proposal_date, setProposalDate] = useState("");
@@ -75,6 +76,8 @@ const GenerateProposalModal = ({
         description: "",
         amount: 0,
         no_of_production_line: 0,
+        vertical_of_industry: "",
+        
       },
     ]);
     setSubTotal(0);
@@ -110,6 +113,7 @@ const GenerateProposalModal = ({
             `/api/proposal/getOutletDetailsById/${enquiryId}`
           );
           const outletData = response.data;
+          console.log("this is the outelt data", outletData);
           setOutlets(outletData);
 
           // Set items state with fetched data
@@ -118,6 +122,7 @@ const GenerateProposalModal = ({
               const type_of_industry = outlet.type_of_industry || "";
               const unit = outlet.unit || 0;
               const no_of_production_line = outlet?.no_of_production_line || 0;
+              const vertical_of_industry = outlet.vertical_of_industry || "";
 
               let man_days = 0;
 
@@ -141,6 +146,7 @@ const GenerateProposalModal = ({
                 unit: unit,
                 man_days: man_days,
                 amount: 0,
+                vertical_of_industry: vertical_of_industry,
               };
             })
           );
@@ -822,6 +828,7 @@ const GenerateProposalModal = ({
                   dataSource={outletItem}
                   columns={columns}
                   pagination={false}
+
                 />
                 <button
                   type="button"

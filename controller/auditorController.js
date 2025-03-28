@@ -179,6 +179,7 @@ export const processProposalsWithOutlets = async (req, res) => {
             ),
             service: outlet.description || "",
             type_of_industry: outlet.type_of_industry,
+            vertical_of_industry: outlet.vertical_of_industry,
             location: location,
           });
 
@@ -297,6 +298,7 @@ export const saveAuditRecord = async (req, res) => {
       service,
       customer_type,
       type_of_industry,
+      vertical_of_industry,
     } = req.body;
 
     // Update the outlet to mark it as assigned to an auditor
@@ -336,6 +338,7 @@ export const saveAuditRecord = async (req, res) => {
       service,
       customer_type,
       type_of_industry,
+      vertical_of_industry,
     });
 
     // Save the audit record to the database
@@ -414,6 +417,7 @@ export const getAudits = async (req, res) => {
       createdAt: audit.createdAt,
       updatedAt: audit.updatedAt,
       service: audit.service,
+      vertical_of_industry: audit.vertical_of_industry,
       __v: audit.__v,
     }));
 
@@ -495,6 +499,8 @@ export const getAuditById = async (req, res) => {
       stepsStatus: audit.stepsStatus || null,
       physical_date: audit.physical_date || null,
       service: audit.service,
+      checkListId:audit.checklistCategory || null,
+      vertical_of_industry: audit.vertical_of_industry,
       __v: audit.__v,
     };
 
@@ -547,6 +553,7 @@ export const updateAuditById = async (req, res) => {
     if (updates.audit_number) audit.audit_number = updates.audit_number;
     if (updates.user) audit.user = updates.user;
     if (updates.physical_date) audit.physical_date = updates.physical_date;
+    if (updates.vertical_of_industry) audit.vertical_of_industry = updates.vertical_of_industry;
 
     // Optionally add to modification history
     audit.modificationHistory = audit.modificationHistory || [];

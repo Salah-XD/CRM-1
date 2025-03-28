@@ -1,5 +1,4 @@
-import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
+import puppeteer from "puppeteer";
 import { promises as fs } from "fs";
 import path from "path";
 import nodemailer from "nodemailer";
@@ -25,7 +24,6 @@ export const generateInvoice = async (req, res) => {
     const companyDetails = await CompanyDetail.findOne().exec(); // Fetch the first record from CompanyDetail
     const bankDetails = await BankDetail.findOne().exec(); // Fetch the first record from BankDetail
 
-   
     if (!invoiceDetails) {
       return res.status(404).send("Invoice not found");
     }
@@ -153,14 +151,10 @@ export const generateInvoice = async (req, res) => {
         `${company_address.line1}, ${company_address.line2}, ${company_address.city}, ${company_address.state} - ${company_address.pincode}`
       );
 
-   // Launch Puppeteer using Chromium
-   browser = await puppeteer.launch({
-    args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
-    executablePath: await chromium.executablePath(),
-    headless: chromium.headless,
-    ignoreHTTPSErrors: true,
-  });
+    // Launch Puppeteer using Chromium
+    browser = await puppeteer.launch({
+      headless: true,
+    });
 
     const page = await browser.newPage();
 

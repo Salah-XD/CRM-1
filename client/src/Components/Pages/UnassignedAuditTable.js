@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Table, Radio, Input, ConfigProvider, Select, message } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
+import { ConsoleSqlOutlined, SearchOutlined } from "@ant-design/icons";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminDashboard from "../Layout/AdminDashboard";
 import axios from "axios";
 import AuditDateModal from "../Layout/AuditDateModal";
+import { set } from "lodash";
 
 const { Option } = Select;
 
@@ -53,6 +54,7 @@ const UnassignedAuditTable = () => {
   const [proposalNumber, setProposalNumber] = useState("");
   const [customer_type, setCustomerType] = useState("");
   const [type_of_industry, setTypeOfIndustry] = useState("");
+  const[vertical_of_industry,setVerticalOfIndustry] = useState("");
   const params = useParams();
   const navigate = useNavigate();
 
@@ -142,6 +144,9 @@ const UnassignedAuditTable = () => {
     setCustomerType(record.customer_type);
     setService(record.service);
     setTypeOfIndustry(record.type_of_industry);
+    setVerticalOfIndustry(record.vertical_of_industry);
+
+    console.log("vertical of industry", record.vertical_of_industry);
 
     if (auditorName) {
       setAuditModal(true); // Open modal when an auditor is selected
@@ -171,6 +176,7 @@ const UnassignedAuditTable = () => {
       service,
       customer_type,
       type_of_industry,
+      vertical_of_industry,
     };
 
     try {
@@ -190,6 +196,7 @@ const UnassignedAuditTable = () => {
       setFboName("");
       setAuditNumber("");
       setProposalNumber("");
+      setVerticalOfIndustry("");
       setAuditModal(false);
 
       console.log("Audit record saved successfully:", response.data);

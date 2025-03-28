@@ -42,6 +42,24 @@ const outletSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  vertical_of_industry: {
+    type: String,
+    enum: [
+      "Sweet Shop",
+      "Meat Retail",
+      "Hub",
+      "Market",
+      "General Manufacturing",
+      "Meat & Meat Processing",
+      "Dairy Processing",
+      "Catering",
+      "Transportation",
+      "Storage/Warehouse",
+      "Institute Canteen",
+      "Industrial Canteen",
+      "Temple Kitchen",
+    ],
+  },
   is_assignedAuditor: {
     type: Boolean,
     default: false,
@@ -50,6 +68,7 @@ const outletSchema = new Schema({
 
 const proposalSchema = new Schema(
   {
+    
     enquiryId: {
       type: Schema.Types.ObjectId,
       ref: "Enquiry", // Correct reference to the Enquiry model
@@ -146,7 +165,6 @@ const proposalSchema = new Schema(
       type: String,
       enum: ["MOU", "Non-MOU"],
     },
-   
   },
   {
     timestamps: true,

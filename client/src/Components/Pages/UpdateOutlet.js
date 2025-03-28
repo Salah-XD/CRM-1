@@ -72,6 +72,7 @@ const UpdateOutlet = () => {
           key: `${row._id}`,
         }));
         setFlattenedTableData(flattenedData);
+        console.log("flattenedData", flattenedData);
 
         setTableParams((prevState) => ({
           ...prevState,

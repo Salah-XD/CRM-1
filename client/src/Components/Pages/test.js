@@ -1,165 +1,105 @@
-import React, { useState } from 'react';
-import { DatePicker, Button, Table, Modal, Typography, Tag, Space, Card, Calendar, Badge, Form, Input, Select } from 'antd';
-import { CalendarOutlined, DownloadOutlined, InfoCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import dayjs from 'dayjs';
+import React, { useState, useEffect } from "react";
+import { Calendar, Card, Typography, Button, Badge } from "antd";
+import { useNavigate } from "react-router-dom";
+import { CalendarOutlined } from "@ant-design/icons";
+import AdminDashboard from "../Layout/AdminDashboard";
+import dayjs from "dayjs";
+import { useAuth } from "../Context/AuthContext";
+import axios from "axios";
 
-const { Title, Text } = Typography;
-const { RangePicker } = DatePicker;
-const { Option } = Select;
+const { Title } = Typography;
 
 const WorkLog = () => {
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
-  const [selectedLog, setSelectedLog] = useState(null);
-  const [dateRange, setDateRange] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [dataSource, setDataSource] = useState([
-    {
-      key: '1',
-      employee: 'John Doe',
-      task: 'Client Meeting',
-      date: '2024-09-01',
-      status: 'Completed',
-      notes: 'Discussed new project requirements.',
-    },
-    {
-      key: '2',
-      employee: 'Jane Smith',
-      task: 'Follow-up Call',
-      date: '2024-09-02',
-      status: 'Pending',
-      notes: 'Waiting for client feedback.',
-    },
-  ]);
+  const navigate = useNavigate();
+  const [selectedDate, setSelectedDate] = useState(dayjs());
+  const [workLogDates, setWorkLogDates] = useState([]);
+  const { user } = useAuth(); 
 
-  const filteredData = dateRange.length === 2
-    ? dataSource.filter((log) => {
-        const logDate = dayjs(log.date);
-        return logDate.isBetween(dayjs(dateRange[0]), dayjs(dateRange[1]), 'day', '[]');
-      })
-    : dataSource;
-
-  const columns = [
-    { title: 'Employee', dataIndex: 'employee', key: 'employee' },
-    { title: 'Task', dataIndex: 'task', key: 'task' },
-    { title: 'Date', dataIndex: 'date', key: 'date' },
-    { 
-      title: 'Status', 
-      dataIndex: 'status', 
-      key: 'status', 
-      render: (status) => (
-        <Tag color={status === 'Completed' ? 'green' : 'orange'}>
-          {status}
-        </Tag>
-      ),
-    },
-    { 
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Button type="link" icon={<InfoCircleOutlined />} onClick={() => handleViewDetails(record)}>Details</Button>
-      ),
-    },
-  ];
-
-  const handleViewDetails = (record) => {
-    setSelectedLog(record);
-    setIsModalVisible(true);
+  const handleDateSelect = (value) => {
+    if (value && value.isValid()) {
+      const formattedDate = value.format("DD-MM-YYYY");
+      setSelectedDate(value); // Ensure state updates before navigation
+      navigate(`/work-log/${formattedDate}`);
+    }
   };
 
-  const handleExport = () => {
-    console.log('Exporting Data...');
+  const handlePanelChange = (value) => {
+    setSelectedDate(value);
   };
 
-  const dateCellRender = (value) => {
-    const formattedDate = value.format('YYYY-MM-DD');
-    const logsForDay = dataSource.filter((log) => log.date === formattedDate);
+  const goToToday = () => {
+    setSelectedDate(dayjs());
+  };
+
+  // Fetch work log dates from backend
+  useEffect(() => {
+    const fetchWorkLogs = async () => {
+      if (!user?._id) return; // Prevent fetching if user ID is undefined
+      try {
+        const response = await axios.get(
+          `/api/worklogs/fetchWorkLogDates/${user._id}`
+        );
+        const logDates = Array.isArray(response.data)
+          ? response.data.map((log) => dayjs(log.date).format("YYYY-MM-DD"))
+          : [];
+        setWorkLogDates(logDates);
+      } catch (error) {
+        console.error("Error fetching work logs:", error);
+      }
+    };
+
+    fetchWorkLogs();
+  }, [user?._id]); // Dependency updated to re-run when user ID changes
+
+  const dateFullCellRender = (value) => {
+    const dateStr = value.format("YYYY-MM-DD");
+    const hasWorkLog = workLogDates.includes(dateStr);
 
     return (
-      <ul className="events">
-        {logsForDay.map((log) => (
-          <li key={log.key}>
-            <Badge status={log.status === 'Completed' ? 'success' : 'warning'} text={log.task} />
-          </li>
-        ))}
-      </ul>
+      <div className="relative">
+        <div>{value.date()}</div>
+        {hasWorkLog && (
+          <Badge
+            color="blue"
+            className="absolute bottom-1 left-1/2 transform -translate-x-1/2"
+          />
+        )}
+      </div>
     );
   };
 
-  const handleDateSelect = (value) => {
-    setSelectedDate(value.format('YYYY-MM-DD'));
-    setIsAddModalVisible(true);
-  };
-
-  const handleAddLog = (values) => {
-    const newLog = {
-      key: String(dataSource.length + 1),
-      ...values,
-      date: selectedDate,
-    };
-    setDataSource([...dataSource, newLog]);
-    setIsAddModalVisible(false);
-  };
-
   return (
-    <Card className="shadow-xl p-8 rounded-lg">
-      <Space className="flex justify-between mb-6">
-        <Title level={3}><CalendarOutlined /> Work Log Management</Title>
-        <Button type="primary" icon={<DownloadOutlined />} onClick={handleExport}>Export Data</Button>
-      </Space>
+    <AdminDashboard>
+      {/* Page Header */}
+      <div className="top-0 z-50 bg-white">
+        <div className="mb-10 border shadow-bottom px-4 py-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold flex items-center">
+            Work Log Management
+          </h2>
+          <Button type="primary" onClick={goToToday}>
+            Today
+          </Button>
+        </div>
+      </div>
 
-      <Space className="mb-6">
-        <Text>Select Date Range:</Text>
-        <RangePicker onChange={(dates) => setDateRange(dates)} />
-      </Space>
-
-      <Calendar dateCellRender={dateCellRender} className="mb-6" onSelect={handleDateSelect} />
-
-      <Table dataSource={filteredData} columns={columns} pagination={{ pageSize: 5 }} />
-
-      <Modal
-        title="Work Log Details"
-        visible={isModalVisible}
-        onCancel={() => setIsModalVisible(false)}
-        footer={null}
-      >
-        {selectedLog && (
-          <div>
-            <Title level={5}>{selectedLog.task}</Title>
-            <Text strong>Employee:</Text> {selectedLog.employee} <br />
-            <Text strong>Date:</Text> {selectedLog.date} <br />
-            <Text strong>Status:</Text> <Tag color={selectedLog.status === 'Completed' ? 'green' : 'orange'}>{selectedLog.status}</Tag> <br />
-            <Text strong>Notes:</Text> {selectedLog.notes}
-          </div>
-        )}
-      </Modal>
-
-      <Modal
-        title="Add Work Log"
-        visible={isAddModalVisible}
-        onCancel={() => setIsAddModalVisible(false)}
-        footer={null}
-      >
-        <Form onFinish={handleAddLog} layout="vertical">
-          <Form.Item name="employee" label="Employee Name" rules={[{ required: true, message: 'Please enter employee name' }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="task" label="Task" rules={[{ required: true, message: 'Please enter task' }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item name="status" label="Status" rules={[{ required: true, message: 'Please select status' }]}>
-            <Select>
-              <Option value="Completed">Completed</Option>
-              <Option value="Pending">Pending</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item name="notes" label="Notes">
-            <Input.TextArea rows={4} />
-          </Form.Item>
-          <Button type="primary" htmlType="submit">Add Log</Button>
-        </Form>
-      </Modal>
-    </Card>
+      {/* Calendar Container */}
+      <div className="flex justify-center py-4">
+        <Card className="p-8 shadow-lg w-[80%] rounded-lg">
+          <h3 className="text-lg font-semibold mb-4 flex items-center">
+            <CalendarOutlined className="mr-2 text-lg text-blue-500" /> Work Log
+            Calendar
+          </h3>
+          <Calendar
+            fullscreen
+            value={selectedDate}
+            onSelect={handleDateSelect}
+            onPanelChange={handlePanelChange}
+            className="mt-4 border rounded-lg shadow-sm"
+            // dateFullCellRender={dateFullCellRender}
+          />
+        </Card>
+      </div>
+    </AdminDashboard>
   );
 };
 

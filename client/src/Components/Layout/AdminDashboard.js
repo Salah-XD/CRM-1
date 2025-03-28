@@ -236,6 +236,14 @@ const AdminDashboard = ({ children }) => {
       roles: [ "AUDITOR"],
     },
     {
+      label: "Work Log 2",
+      key: "/work-log2",
+      icon: <CarryOutOutlined />,
+      link: "/work-log-table2",
+      roles: [ "AUDITOR"],
+    },
+
+    {
       label: "Payment  ",
       key: "/",
       icon: <CreditCardOutlined />,

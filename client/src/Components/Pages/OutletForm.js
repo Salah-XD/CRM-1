@@ -168,7 +168,6 @@ const OutletForm = ({
         )}
         <Form.Item
           name="vertical_of_industry"
-          className="w-1/4"
           label={
             <span className="text-gray-600 font-semibold">
               Vertical of Industry

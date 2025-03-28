@@ -209,7 +209,7 @@ const PaymentConfirmationModal = ({ visible, handleCancel, proposalId,auditorPay
 
         {/* Accept & Reject Buttons */}
         <div className="flex justify-between mt-4">
-          <Button type="primary" danger onClick={() => handleConfirm("reject")}>
+          <Button type="primary" danger onClick={() => handleConfirm("rejected")}>
             Reject
           </Button>
           <Button type="primary" onClick={() => handleConfirm("accepted")}>

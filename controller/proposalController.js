@@ -23,7 +23,7 @@ export const getOutletDetailsById = async (req, res) => {
     // Find outlets that match the business ID and select only branch name and outlet ID
     const outlets = await Outlet.find(
       { business },
-      "branch_name _id  no_of_food_handlers type_of_industry unit no_of_production_line  "
+      "branch_name _id  no_of_food_handlers type_of_industry unit no_of_production_line vertical_of_industry  "
     );
 
     // Respond with the outlet details for the specified business
@@ -102,7 +102,7 @@ export const getBusinessDetailsByEnquiryId = async (req, res) => {
 
 // Controller function to save data
 export const createProposalAndOutlet = async (req, res) => {
-  console.log(req.body);
+  console.log("this is the body",req.body);
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -126,6 +126,7 @@ export const createProposalAndOutlet = async (req, res) => {
       same_state,
       service,
       customer_type
+    
     } = req.body;
 
     // Create a new Proposal instance with outlets

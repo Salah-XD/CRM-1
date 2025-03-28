@@ -75,6 +75,7 @@ const PaymentRequestTable = () => {
   const [showSendMailModal, setShowSendMailModal] = useState(false);
   const [auditorPaynmentId, setAuditorPaymentId] = useState(null);
   const [UpdateProposal, setUpdateProposal] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState("pending");
   const { user } = useAuth();
 
   const navigate = useNavigate();
@@ -126,30 +127,30 @@ const PaymentRequestTable = () => {
   };
 
   // Fetch data function
-  const fetchData = useCallback(() => {
+  const fetchData = useCallback((status = selectedStatus) => {
     setLoading(true);
     const url = `/api/payment/getAllProposalDetailsAdmin`;
-
+  
     axios
       .get(url, {
         params: {
           page: tableParams.pagination.current,
           pageSize: tableParams.pagination.pageSize,
-          sort: sortData, // No need for template literal `${sortData}`
+          sort: sortData,
           keyword: searchKeyword,
-          status: "pending", // ✅ Pass status as a query parameter instead
+          status: status, // ✅ Use parameter instead of state
         },
       })
       .then((response) => {
         const { data } = response;
         const { data: responseData, total, currentPage } = data;
-
+  
         const flattenedData = responseData.map((row, index) => ({
           ...row,
-          key: `${row._id}-${index}`, // Combine _id with index for a unique key
+          key: `${row._id}-${index}`,
         }));
         setFlattenedTableData(flattenedData);
-
+  
         setTableParams((prevState) => ({
           ...prevState,
           pagination: {
@@ -158,7 +159,7 @@ const PaymentRequestTable = () => {
             current: currentPage,
           },
         }));
-
+  
         setLoading(false);
       })
       .catch((error) => {
@@ -171,11 +172,18 @@ const PaymentRequestTable = () => {
     sortData,
     searchKeyword,
   ]);
-
+  
+ 
+  
   // Fetch initial data on component mount
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const handleFilterChange = (value) => {
+    setSelectedStatus(value);
+    fetchData(value); // ✅ Pass the value directly to fetchData
+  };
 
   // Pagination
   const handleTableChange = (pagination, filters, sorter) => {
@@ -472,6 +480,26 @@ const PaymentRequestTable = () => {
           <h2 className="text-xl font-semibold">Payment Requests</h2>
           <div className="space-x-2">
             <Space wrap>
+              <>
+                <div>
+                  <h2 className="text-xl font-semibold">Filters</h2>
+                </div>
+                <div className="ml-5">
+                  {/* Status Select */}
+                  <Select
+                    placeholder="Select Status"
+                    options={[
+                      { value: "pending", label: "Pending" },
+                      { value: "accepted", label: "Accepted" },
+                      { value: "rejected", label: "Rejected" },
+                      
+                    ]}
+                    value={selectedStatus }
+                    onChange={handleFilterChange}
+                    style={{ width: 200 }}
+                  />
+                </div>
+              </>
               <Button
                 onClick={showDeleteConfirm}
                 icon={<DeleteOutlined />}
@@ -481,16 +509,6 @@ const PaymentRequestTable = () => {
                 Delete
               </Button>
             </Space>
-            {/* <Button shape="round" icon={<FilterOutlined />} size="default">
-              Filters
-            </Button>
-            <Button
-              shape="round"
-              icon={<CloudDownloadOutlined />}
-              size="default"
-            >
-              Export
-            </Button> */}
           </div>
         </div>
 

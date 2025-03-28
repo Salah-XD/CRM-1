@@ -23,6 +23,7 @@ import AdminDashboard from "../Layout/AdminDashboard";
 import WorkLogForm from "./WorkLogForm";
 import { useAuth } from "../Context/AuthContext";
 import UpdateWorkLog from "./UpdateWorkLog";
+import { useParams } from "react-router-dom"; // Import useParams from react-router-dom
 
 const { confirm } = Modal;
 
@@ -65,6 +66,7 @@ const WorkLogTable = () => {
   const [userId, setUserId] = useState("");
   const [workLogExists, setWorkLogExists] = useState(false);
   const { user } = useAuth();
+  const { date } = useParams();
 
   
 
@@ -78,7 +80,9 @@ const WorkLogTable = () => {
           userId: user._id, // Pass the userId in the request
           page: tableParams.pagination.current,
           pageSize: tableParams.pagination.pageSize,
-          sort: sortData, // No need for template literals if it's already a string
+          sort: sortData,
+          date
+         // No need for template literals if it's already a string
         },
       })
       .then((response) => {
@@ -399,18 +403,18 @@ const WorkLogTable = () => {
       dataIndex: "endTime",
       key: "endTime",
     },
-    {
-      title: "Sick Leave",
-      dataIndex: "sickLeave",
-      key: "sickLeave",
-      render: (sickLeave) => (sickLeave ? "Yes" : "No"), // Assuming sickLeave is a boolean
-    },
-    {
-      title: "Paid Leave",
-      dataIndex: "paidLeave",
-      key: "paidLeave",
-      render: (paidLeave) => (paidLeave ? "Yes" : "No"), // Assuming paidLeave is a boolean
-    },
+    // {
+    //   title: "Sick Leave",
+    //   dataIndex: "sickLeave",
+    //   key: "sickLeave",
+    //   render: (sickLeave) => (sickLeave ? "Yes" : "No"), // Assuming sickLeave is a boolean
+    // },
+    // {
+    //   title: "Paid Leave",
+    //   dataIndex: "paidLeave",
+    //   key: "paidLeave",
+    //   render: (paidLeave) => (paidLeave ? "Yes" : "No"), // Assuming paidLeave is a boolean
+    // },
     {
       title: "Total Hours",
       dataIndex: "totalHours",
@@ -438,37 +442,60 @@ const WorkLogTable = () => {
       <AdminDashboard>
         <div className="bg-blue-50 m-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Work Log Table</h2>
-            <div className="space-x-2">
-              <Space wrap>
-                <Button
-                  onClick={showDeleteConfirm}
-                  icon={<DeleteOutlined />}
-                  disabled={selectedRowKeys.length === 0}
+          <h2 className="text-xl font-semibold">
+              Work Log Table for the Date:{" "}
+              <span className="text-gray-600">
+              {date
+                ? (() => {
+                    const [day, month, year] = date.split("-");
+                    const parsedDate = new Date(`${year}-${month}-${day}`);
+                    return parsedDate.toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    });
+                    })()
+                  : "N/A"}
+                  </span>
+                </h2>
+                <div className="space-x-2">
+                  <Space wrap>
+                  <Button
+                    onClick={showDeleteConfirm}
+                    icon={<DeleteOutlined />}
+                    disabled={
+                    selectedRowKeys.length === 0 ||
+                    new Date().toLocaleDateString("en-US") !==
+                      new Date(date.split("-").reverse().join("-")).toLocaleDateString("en-US")
+                    }
+                    shape="round"
+                  >
+                    Delete
+                  </Button>
+                  </Space>
+
+                  <Button
+                  type="primary"
                   shape="round"
-                >
-                  Delete
-                </Button>
-              </Space>
+                  icon={<PlusOutlined />}
+                  size="default"
+                  onClick={() => setIsModalOpen(true)}
+                  disabled={
+                    
+                    new Date().toLocaleDateString("en-US") !==
+                    new Date(date.split("-").reverse().join("-")).toLocaleDateString("en-US")
+                  }
+                  >
+                  Add Work
+                  </Button>
+                </div>
+                </div>
 
-              <Button
-                type="primary"
-                shape="round"
-                icon={<PlusOutlined />}
-                size="default"
-                onClick={() => setIsModalOpen(true)}
-                disabled={workLogExists === true}
-              >
-                Add Work
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex justify-between my-4">
-            <ConfigProvider
-              theme={{
-                components: {
-                  Radio: {
+                <div className="flex justify-between my-4">
+                <ConfigProvider
+                  theme={{
+                  components: {
+                    Radio: {
                     buttonBorderWidth: 0, // Remove border
                   },
                 },

@@ -232,7 +232,7 @@ export const updateOutlet = async (req, res) => {
       contact_number,
       contact_person,
       fssai_license_number,
-      Vertical_of_industry,
+      vertical_of_industry, // Corrected casing
     } = req.body;
 
     // Check if outletId is provided
@@ -252,10 +252,8 @@ export const updateOutlet = async (req, res) => {
     if (gst_number) outlet.gst_number = gst_number;
     if (contact_number) outlet.contact_number = contact_number;
     if (contact_person) outlet.contact_person = contact_person;
-    if (fssai_license_number)
-      outlet.fssai_license_number = fssai_license_number;
-    if (Vertical_of_industry)
-      outlet.Vertical_of_industry = Vertical_of_industry;
+    if (fssai_license_number) outlet.fssai_license_number = fssai_license_number;
+    if (vertical_of_industry) outlet.vertical_of_industry = vertical_of_industry; // Corrected casing
 
     // Save the outlet
     await outlet.save();
@@ -511,6 +509,7 @@ export const getOutletDetailsById = async (req, res) => {
       no_of_food_handlers: outlet.no_of_food_handlers,
       gst_number: outlet.gst_number,
       type_of_industry: outlet.type_of_industry,
+      vertical_of_industry: outlet.vertical_of_industry,
       unit: outlet.unit,
     }));
 

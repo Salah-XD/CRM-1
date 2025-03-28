@@ -1,15 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Modal,
-  Select,
-  Button,
-  Spin,
-  message,
-  Steps,
-  DatePicker,
-  Typography,
-  Form,
-} from "antd";
+import { Modal, Select, Button, Spin, message, Steps, DatePicker, Typography, Form } from "antd";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
@@ -45,12 +35,11 @@ const CurrentStepModal = ({ visible, onClose }) => {
       const response = await axios.get(`/api/auditor/getAuditById/${audit_id}`);
       if (response.data.success) {
         const { stepsStatus, physical_date } = response.data.data;
-    
         setSelectedStatus(stepsStatus);
-        setAuditDate(physical_date);
+        setAuditDate(physical_date ? dayjs(physical_date) : null);
         form.setFieldsValue({
           stepsStatus: stepsStatus,
-          physical_date: physical_date,
+          physical_date: physical_date ? dayjs(physical_date) : null,
         });
       } else {
         message.error(response.data.message);
@@ -65,19 +54,22 @@ const CurrentStepModal = ({ visible, onClose }) => {
 
   const handleUpdate = async () => {
     try {
-      await form.validateFields(); // Validate form fields before updating
+      await form.validateFields();
       setLoading(true);
-
+      
       const updateData = {
         audit_id,
         stepsStatus: selectedStatus,
-        physical_date: auditDate ? auditDate.toDate() : null, // Convert dayjs object to JS Date
+        physical_date: auditDate ? auditDate.toDate() : null,
       };
+
+      console.log("Sending data:", updateData);
 
       await axios.put("/api/auditor/updateStepsStatus", updateData);
       message.success("Updated successfully.");
       setIsUpdated(true);
     } catch (error) {
+      console.error("Update error:", error);
       message.error("Update failed.");
     } finally {
       setLoading(false);
@@ -85,55 +77,37 @@ const CurrentStepModal = ({ visible, onClose }) => {
   };
 
   const handleSubmit = async () => {
-    setSubmitLoading(true);
     try {
-      await axios.put(`/api/auditor/updateStatusHistoryByAuditId/${audit_id}`, {
-        status: "submitted",
-      });
+      await form.validateFields(); // Validate all fields before submitting
+      setSubmitLoading(true);
+      await axios.put(`/api/auditor/updateStatusHistoryByAuditId/${audit_id}`, { status: "submitted" });
       message.success("Submitted successfully!");
-      navigate("/assigned-audits");
+      navigate("/submittedForApproval");
     } catch (error) {
-      message.error("Submission failed.");
+      console.error("Submission error:", error);
+      message.error(error?.errorFields?.[0]?.errors?.[0] || "Submission failed.");
     } finally {
       setSubmitLoading(false);
     }
   };
+  
 
   const isAllStepsCompleted = selectedStatus === "FSSAI Portal Updated";
 
   return (
-    <Modal
-      open={visible}
-      onCancel={onClose}
-      footer={null}
-      destroyOnClose
-      width={800}
-    >
+    <Modal open={visible} onCancel={onClose} footer={null} destroyOnClose width={800}>
       {loading ? (
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            height: "100%",
-          }}
-        >
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
           <Spin />
         </div>
       ) : (
         <>
-          <Typography.Title
-            level={4}
-            style={{ textAlign: "center", marginBottom: 20 }}
-          >
+          <Typography.Title level={4} style={{ textAlign: "center", marginBottom: 20 }}>
             Update Audit Step
           </Typography.Title>
 
-          <Typography.Title level={4} style={{ marginBottom: 20 }}>
-            Status Progress:
-          </Typography.Title>
+          <Typography.Title level={4} style={{ marginBottom: 20 }}>Status Progress:</Typography.Title>
 
-          {/* Steps component correctly aligned with fetched stepsStatus */}
           <Steps current={statusOptions.indexOf(selectedStatus)} size="small">
             {statusOptions.map((status, index) => (
               <Step key={index} title={status} />
@@ -149,17 +123,13 @@ const CurrentStepModal = ({ visible, onClose }) => {
             >
               <Select
                 style={{ width: "100%", marginTop: 5 }}
-                value={selectedStatus}
                 onChange={(value) => {
                   setSelectedStatus(value);
                   setIsUpdated(false);
                 }}
-                disabled={loading}
               >
                 {statusOptions.map((status) => (
-                  <Option key={status} value={status}>
-                    {status}
-                  </Option>
+                  <Option key={status} value={status}>{status}</Option>
                 ))}
               </Select>
             </Form.Item>
@@ -167,13 +137,8 @@ const CurrentStepModal = ({ visible, onClose }) => {
             <Form.Item
               label="Physical Audit Date"
               name="physical_date"
-              getValueProps={(i) => ({ value: dayjs(i) })}
-              rules={[
-                {
-                  required: !auditDate,
-                  message: "Please select an audit date",
-                },
-              ]}
+              getValueProps={(value) => ({ value: value ? dayjs(value) : null })}
+              rules={[{ required: !auditDate, message: "Please select an audit date" }]}
             >
               <DatePicker
                 style={{ width: "100%", marginTop: 5 }}
@@ -183,33 +148,16 @@ const CurrentStepModal = ({ visible, onClose }) => {
                 }}
                 format="DD/MM/YYYY"
                 placeholder="Select Audit Date"
-                disabled={loading}
               />
             </Form.Item>
           </Form>
 
-          <div
-            style={{
-              marginTop: 20,
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <Button
-              type="primary"
-              onClick={handleUpdate}
-              disabled={loading || isUpdated}
-            >
+          <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between" }}>
+            <Button type="primary" onClick={handleUpdate} disabled={loading || isUpdated}>
               {loading ? "Updating..." : "Update"}
             </Button>
             {isAllStepsCompleted && (
-              <Button
-                type="primary"
-                danger
-                onClick={handleSubmit}
-                loading={submitLoading}
-                disabled={loading}
-              >
+              <Button type="primary" danger onClick={handleSubmit} loading={submitLoading} disabled={loading}>
                 Submit
               </Button>
             )}

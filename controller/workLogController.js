@@ -2,6 +2,7 @@ import WorkLog from "../models/workLogModel.js";
 import moment from "moment";
 import mongoose from "mongoose";
 
+
 // Create Work Log
 export const createWorkLog = async (req, res) => {
   console.log(req.body);
@@ -24,21 +25,6 @@ export const createWorkLog = async (req, res) => {
       });
     }
 
-    // Get today's date (ignoring time)
-    const todayStart = moment().startOf("day"); // This will get the start of today (00:00)
-    const todayEnd = moment().endOf("day"); // This will get the end of today (23:59)
-
-    // Check if a work log entry already exists for the user today
-    const existingWorkLog = await WorkLog.findOne({
-      userId,
-      createdAt: { $gte: todayStart.toDate(), $lte: todayEnd.toDate() }, // Check within today's date range
-    });
-
-    if (existingWorkLog) {
-      return res
-        .status(401)
-        .json({ message: "Work log entry already exists for today" });
-    }
 
     // Create a new work log entry
     const workLog = new WorkLog({
@@ -146,7 +132,7 @@ export const deleteWorkLogs = async (req, res) => {
 
 export const getAllWorkLogsByUser = async (req, res) => {
   try {
-    const { page = 1, pageSize = 10, sort, keyword, userId } = req.query;
+    const { page = 1, pageSize = 10, sort, keyword, userId, date } = req.query;
 
     if (!userId) {
       return res.status(400).json({ message: "UserId is required" });
@@ -167,6 +153,14 @@ export const getAllWorkLogsByUser = async (req, res) => {
     }
 
     let query = { userId };
+
+    // Add date filter if provided
+    if (date) {
+      const startOfDay = moment(date, "DD-MM-YYYY").startOf("day").toDate();
+      const endOfDay = moment(date, "DD-MM-YYYY").endOf("day").toDate();
+      query.createdAt = { $gte: startOfDay, $lte: endOfDay };
+    }
+
     if (keyword) {
       query = {
         ...query,
@@ -182,7 +176,7 @@ export const getAllWorkLogsByUser = async (req, res) => {
       case "alllist":
         sortQuery = { createdAt: 1 };
         break;
-      case "newlyadded ":
+      case "newlyadded":
         sortQuery = { createdAt: -1 };
         break;
       default:
@@ -205,8 +199,6 @@ export const getAllWorkLogsByUser = async (req, res) => {
           ? moment(log.startTime).format("HH:mm A")
           : "N/A",
         endTime: log.endTime ? moment(log.endTime).format("HH:mm A") : "N/A",
-        paidLeave: log.paidLeave,
-        sickLeave: log.sickLeave,
         date: moment(log.createdAt).format("DD-MM-YYYY"), // Extracted date from createdAt
         dateAndTime: moment(log.createdAt).format("DD-MM-YYYY HH:mm A"), // Formatted timestamp
         totalHours: log.startTime
@@ -227,7 +219,6 @@ export const getAllWorkLogsByUser = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
 // Controller function to check if a work log already exists for today
 export const isWorkLogAlreadyExist = async (req, res) => {
   try {
@@ -370,5 +361,29 @@ export const getWorkLogById = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error fetching work log", error: error.message });
+  }
+};
+
+
+export const fetchWorkLogDates = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    // Fetch work logs for the given user
+    const workLogs = await WorkLog.find({ userId });
+
+    // Extract and format unique dates from timestamps
+    const workLogDates = [
+      ...new Set(workLogs.map((log) => moment(log.timestamp).format("YYYY-MM-DD")))
+    ];
+
+    return res.json(workLogDates);
+  } catch (error) {
+    console.error("Error fetching work log dates:", error);
+    return res.status(500).json({ error: "Server error" });
   }
 };

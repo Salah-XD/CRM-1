@@ -1,5 +1,4 @@
-import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer';
 import { promises as fs } from "fs";
 import path from "path";
 import nodemailer from "nodemailer";
@@ -203,12 +202,9 @@ export const generateProposal = async (req, res) => {
 
      // Launch Puppeteer using Chromium
      browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath(),
-      headless: chromium.headless,
-      ignoreHTTPSErrors: true,
+      headless: true,
     });
+
 
     const page = await browser.newPage();
     await page.setContent(dynamicContent, { waitUntil: "networkidle0" });
@@ -244,7 +240,7 @@ export const generateProposal = async (req, res) => {
 
     // Send email
     const info = await transporter.sendMail(mailOptions);
-    console.log("Email sent:", info.response);
+    // console.log("Email sent:", info.response);
 
     // Update proposal status
     await Proposal.findByIdAndUpdate(proposalId, { status: "Mail Sent" });

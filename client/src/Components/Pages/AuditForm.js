@@ -24,7 +24,7 @@ import { useLocation } from "react-router-dom";
 import { MoreOutlined } from "@ant-design/icons";
 import ChecklistModal from "../Layout/ChecklistModal";
 import CurrentStepModal from "../Layout/CurrentStepModal";
-import { get } from "lodash";
+import { set } from "lodash";
 
 const { Title, Text } = Typography;
 
@@ -42,55 +42,21 @@ const AuditForm = () => {
   const [intialLoading, setIntialLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [currentStepModalVisible, setCurrentStepModalVisible] = useState(false);
+  const [service, setService] = useState("");
+  const [vertical_of_industry, setVerticalOfIndustry] = useState("");
 
   const location = useLocation();
   const { user } = useAuth();
 
-  const showModal = () => {
+  const showModal = (service,vertical_of_industry) => {
+    setVerticalOfIndustry(vertical_of_industry);
+    setService(service);
     setModalVisible(true);
   };
   const closeModal = () => setModalVisible(false);
 
   const openCurrentStepModal = () => setCurrentStepModalVisible(true);
   const closeCurrentStepModal = () => setCurrentStepModalVisible(false);
-
-  //   setLoading(true);
-  //   try {
-  //     const response = await axios.get(
-  //       "/api/auditor/fetchAllChecklistCategories"
-  //     );
-  //     console.log(response);
-  //     const matchedCategory = response.data.find(
-  //       (cat) => cat.type_of_industry === type_of_industry
-  //     );
-
-  //     if (matchedCategory) {
-  //       setSelectedCategory(matchedCategory._id);
-  //       setValue(matchedCategory.name);
-  //     } else {
-  //       message.warning("No matching category found.");
-  //     }
-  //   } catch (error) {
-  //     message.error("Failed to fetch checklist categories.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  // const handleStart = async () => {
-  //   if (!selectedCategory) {
-  //     await fetchCategories(); // Ensure category is set before navigating
-  //   }
-
-  //   if (selectedCategory) {
-  //     const firstSegment = location.pathname.split("/").filter(Boolean)[0];
-  //     navigate(
-  //       `/${firstSegment}/audit-form/audit-report/?audit_id=${params.audit_id}&checklistId=${selectedCategory}&category=${value}`
-  //     );
-  //   } else {
-  //     message.error("No checklist category selected.");
-  //   }
-  // };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -474,39 +440,88 @@ const AuditForm = () => {
                 </div>
                 <Row gutter={16}>
                   <Col span={12}>
-                    <Form.Item label="FBO Name" name="fbo_name">
+                    <Form.Item
+                      label="FBO Name"
+                      name="fbo_name"
+                      rules={[
+                        { required: true, message: "Please enter FBO Name!" },
+                      ]}
+                    >
                       <Input
                         placeholder="Name comes here"
                         disabled={!isEditable}
                       />
                     </Form.Item>
                   </Col>
+
                   <Col span={12}>
-                    <Form.Item label="Outlet Name" name="outlet_name">
+                    <Form.Item
+                      label="Outlet Name"
+                      name="outlet_name"
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please enter Outlet Name!",
+                        },
+                      ]}
+                    >
                       <Input
                         placeholder="Name comes here"
                         disabled={!isEditable}
                       />
                     </Form.Item>
                   </Col>
+
                   <Col span={12}>
-                    <Form.Item label="Proposal Number" name="proposal_number">
+                    <Form.Item
+                      label="Proposal Number"
+                      name="proposal_number"
+                      rules={[
+                        {
+                          required: true,
+                          message: "Proposal Number is required!",
+                        },
+                      ]}
+                    >
                       <Input placeholder="#PROP 0001" disabled />
                     </Form.Item>
                   </Col>
+
                   <Col span={12}>
-                    <Form.Item label="Location" name="location">
+                    <Form.Item
+                      label="Location"
+                      name="location"
+                      rules={[
+                        { required: true, message: "Please enter Location!" },
+                      ]}
+                    >
                       <Input placeholder="Porur" disabled={!isEditable} />
                     </Form.Item>
                   </Col>
+
                   <Col span={12}>
-                    <Form.Item label="Audit Number" name="audit_number">
+                    <Form.Item
+                      label="Audit Number"
+                      name="audit_number"
+                      rules={[
+                        {
+                          required: true,
+                          message: "Audit Number is required!",
+                        },
+                      ]}
+                    >
                       <Input placeholder="02" disabled />
                     </Form.Item>
                   </Col>
 
                   <Col span={12}>
-                    <Form.Item label="Service" name="service">
+                    <Form.Item
+                      label="Service"
+                      name="service"
+                      rules={[
+                        { required: true, message: "Service is required!" },
+                      ]}
+                    >
                       <Input placeholder="02" disabled />
                     </Form.Item>
                   </Col>
@@ -515,9 +530,9 @@ const AuditForm = () => {
                     <Col span={12}>
                       <Form.Item label="Checklist Category">
                         <Input
-                          value={auditData.checkListId?.name || "N/A"} // Dynamically display checklist name or "N/A" if not available
-                          placeholder="02" // Default placeholder, can be adjusted if needed
-                          disabled // Keeps the field read-only
+                          value={auditData.checkListId?.name || "N/A"}
+                          placeholder="02"
+                          disabled
                         />
                       </Form.Item>
                     </Col>
@@ -531,19 +546,20 @@ const AuditForm = () => {
                       rules={[
                         {
                           required: true,
-                          message: "Please select the start date!",
+                          message: "Please select the Audit Date!",
                         },
-                      ]} // Optional validation
+                      ]}
                     >
                       <DatePicker
                         style={{ width: "100%" }}
                         placeholder="Select date"
                         format="DD-MM-YYYY"
-                        // Conditionally disable the field
                         allowClear={false}
+                        disabled={!isEditable}
                       />
                     </Form.Item>
                   </Col>
+
                   {auditData.physical_date && (
                     <Col span={12}>
                       <Form.Item
@@ -553,21 +569,45 @@ const AuditForm = () => {
                         rules={[
                           {
                             required: true,
-                            message: "Please select the start date!",
+                            message: "Please select the Physical Date!",
                           },
-                        ]} // Optional validation
+                        ]}
                       >
                         <DatePicker
                           style={{ width: "100%" }}
                           placeholder="Select date"
                           format="DD-MM-YYYY"
-                          disabled={!isEditable} // Conditionally disable the field
+                          disabled={!isEditable}
                           allowClear={false}
                         />
                       </Form.Item>
                     </Col>
                   )}
+
+                  {isHygieneAndTpa && (
+                    <Col span={12}>
+                      <Form.Item
+                        label="Vertical of Industry"
+                        name="vertical_of_industry"
+                        rules={[
+                          {
+                            required: true,
+                            message: "Please select the Vertical of Industry!",
+                          },
+                        ]}
+                      >
+
+                        
+                        <Input
+                          value={auditData.vertical_of_industry || "N/A"}
+                          placeholder="02"
+                          disabled
+                        />
+                      </Form.Item>
+                    </Col>
+                  )}
                 </Row>
+
                 <div
                   style={{
                     display: "flex",
@@ -612,7 +652,7 @@ const AuditForm = () => {
                         borderColor: "#009688",
                       }}
                       // onClick={handleStartedDate}
-                      onClick={showModal}
+                      onClick={() => showModal(auditData.service,auditData.vertical_of_industry)}
                     >
                       Start Audit
                     </Button>
@@ -910,7 +950,7 @@ const AuditForm = () => {
               </Button>
             </div>
           </Modal>
-          <ChecklistModal visible={modalVisible} onClose={closeModal} />
+          <ChecklistModal visible={modalVisible} service={service} vertical_of_industry={vertical_of_industry} onClose={closeModal} />
           <CurrentStepModal
             visible={currentStepModalVisible}
             onClose={closeCurrentStepModal}

@@ -8,6 +8,7 @@ import {
   getAllWorkLogs,
   getWorkLogById,
   updateWorkLog,
+  fetchWorkLogDates
 } from "../controller/workLogController.js";
 
 const router = express.Router();
@@ -30,5 +31,7 @@ router.get("/isWorkLogAlreadyExist",isWorkLogAlreadyExist);
 router.get("/getWorkLogById/:workLogId",getWorkLogById);
 
 router.put("/updateWorkLogById/:id",updateWorkLog);
+
+router.get("/fetchWorkLogDates/:userId",fetchWorkLogDates)
 
 export default router;
