@@ -24,6 +24,7 @@ import WorkLogForm from "./WorkLogForm";
 import { useAuth } from "../Context/AuthContext";
 import UpdateWorkLog from "./UpdateWorkLog";
 import { useParams } from "react-router-dom"; // Import useParams from react-router-dom
+import LeaveRequestForm from "./LeaveRequestForm";
 
 const { confirm } = Modal;
 
@@ -66,6 +67,8 @@ const WorkLogTable = () => {
   const [workLogExists, setWorkLogExists] = useState(false);
   const { user } = useAuth();
   const { date } = useParams();
+  const [isLeaveFormVisible, setIsLeaveFormVisible] = useState(false);
+  const auditorId = "auditor123"; // Replace with actual ID
 
   // Fetch data function
   const fetchData = useCallback(() => {
@@ -487,6 +490,13 @@ const WorkLogTable = () => {
               >
                 Add Work
               </Button>
+
+              <Button
+                type="primary"
+                onClick={() => setIsLeaveFormVisible(true)}
+              >
+                Request Leave
+              </Button>
             </div>
           </div>
 
@@ -592,6 +602,12 @@ const WorkLogTable = () => {
           isModalOpen={isModalOpen}
           handleOk={handleSuccess}
           handleCancel={() => setIsModalOpen(false)}
+        />
+
+        <LeaveRequestForm
+          visible={isLeaveFormVisible}
+          onClose={() => setIsLeaveFormVisible(false)}
+          auditorId={auditorId}
         />
       </AdminDashboard>
     </>

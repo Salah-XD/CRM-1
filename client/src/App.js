@@ -50,6 +50,7 @@ import PaymentRequestTable from "./Components/Pages/PaymentRequestTable";
 import AllPaymentRequest from "./Components/Pages/AllPaymentRequest";
 import WorkLogCalendarAuditor from "./Components/Pages/WorkLogCalendarAuditor";
 import AdminWorkLogCalendar from "./Components/Pages/AdminWorkLogCalendar";
+import LeaveRequestTable from "./Components/Pages/LeaveRequestTable";
 
 import {
   AccountAdminRoute,
@@ -131,6 +132,7 @@ function App() {
           <Route path="/approved" element={<ApprovedAuditCard />} />
           <Route path="/payment-request" element={<PaymentRequestTable />} />
           <Route path="/all-payment" element={<AllPaymentRequest />} />
+          <Route path="/leave-request" element={<LeaveRequestTable />} />
 
           <Route
             path="/submittedForApproval"
