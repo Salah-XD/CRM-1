@@ -5,7 +5,7 @@ import { ExclamationCircleOutlined } from "@ant-design/icons";
 
 const { confirm } = Modal;
 
-const LeaveManagementModal = ({ visible, onClose, userId }) => {
+const LeaveManagementModal = ({ visible, onClose, userId, workLogId }) => {
   const [leaveData, setLeaveData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [approving, setApproving] = useState(false);
@@ -20,16 +20,22 @@ const LeaveManagementModal = ({ visible, onClose, userId }) => {
   const fetchLeaveData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`/api/leaves/getLeaveData/${userId}`);
-      setLeaveData(response.data);
+      const { data } = await axios.get(`/api/worklogs/calculateLeaveData/${userId}`);
+      setLeaveData(data);
     } catch (error) {
+      console.error("Fetch error:", error);
       message.error("Failed to fetch leave data.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleApprove = async () => {
+  const handleApprove = () => {
+    if (!workLogId) {
+      message.error("Invalid Work Log ID.");
+      return;
+    }
+
     confirm({
       title: "Approve Leave Request?",
       icon: <ExclamationCircleOutlined />,
@@ -39,11 +45,15 @@ const LeaveManagementModal = ({ visible, onClose, userId }) => {
       onOk: async () => {
         setApproving(true);
         try {
-          await axios.post(`/api/leaves/approveLeave/${userId}`);
+          await axios.put(`/api/worklogs/approveLeaveRequest/${workLogId}`);
           message.success("Leave approved successfully.");
-          fetchLeaveData(); // Refresh data after approval
+          fetchLeaveData(); // Optional: refresh balance
+          onClose(); // Optionally close modal after approval
         } catch (error) {
-          message.error("Failed to approve leave.");
+          console.error("Approval error:", error);
+          message.error(
+            error.response?.data?.message || "Failed to approve leave."
+          );
         } finally {
           setApproving(false);
         }
@@ -51,6 +61,54 @@ const LeaveManagementModal = ({ visible, onClose, userId }) => {
     });
   };
 
+  const nonLOPColumns = [
+    { title: "Leave Type", dataIndex: "type", key: "type" },
+    { title: "This Month(Taken)", dataIndex: "thisMonth", key: "thisMonth" },
+    { title: "Overall(Available)", dataIndex: "overall", key: "overall" },
+  ];
+
+  const totalLeavesColumns =
+  [
+    { title: "Leave Type", dataIndex: "type", key: "type" },
+    { title: "This Month(Taken)", dataIndex: "thisMonth", key: "thisMonth" },
+    { title: "Overall(Taken)", dataIndex: "overall", key: "overall" },
+  ];
+  const nonLOPData = [
+    {
+      key: "1",
+      type: "Sick",
+      thisMonth: leaveData?.nonLOPLeavesAvailable?.sick?.thisMonth ?? 0,
+      overall: leaveData?.nonLOPLeavesAvailable?.sick?.overall ?? 0,
+    },
+    {
+      key: "2",
+      type: "Casual",
+      thisMonth: leaveData?.nonLOPLeavesAvailable?.casual?.thisMonth ?? 0,
+      overall: leaveData?.nonLOPLeavesAvailable?.casual?.overall ?? 0,
+    },
+  ];
+  
+  const totalLeavesData = [
+    {
+      key: "1",
+      type: "LOP",
+      thisMonth: leaveData?.totalLeavesTaken?.lop?.thisMonth ?? 0,
+      overall: leaveData?.totalLeavesTaken?.lop?.overall ?? 0,
+    },
+    {
+      key: "2",
+      type: "Sick",
+      thisMonth: leaveData?.totalLeavesTaken?.sick?.thisMonth ?? 0,
+      overall: leaveData?.totalLeavesTaken?.sick?.overall ?? 0,
+    },
+    {
+      key: "3",
+      type: "Casual",
+      thisMonth: leaveData?.totalLeavesTaken?.casual?.thisMonth ?? 0,
+      overall: leaveData?.totalLeavesTaken?.casual?.overall ?? 0,
+    },
+  ];
+  
   return (
     <Modal
       title="Leave Management"
@@ -65,38 +123,24 @@ const LeaveManagementModal = ({ visible, onClose, userId }) => {
           type="primary"
           loading={approving}
           onClick={handleApprove}
+          disabled={!workLogId}
         >
           Approve
         </Button>,
       ]}
       width={700}
       centered
+      destroyOnClose
     >
-      <Typography.Title level={5}>Non LOP Leaves Available</Typography.Title>
+      <Typography.Title level={5}>Non-LOP Leaves Available</Typography.Title>
       <Table
         bordered
         size="small"
         loading={loading}
         pagination={false}
-        columns={[
-          { title: "Leave Type", dataIndex: "type", key: "type" },
-          { title: "This Month", dataIndex: "thisMonth", key: "thisMonth" },
-          { title: "Overall", dataIndex: "overall", key: "overall" },
-        ]}
-        dataSource={[
-          {
-            key: "1",
-            type: "Sick",
-            thisMonth: leaveData?.sickLeaveThisMonth || 0,
-            overall: leaveData?.sickLeaveOverall || 0,
-          },
-          {
-            key: "2",
-            type: "Casual",
-            thisMonth: leaveData?.casualLeaveThisMonth || 0,
-            overall: leaveData?.casualLeaveOverall || 0,
-          },
-        ]}
+        columns={nonLOPColumns}
+        dataSource={nonLOPData}
+        rowKey="key"
       />
 
       <Typography.Title level={5} style={{ marginTop: 20 }}>
@@ -107,31 +151,9 @@ const LeaveManagementModal = ({ visible, onClose, userId }) => {
         size="small"
         loading={loading}
         pagination={false}
-        columns={[
-          { title: "Leave Type", dataIndex: "type", key: "type" },
-          { title: "This Month", dataIndex: "thisMonth", key: "thisMonth" },
-          { title: "Overall", dataIndex: "overall", key: "overall" },
-        ]}
-        dataSource={[
-          {
-            key: "1",
-            type: "LOP",
-            thisMonth: leaveData?.lopThisMonth || 0,
-            overall: leaveData?.lopOverall || 0,
-          },
-          {
-            key: "2",
-            type: "Sick",
-            thisMonth: leaveData?.sickTakenThisMonth || 0,
-            overall: leaveData?.sickTakenOverall || 0,
-          },
-          {
-            key: "3",
-            type: "Casual",
-            thisMonth: leaveData?.casualTakenThisMonth || 0,
-            overall: leaveData?.casualTakenOverall || 0,
-          },
-        ]}
+        columns={totalLeavesColumns}
+        dataSource={totalLeavesData}
+        rowKey="key"
       />
     </Modal>
   );

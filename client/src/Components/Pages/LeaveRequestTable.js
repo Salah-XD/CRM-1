@@ -77,7 +77,10 @@ const LeaveRequestTable = () => {
   const [showSendMailModal, setShowSendMailModal] = useState(false);
   const [auditorPaynmentId, setAuditorPaymentId] = useState(null);
   const [UpdateProposal, setUpdateProposal] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [workLogId, setWorkLogId] = useState(null);
   const { user } = useAuth();
+
 
   const navigate = useNavigate();
 
@@ -85,6 +88,16 @@ const LeaveRequestTable = () => {
 
   const handleCancel = () => {
     setisLeaveManagement(false);
+  };
+
+  const showLeaveManagementModal = (record) => {
+  
+
+    console.log("Record:", record); // Log the record to see its structure
+    setWorkLogId(record._id); // Set the workLogId from the record
+   
+    setUserId(record.userId); // Set the userId from the record
+    setisLeaveManagement(true);
   };
 
   const showModalInvoice = (proposalId) => {
@@ -130,7 +143,7 @@ const LeaveRequestTable = () => {
   // Fetch data function
   const fetchData = useCallback(() => {
     setLoading(true);
-    const url = `/api/payment/getAllProposalDetailsWithPayment`;
+    const url = `/api/worklogs/getAllLeaveRequests`;
 
     axios
       .get(url, {
@@ -142,6 +155,7 @@ const LeaveRequestTable = () => {
         },
       })
       .then((response) => {
+        console.log("Response:", response); // Log the response to see its structure
         const { data } = response;
         const { data: responseData, total, currentPage } = data;
 
@@ -286,17 +300,14 @@ const LeaveRequestTable = () => {
   const handleMenuClick = (record, { key }) => {
     switch (key) {
       case "View Leave":
-        setisLeaveManagement(true);
+        showLeaveManagementModal(record);
         break;
-
+  
       default:
         break;
     }
   };
 
-  const handleApproval = (record, status) => {
-    return 0;
-  };
 
   const menu = (record) => (
     <Menu
@@ -319,18 +330,18 @@ const LeaveRequestTable = () => {
   const columns = [
     {
       title: "Auditor Name",
-      dataIndex: "auditor_name",
-      key: "auditor_name",
+      dataIndex: "requester_name",
+      key: "requester_name",
     },
     {
       title: "Leave Type",
       dataIndex: "leaveType",
       key: "leaveType",
-      // render: (sickLeave) => (
-      //   <Tag color={text === "sickLeave" ? "red" : "blue"}>
-      //     {text.toUpperCase()}
-      //   </Tag>
-      // ),
+      render: (text) => (
+        <Tag color={text === "sickLeave" ? "red" : "blue"}>
+          {text?.toUpperCase()}
+        </Tag>
+      ),
     },
     {
       title: "Reason",
@@ -339,20 +350,30 @@ const LeaveRequestTable = () => {
     },
     {
       title: "Start Date",
-      dataIndex: "startDate",
-      key: "startDate",
-      render: (date) => new Date(date).toLocaleDateString(),
+      dataIndex: "fromDate",
+      key: "fromDate",
+      render: (fromDate) => fromDate || "N/A",
     },
     {
       title: "End Date",
-      dataIndex: "endDate",
-      key: "endDate",
-      render: (date) => new Date(date).toLocaleDateString(),
+      dataIndex: "toDate",
+      key: "toDate",
+      render: (toDate) => toDate || "N/A",
     },
     {
       title: "Total Days",
-      dataIndex: "totalDays",
       key: "totalDays",
+      render: (_, record) => {
+        const [fDay, fMonth, fYear] = record.fromDate.split("-").map(Number);
+        const [tDay, tMonth, tYear] = record.toDate.split("-").map(Number);
+        const fromDate = new Date(fYear, fMonth - 1, fDay);
+        const toDate = new Date(tYear, tMonth - 1, tDay);
+    
+        const diffTime = Math.abs(toDate - fromDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    
+        return diffDays;
+      },
     },
     {
       title: "Status",
@@ -367,7 +388,7 @@ const LeaveRequestTable = () => {
               ? "warning"
               : "error"
           }
-          // text={status.toUpperCase()}
+          text={status?.toUpperCase()}
         />
       ),
     },
@@ -544,9 +565,13 @@ const LeaveRequestTable = () => {
         </div>
       </div>
 
+    
       <LeaveManagementModal
         visible={isLeaveManagement}
         onClose={handleCancel}
+       workLogId={workLogId}
+        userId={userId}
+        onLeaveUpdated={() => setShouldFetch(true)} // Callback to refresh data after modal actions
       />
     </AdminDashboard>
   );

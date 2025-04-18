@@ -161,7 +161,7 @@ const AdminDashboard = ({ children }) => {
           label: "Client Profile",
           key: "/client-profile",
           link: "/client-profile",
-          roles: ["SUPER_ADMIN"],
+          roles: ["SUPER_ADMIN", "ACCOUNT_ADMIN"],
         },
       ],
     },

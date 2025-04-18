@@ -1,16 +1,30 @@
+// models/WorkLog.js
 import mongoose from "mongoose";
 
-const workLogModelSchema = new mongoose.Schema(
+const workLogSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // Links to the User model
+      ref: "User",
       required: true,
     },
     workType: {
       type: String,
       enum: ["audit", "wfh", "office", "onDuty", "absent", "leave"],
       required: true,
+    },
+     
+    fromDate: {
+      type: Date,
+      required: function () {
+        return this.workType === "leave";
+      },
+    },
+    toDate: {
+      type: Date,
+      required: function () {
+        return this.workType === "leave";
+      },
     },
     startTime: {
       type: Date,
@@ -25,11 +39,17 @@ const workLogModelSchema = new mongoose.Schema(
     leaveType: {
       type: String,
       enum: ["sickLeave", "casualLeave"],
+      required: function () {
+        return this.workType === "leave";
+      },
     },
     leaveStatus: {
       type: String,
       enum: ["pending", "approved", "rejected"],
       default: "pending",
+      required: function () {
+        return this.workType === "leave";
+      },
     },
     reason: {
       type: String,
@@ -39,33 +59,20 @@ const workLogModelSchema = new mongoose.Schema(
     },
     approvedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // Admin who approves the leave
+      ref: "User",
     },
-    leaveBalance: {
-      sickLeave: {
-        type: Number,
-        default: 2, // Fixed, resets every month
-      },
-      casualLeave: {
-        type: Number,
-        default: 2, // Carry forward up to 3 months (max 6)
-      },
-      casualLeaveHistory: [
-        {
-          month: Number, // 1-12 (January-December)
-          year: Number, // Year (e.g., 2025)
-          leaves: Number, // Number of unused casual leaves
-        },
-      ],
+    lopDays: {
+      type: Number,
+      default: 0, 
     },
     isLOP: {
       type: Boolean,
-      default: false, // True if leave is taken beyond available balance
+      default: false,
     },
   },
   { timestamps: true }
 );
 
-const WorkLog = mongoose.model("WorkLog", workLogModelSchema);
+const WorkLog = mongoose.model("WorkLog", workLogSchema);
 
 export default WorkLog;

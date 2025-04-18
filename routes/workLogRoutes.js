@@ -8,30 +8,50 @@ import {
   getAllWorkLogs,
   getWorkLogById,
   updateWorkLog,
-  fetchWorkLogDates
+  fetchWorkLogDates,
+  submitLeaveRequest,
+  getAllLeaveRequests,
+  approveLeaveRequest,
+  calculateLeaveData,
+  checkLeaveBalanceLeftOrNot,
+  simulateCarryForward
 } from "../controller/workLogController.js";
 
 const router = express.Router();
 
-// Route to create a new work log (protected) 
+// Route to create a new work log (protected)
 router.post("/createWorkLog", createWorkLog);
 
 // Route to update an existing work log by ID (protected)
-router.put("/updateWorkLog/:id",verifyToken, updateWorkLog);
+router.put("/updateWorkLog/:id", verifyToken, updateWorkLog);
 
 // Route to delete a work log by ID (protected)
-router.delete("/deleteFields",verifyToken, deleteWorkLogs);
+router.delete("/deleteFields", verifyToken, deleteWorkLogs);
 
 router.get("/getAllWorkLogsByUser", getAllWorkLogsByUser);
 
-router.get("/getAllWorkLogs",getAllWorkLogs);
+router.get("/getAllWorkLogs", getAllWorkLogs);
 
-router.get("/isWorkLogAlreadyExist",isWorkLogAlreadyExist);
+router.get("/isWorkLogAlreadyExist", isWorkLogAlreadyExist);
 
-router.get("/getWorkLogById/:workLogId",getWorkLogById);
+router.get("/getWorkLogById/:workLogId", getWorkLogById);
 
-router.put("/updateWorkLogById/:id",verifyToken,updateWorkLog);
+router.put("/updateWorkLogById/:id", verifyToken, updateWorkLog);
 
-router.get("/fetchWorkLogDates/:userId",fetchWorkLogDates)
+router.get("/fetchWorkLogDates/:userId", fetchWorkLogDates);
+
+router.post("/submitLeaveRequest", submitLeaveRequest);
+
+router.get("/getAllLeaveRequests", getAllLeaveRequests);
+
+router.put("/approveLeaveRequest/:id", approveLeaveRequest);
+
+router.get("/getWorkLogById/:workLogId", getWorkLogById);
+
+router.get("/calculateLeaveData/:userId", calculateLeaveData);
+
+router.get("/checkLeaveBalnceLeftOrNot/:userId", checkLeaveBalanceLeftOrNot);
+
+router.put("/simulateCarryForward/:userId", simulateCarryForward);
 
 export default router;

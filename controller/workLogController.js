@@ -1,6 +1,7 @@
 import WorkLog from "../models/workLogModel.js";
 import moment from "moment";
 import mongoose from "mongoose";
+import LeaveBalance from "../models/leaveBalanceSchema.js";
 
 // Create Work Log
 export const createWorkLog = async (req, res) => {
@@ -111,7 +112,9 @@ export const deleteWorkLogs = async (req, res) => {
     const { role } = req.user || {};
 
     if (!Array.isArray(arrayOfWorkLogIds) || arrayOfWorkLogIds.length === 0) {
-      return res.status(400).json({ error: "Invalid input: Expected a non-empty array of WorkLog IDs" });
+      return res.status(400).json({
+        error: "Invalid input: Expected a non-empty array of WorkLog IDs",
+      });
     }
 
     // Fetch work logs before deleting
@@ -132,7 +135,8 @@ export const deleteWorkLogs = async (req, res) => {
 
       if (unauthorizedLogs) {
         return res.status(403).json({
-          message: "Forbidden: Auditors can only delete work logs created today",
+          message:
+            "Forbidden: Auditors can only delete work logs created today",
         });
       }
     }
@@ -146,7 +150,6 @@ export const deleteWorkLogs = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-
 
 export const getAllWorkLogsByUser = async (req, res) => {
   try {
@@ -271,8 +274,6 @@ export const isWorkLogAlreadyExist = async (req, res) => {
   }
 };
 
-
-
 export const getAllWorkLogs = async (req, res) => {
   try {
     let { page = 1, pageSize = 10, sort, userId, fromDate, toDate } = req.query;
@@ -280,8 +281,15 @@ export const getAllWorkLogs = async (req, res) => {
     const pageNumber = parseInt(page, 10);
     const sizePerPage = parseInt(pageSize, 10);
 
-    if (isNaN(pageNumber) || pageNumber < 1 || isNaN(sizePerPage) || sizePerPage < 1) {
-      return res.status(400).json({ message: "Invalid page or pageSize parameter" });
+    if (
+      isNaN(pageNumber) ||
+      pageNumber < 1 ||
+      isNaN(sizePerPage) ||
+      sizePerPage < 1
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid page or pageSize parameter" });
     }
 
     let query = {};
@@ -325,7 +333,9 @@ export const getAllWorkLogs = async (req, res) => {
       .skip((pageNumber - 1) * sizePerPage)
       .limit(sizePerPage)
       .populate("userId", "userName")
-      .select("workType description startTime endTime createdAt userId paidLeave sickLeave");
+      .select(
+        "workType description startTime endTime createdAt userId paidLeave sickLeave"
+      );
 
     const totalWorkLogs = await WorkLog.countDocuments(query);
 
@@ -333,7 +343,9 @@ export const getAllWorkLogs = async (req, res) => {
       data: workLogs.map((log) => ({
         ...log.toObject(),
         auditor_name: log.userId?.userName || "N/A",
-        startTime: log.startTime ? moment(log.startTime).format("HH:mm A") : "N/A",
+        startTime: log.startTime
+          ? moment(log.startTime).format("HH:mm A")
+          : "N/A",
         endTime: log.endTime ? moment(log.endTime).format("HH:mm A") : "N/A",
         date: moment(log.createdAt).format("DD-MM-YYYY"),
         dateAndTime: moment(log.createdAt).format("DD-MM-YYYY HH:mm A"),
@@ -341,7 +353,10 @@ export const getAllWorkLogs = async (req, res) => {
         sickLeave: log.sickLeave,
         totalHours:
           log.startTime && log.endTime
-            ? moment.duration(moment(log.endTime).diff(moment(log.startTime))).asHours().toFixed(2) + " Hours"
+            ? moment
+                .duration(moment(log.endTime).diff(moment(log.startTime)))
+                .asHours()
+                .toFixed(2) + " Hours"
             : "N/A",
       })),
       total: totalWorkLogs,
@@ -356,8 +371,6 @@ export const getAllWorkLogs = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-
-
 
 export const getWorkLogById = async (req, res) => {
   try {
@@ -415,5 +428,464 @@ export const fetchWorkLogDates = async (req, res) => {
   } catch (error) {
     console.error("Error fetching work log dates:", error);
     return res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const submitLeaveRequest = async (req, res) => {
+  console.log(req.body);
+  try {
+    const { userId, leaveType, reason, fromDate, toDate } = req.body;
+
+    if (!userId || !leaveType || !reason || !fromDate || !toDate) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Check for leave balance or create if missing
+    let leaveBalance = await LeaveBalance.findOne({ userId });
+
+    if (!leaveBalance) {
+      leaveBalance = await LeaveBalance.create({
+        userId,
+        sickLeave: 2,
+        casualLeave: 2,
+        casualLeaveHistory: [],
+      });
+    }
+
+    // Check LOP
+    let isLOP = false;
+    if (leaveType === "sickLeave" && leaveBalance.sickLeave <= 0) isLOP = true;
+    if (leaveType === "casualLeave" && leaveBalance.casualLeave <= 0)
+      isLOP = true;
+
+    // Create work log (leave request)
+    const leaveRequest = new WorkLog({
+      userId,
+      workType: "leave",
+      leaveType,
+      reason,
+      startTime: new Date(fromDate),
+      endTime: new Date(toDate),
+      fromDate: new Date(fromDate), // Add this line
+      toDate: new Date(toDate), // Add this line
+      isLOP,
+      leaveStatus: "pending",
+    });
+
+    await leaveRequest.save();
+
+    res.status(201).json({
+      message: "Leave request submitted successfully",
+      leaveRequest,
+    });
+  } catch (error) {
+    console.error("Error submitting leave request:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const getAllLeaveRequests = async (req, res) => {
+  try {
+    let {
+      page = 1,
+      pageSize = 10,
+      sort,
+      userId,
+      fromDate,
+      toDate,
+      leaveStatus,
+      keyword, // ✅ NEW: keyword from query
+    } = req.query;
+
+    const pageNumber = parseInt(page, 10);
+    const sizePerPage = parseInt(pageSize, 10);
+
+    if (
+      isNaN(pageNumber) ||
+      pageNumber < 1 ||
+      isNaN(sizePerPage) ||
+      sizePerPage < 1
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid page or pageSize parameter" });
+    }
+
+    let query = { workType: "leave" };
+
+    if (userId) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ message: "Invalid userId" });
+      }
+      query.userId = userId;
+    }
+
+    if (leaveStatus) {
+      query.leaveStatus = leaveStatus;
+    }
+
+    // Date filters
+    if (fromDate && !toDate) {
+      query.fromDate = {
+        $gte: moment(fromDate, "YYYY-MM-DD").startOf("day").toDate(),
+        $lte: moment(fromDate, "YYYY-MM-DD").endOf("day").toDate(),
+      };
+    } else if (fromDate && toDate) {
+      query.fromDate = {
+        $gte: moment(fromDate, "YYYY-MM-DD").startOf("day").toDate(),
+        $lte: moment(toDate, "YYYY-MM-DD").endOf("day").toDate(),
+      };
+    } else {
+      query.createdAt = {
+        $gte: moment().subtract(7, "days").startOf("day").toDate(),
+        $lte: moment().endOf("day").toDate(),
+      };
+    }
+
+    let sortQuery = { createdAt: 1 };
+    if (sort === "newlyadded") {
+      sortQuery = { createdAt: -1 };
+    }
+
+    // Base query
+    let baseQuery = WorkLog.find(query)
+      .sort(sortQuery)
+      .skip((pageNumber - 1) * sizePerPage)
+      .limit(sizePerPage)
+      .populate("userId", "userName")
+      .select(
+        "userId leaveType reason startTime endTime fromDate toDate isLOP leaveStatus createdAt"
+      );
+
+    // Apply keyword filtering after population
+    let leaveRequests = await baseQuery;
+
+    // ✅ Keyword search after fetching
+    if (keyword) {
+      const searchRegex = new RegExp(keyword, "i");
+      leaveRequests = leaveRequests.filter((log) => {
+        return (
+          searchRegex.test(log.leaveType) ||
+          searchRegex.test(log.reason) ||
+          searchRegex.test(log?.userId?.userName || "")
+        );
+      });
+    }
+
+    // Count total (with/without keyword)
+    const totalLeaveRequests = keyword
+      ? leaveRequests.length
+      : await WorkLog.countDocuments(query);
+
+    res.status(200).json({
+      data: leaveRequests.map((log) => ({
+        ...log.toObject(),
+        requester_name: log.userId?.userName || "N/A",
+        userId: log.userId._id,
+        startTime: log.startTime
+          ? moment(log.startTime).format("HH:mm A")
+          : "N/A",
+        endTime: log.endTime ? moment(log.endTime).format("HH:mm A") : "N/A",
+        fromDate: log.fromDate
+          ? moment(log.fromDate).format("DD-MM-YYYY")
+          : "N/A",
+        toDate: log.toDate ? moment(log.toDate).format("DD-MM-YYYY") : "N/A",
+        requestDate: moment(log.createdAt).format("DD-MM-YYYY"),
+        requestDateAndTime: moment(log.createdAt).format("DD-MM-YYYY HH:mm A"),
+        leaveType: log.leaveType,
+        reason: log.reason,
+        isLOP: log.isLOP,
+        leaveStatus: log.leaveStatus,
+      })),
+      total: totalLeaveRequests,
+      page: pageNumber,
+      pageSize: sizePerPage,
+      totalPages: Math.ceil(totalLeaveRequests / sizePerPage),
+      fromDate: fromDate || moment().subtract(7, "days").format("YYYY-MM-DD"),
+      toDate: toDate || moment().format("YYYY-MM-DD"),
+    });
+  } catch (error) {
+    console.error("Error fetching leave requests:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const approveLeaveRequest = async (req, res) => {
+  console.log(req.body);
+
+  try {
+    const { id } = req.params;
+
+    // 1. Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid leave request ID" });
+    }
+
+    // 2. Fetch leave request
+    const leaveRequest = await WorkLog.findById(id);
+    console.log("Fetched leave request:", leaveRequest);
+
+    if (!leaveRequest) {
+      return res.status(404).json({ message: "Leave request not found" });
+    }
+
+    // 3. Ensure it's a leave request
+    if (leaveRequest.workType !== "leave") {
+      return res.status(400).json({ message: "This is not a leave request" });
+    }
+
+    const { userId, leaveType, fromDate, toDate } = leaveRequest;
+
+    if (!fromDate || !toDate) {
+      return res.status(400).json({ message: "Missing leave date range" });
+    }
+
+    const startDate = moment(fromDate).startOf("day");
+    const endDate = moment(toDate).endOf("day");
+    const leaveDays = endDate.diff(startDate, "days") + 1;
+    console.log(`Leave Days: ${leaveDays}`);
+
+    // 4. Get or create leave balance
+    let leaveBalance = await LeaveBalance.findOne({ userId });
+    if (!leaveBalance) {
+      res.status(404).json({ message: "Leave balance not found" });
+    }
+
+    // 5. Deduct leave or apply LOP
+    let lopDays = 0;
+    let leaveDescription = "";
+
+    if (leaveType === "sickLeave") {
+      const available = leaveBalance.sickLeave;
+      if (available >= leaveDays) {
+        leaveBalance.sickLeave -= leaveDays;
+        leaveBalance.sickLeaveTotalMonth += leaveDays;
+        leaveBalance.sickLeaveOverall += leaveDays;
+        leaveDescription = `Approved with ${leaveDays} SL`;
+      } else {
+        lopDays = leaveDays - available;
+        leaveBalance.sickLeave = 0;
+        leaveBalance.sickLeaveTotalMonth += available;
+        leaveBalance.sickLeaveOverall += available;
+        leaveDescription = `Approved with ${available} SL and ${lopDays} LOP`;
+      }
+    } else if (leaveType === "casualLeave") {
+      const available = leaveBalance.casualLeave;
+      if (available >= leaveDays) {
+        leaveBalance.casualLeave -= leaveDays;
+        leaveBalance.casualLeaveTotalMonth += leaveDays;
+        leaveBalance.casualLeaveOverall += leaveDays;
+        leaveDescription = `Approved with ${leaveDays} CL`;
+      } else {
+        lopDays = leaveDays - available;
+        leaveBalance.casualLeave = 0;
+        leaveBalance.casualLeaveTotalMonth += available;
+        leaveBalance.casualLeaveOverall += available;
+        leaveDescription = `Approved with ${available} CL and ${lopDays} LOP`;
+      }
+    } else {
+      return res.status(400).json({ message: "Invalid leave type" });
+    }
+
+    // 6. Update leave request
+    leaveRequest.leaveStatus = "approved";
+    leaveRequest.isLOP = lopDays > 0;
+    leaveRequest.lopDays = lopDays;
+    leaveRequest.description = leaveDescription;
+
+    // 7. Save updates
+    const leaveBalanceSaved = await leaveBalance.save();
+    const leaveRequestSaved = await leaveRequest.save();
+
+    // 8. Respond
+    return res.status(200).json({
+      message: "Leave approved successfully",
+      leaveRequest: leaveRequestSaved,
+      updatedLeaveBalance: leaveBalanceSaved,
+    });
+  } catch (error) {
+    console.error("Error in approveLeaveRequest:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
+  }
+};
+
+export const calculateLeaveData = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    const startOfMonth = moment().startOf("month");
+    const endOfMonth = moment().endOf("month");
+
+    let leaveBalance = await LeaveBalance.findOne({ userId });
+
+    // If not found, create default balance
+    if (!leaveBalance) {
+      leaveBalance = await LeaveBalance.create({
+        userId,
+        sickLeave: 2,
+        casualLeave: 2,
+        sickLeaveAvailable: 2,
+        casualLeaveAvailable: 2,
+        sickLeaveTotalMonth: 0,
+        sickLeaveOverall: 0,
+        casualLeaveTotalMonth: 0,
+        casualLeaveOverall: 0,
+      });
+    }
+
+    const approvedLeaves = await WorkLog.find({
+      userId,
+      workType: "leave",
+      leaveStatus: "approved",
+    });
+
+    let leaveTaken = {
+      thisMonth: { sick: 0, casual: 0, lop: 0 },
+      overall: { sick: 0, casual: 0, lop: 0 },
+    };
+
+    approvedLeaves.forEach((leave) => {
+      const from = moment(leave.fromDate);
+      const to = moment(leave.toDate);
+      const days = to.diff(from, "days") + 1;
+
+      const isThisMonth = from.isBetween(startOfMonth, endOfMonth, "day", "[]");
+
+      if (leave.isLOP) {
+        // Only count as LOP, don't mix with sick/casual
+        leaveTaken.overall.lop += days;
+        if (isThisMonth) leaveTaken.thisMonth.lop += days;
+      } else if (leave.leaveType === "casualLeave") {
+        leaveTaken.overall.casual += days;
+        if (isThisMonth) leaveTaken.thisMonth.casual += days;
+      } else if (leave.leaveType === "sickLeave") {
+        leaveTaken.overall.sick += days;
+        if (isThisMonth) leaveTaken.thisMonth.sick += days;
+      }
+    });
+
+    const lopLeaves = approvedLeaves.filter((l) => l.isLOP);
+    console.log("LOP Leaves:", lopLeaves);
+
+    const response = {
+      nonLOPLeavesAvailable: {
+        sick: {
+          thisMonth: Math.max(
+            0,
+            leaveBalance.sickLeaveAvailable - leaveBalance.sickLeave
+          ),
+          overall: leaveBalance.sickLeaveAvailable,
+        },
+        casual: {
+          thisMonth: Math.max(
+            0,
+            leaveBalance.casualLeaveAvailable - leaveBalance.casualLeave
+          ),
+          overall: leaveBalance.casualLeaveAvailable,
+        },
+      },
+      totalLeavesTaken: {
+        lop: {
+          thisMonth: leaveTaken.thisMonth.lop,
+          overall: leaveTaken.overall.lop,
+        },
+        sick: {
+          thisMonth: Math.max(
+            0,
+            leaveBalance.sickLeaveAvailable - leaveBalance.sickLeave
+          ),
+          overall: leaveBalance.sickLeaveOverall,
+        },
+        casual: {
+          thisMonth: Math.max(
+            0,
+            leaveBalance.casualLeaveAvailable - leaveBalance.casualLeave
+          ),
+          overall: leaveBalance.casualLeaveOverall,
+        },
+      },
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Error in calculateLeaveData:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const checkLeaveBalanceLeftOrNot = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    const leaveBalance = await LeaveBalance.findOne({ userId });
+
+    if (!leaveBalance) {
+      return res.status(404).json({ message: "Leave balance not found" });
+    }
+
+    // Check if any leave balance is left
+    const hasLeaveBalance =
+      leaveBalance.sickLeave > 0 || leaveBalance.casualLeave > 0;
+
+    res.status(200).json({ hasLeaveBalance });
+  } catch (error) {
+    console.error("Error in checkLeaveBalanceLeftOrNot:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const simulateCarryForward = async (req, res) => {
+  try {
+    const { userId } = req.params; // Get userId from request params
+    const userLeave = await LeaveBalance.findOne({ userId });
+
+    if (!userLeave) {
+      return res.status(404).json({ message: "User leave not found" });
+    }
+
+    const today = moment().add(1, "month"); // Simulate next month's date
+    const currentMonth = today.month() + 1; // 1-indexed
+    const currentYear = today.year();
+
+    // Check if it's the start of a new month
+    const lastMonth = today.subtract(1, "month"); // Get the previous month
+
+    // Track sick leave usage (just a cumulative total)
+    const lastMonthSickLeave = userLeave.sickLeave;
+
+    userLeave.casualLeaveOverall += userLeave.casualLeaveTotalMonth; // Add the total casual leave taken to overall
+    userLeave.casualLeaveTotalMonth = 0; // Reset monthly casual leave taken
+
+    userLeave.casualLeaveOverall += userLeave.casualLeave;
+
+    // Update the sick leave for the current month
+    userLeave.sickLeave = 2 + lastMonthSickLeave; // New sick leave = carry forward + 2 for the current month
+
+    // Reset casual leave to 2 for the current month
+    userLeave.casualLeave = 2; // Reset casual leave to 2
+
+    // Save the updated leave balance and history
+    await userLeave.save();
+    return res.status(200).json({
+      message: "Leave balance updated with carry forward and reset",
+      updatedSickLeaveBalance: userLeave.sickLeave,
+
+      resetCasualLeaveBalance: userLeave.casualLeave,
+    });
+  } catch (error) {
+    console.error("Error in simulateCarryForward:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };

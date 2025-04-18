@@ -26,6 +26,7 @@ import UpdateWorkLog from "./UpdateWorkLog";
 import { useParams } from "react-router-dom"; // Import useParams from react-router-dom
 import LeaveRequestForm from "./LeaveRequestForm";
 
+
 const { confirm } = Modal;
 
 // Debounce function definition
@@ -68,7 +69,7 @@ const WorkLogTable = () => {
   const { user } = useAuth();
   const { date } = useParams();
   const [isLeaveFormVisible, setIsLeaveFormVisible] = useState(false);
-  const auditorId = "auditor123"; // Replace with actual ID
+  const auditorId = user._id; // Replace with actual ID
 
   // Fetch data function
   const fetchData = useCallback(() => {
@@ -477,7 +478,7 @@ const WorkLogTable = () => {
 
               <Button
                 type="primary"
-                shape="round"
+               
                 icon={<PlusOutlined />}
                 size="default"
                 onClick={() => setIsModalOpen(true)}

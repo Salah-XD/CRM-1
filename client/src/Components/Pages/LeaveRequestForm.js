@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Modal, Form, DatePicker, Checkbox, Input, Button, message } from "antd";
+import { Modal, Form, DatePicker, Radio, Input, Button, message } from "antd";
 import axios from "axios";
 
 const { TextArea } = Input;
@@ -7,26 +7,27 @@ const { RangePicker } = DatePicker;
 
 const LeaveRequestForm = ({ visible, onClose, auditorId }) => {
   const [form] = Form.useForm();
-  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (values) => {
-    setSubmitting(true);
+    setLoading(true);
     try {
-      const response = await axios.post("/api/leaves/requestLeave", {
-        auditorId,
-        fromDate: values.dates[0].format("YYYY-MM-DD"),
-        toDate: values.dates[1].format("YYYY-MM-DD"),
-        leaveType: values.leaveType,
+      await axios.post("/api/worklogs/submitLeaveRequest", {
+        userId: auditorId,
+        fromDate: values.dates[0],
+        toDate: values.dates[1],
+        leaveType: values.leaveType, // now it's a string
         reason: values.reason,
+        date: new Date(), // Add current date if not using one from UI
       });
 
       message.success("Leave request submitted successfully.");
       form.resetFields();
       onClose();
     } catch (error) {
-      message.error("Failed to submit leave request.");
+      message.error(error?.response?.data?.message || "Failed to submit leave request.");
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
@@ -38,32 +39,40 @@ const LeaveRequestForm = ({ visible, onClose, auditorId }) => {
       footer={null}
       centered
     >
-      <Form form={form} layout="vertical" onFinish={handleSubmit}>
-        {/* Date Range Picker */}
-        <Form.Item name="dates" label="Leave Duration" rules={[{ required: true, message: "Please select leave dates." }]}>
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleSubmit}
+      >
+        <Form.Item
+          name="dates"
+          label="Leave Duration"
+          rules={[{ required: true, message: "Please select leave dates." }]}
+        >
           <RangePicker />
         </Form.Item>
 
-        {/* Leave Type Checkboxes */}
         <Form.Item
           name="leaveType"
           label="Leave Type"
-          rules={[{ required: true, message: "Please select at least one leave type." }]}
+          rules={[{ required: true, message: "Please select a leave type." }]}
         >
-          <Checkbox.Group>
-            <Checkbox value="sickLeave">Sick Leave</Checkbox>
-            <Checkbox value="casualLeave">Casual Leave</Checkbox>
-          </Checkbox.Group>
+          <Radio.Group>
+            <Radio value="sickLeave">Sick Leave</Radio>
+            <Radio value="casualLeave">Casual Leave</Radio>
+          </Radio.Group>
         </Form.Item>
 
-        {/* Reason Input */}
-        <Form.Item name="reason" label="Reason" rules={[{ required: true, message: "Please enter a reason." }]}>
-          <TextArea rows={3} />
+        <Form.Item
+          name="reason"
+          label="Reason"
+          rules={[{ required: true, message: "Please enter a reason." }]}
+        >
+          <TextArea rows={3} placeholder="Write reason here..." />
         </Form.Item>
 
-        {/* Submit Button */}
         <Form.Item>
-          <Button type="primary" htmlType="submit" loading={submitting} block>
+          <Button type="primary" htmlType="submit" loading={loading} block>
             Apply
           </Button>
         </Form.Item>
