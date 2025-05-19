@@ -13,7 +13,7 @@ const WorkLogCalendarAuditor = () => {
   const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [workLogDates, setWorkLogDates] = useState([]);
-  const { user } = useAuth(); 
+  const { user } = useAuth();
 
   const handleDateSelect = (value) => {
     if (value && value.isValid()) {
@@ -89,13 +89,19 @@ const WorkLogCalendarAuditor = () => {
             <CalendarOutlined className="mr-2 text-lg text-blue-500" />
             Calendar
           </h3>
+
           <Calendar
             fullscreen
             value={selectedDate}
-            onSelect={handleDateSelect}
-            onPanelChange={handlePanelChange}
+            onSelect={(date, { source }) => {
+              if (source === "date") {
+                handleDateSelect(date);
+              }
+            }}
+            onPanelChange={(date) => {
+              setSelectedDate(date); // update the calendar's selected view
+            }}
             className="mt-4 border rounded-lg shadow-sm"
-            // dateFullCellRender={dateFullCellRender}
           />
         </Card>
       </div>
