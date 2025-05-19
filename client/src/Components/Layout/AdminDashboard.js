@@ -284,7 +284,7 @@ const AdminDashboard = ({ children }) => {
       key: "/settings",
       icon: <SettingOutlined />,
       link: "/settings/company-address",
-      roles: ["SUPER_ADMIN"],
+   
     },
 
     {
