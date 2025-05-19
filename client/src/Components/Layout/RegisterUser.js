@@ -15,7 +15,7 @@ const RegisterUser = () => {
 
   const handleRegister = async () => {
     try {
-      const response = await axios.post("http://crm.unavar.com/auth/registerUser", formData);
+      const response = await axios.post("/api/auth/registerUser", formData);
       alert("User registered successfully");
       console.log(response.data);
     } catch (error) {
