@@ -28,7 +28,11 @@ const PaymentConfirmationModal = ({
   const [previewFile, setPreviewFile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const domain = `http://localhost:${process.env.PORT || 5000}`;
+const domain =
+  process.env.NODE_ENV === 'production'
+    ? 'https://crm.unavar.com'
+    : `http://localhost:${process.env.PORT || 5000}`;
+
 
   useEffect(() => {
     if (visible) {

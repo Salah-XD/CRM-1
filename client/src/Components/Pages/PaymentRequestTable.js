@@ -567,14 +567,14 @@ const PaymentRequestTable = () => {
           </ConfigProvider>
 
           <div className="space-x-2">
-            <Input
+            {/* <Input
               size="default"
               placeholder="Search by FBO Name"
               prefix={<SearchOutlined />}
               value={searchKeyword}
               onChange={handleInputChange}
               style={{ width: 300 }}
-            />
+            /> */}
           </div>
         </div>
 

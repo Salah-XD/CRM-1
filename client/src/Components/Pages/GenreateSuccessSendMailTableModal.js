@@ -33,7 +33,7 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
 
       }
       else if (name == "invoice") {
-        axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
+        axios.get("/api/setting/getSetting")
           .then((response) => {
             setCcmail(response.data.invoice_cc);
             // Initialize the message field with the fetched data
@@ -44,7 +44,7 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
           });
       }
       else {
-        axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
+        axios.get("/api/setting/getSetting")
           .then((response) => {
             setCcmail(response.data.agreement_cc);
             // Initialize the message field with the fetched data
