@@ -116,7 +116,8 @@ function AuditReport() {
           `/api/auditor/fetchLabelsWithQuestions//${checklistId}`
         );
         console.log(data);
-        setAuditItems(data);
+     setAuditItems(Array.isArray(data) ? data : []);
+
       } catch (error) {
         message.error("Failed to fetch audit data.");
       } finally {
