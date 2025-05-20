@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer';
+import puppeteer from "puppeteer";
 import { promises as fs } from "fs";
 import path from "path";
 import nodemailer from "nodemailer";
@@ -189,7 +189,10 @@ export const generateProposal = async (req, res) => {
       .replace(/{{tax2}}/g, tax2)
       .replace(/{{formattedDate}}/g, formattedDate)
       .replace(/{{company_name}}/g, company_name)
-      .replace(/{{company_address}}/g, `${company_address.line1} ${company_address.line2}\n${company_address.city} ${company_address.state} ${company_address.pincode}`)
+      .replace(
+        /{{company_address}}/g,
+        `${company_address.line1} ${company_address.line2}\n${company_address.city} ${company_address.state} ${company_address.pincode}`
+      )
       .replace(/{{contact_number}}/g, contact_number)
       .replace(/{{email}}/g, email)
       .replace(/{{gstin}}/g, gstin)
@@ -200,11 +203,10 @@ export const generateProposal = async (req, res) => {
       .replace(/{{branch_name}}/g, branch_name)
       .replace(/{{ifsc_code}}/g, ifsc_code);
 
-     // Launch Puppeteer using Chromium
-     browser = await puppeteer.launch({
+    // Launch Puppeteer using Chromium
+    browser = await puppeteer.launch({
       headless: true,
     });
-
 
     const page = await browser.newPage();
     await page.setContent(dynamicContent, { waitUntil: "networkidle0" });
@@ -216,8 +218,8 @@ export const generateProposal = async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       host: "smtp.gmail.com",
-      secure: true, 
-      port: 465,
+      port: 587, // Port for STARTTLS
+      secure: false,
       auth: {
         user: process.env.EMAIL_USERNAME,
         pass: process.env.EMAIL_PASSWORD,

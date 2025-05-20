@@ -23,9 +23,9 @@ const generateOTP = () => {
 };
 
 export const registerUser = async (req, res) => {
- // console.log(req.body);
+  // console.log(req.body);
   try {
-    const {userName, userId, password, role } = req.body;
+    const { userName, userId, password, role } = req.body;
 
     // Check if userId already exists
     const existingUser = await User.findOne({ userId });
@@ -91,7 +91,7 @@ export const loginUser = async (req, res) => {
         userName: user.userName,
         userId: user.userId,
         role: user.role,
-        _id: user._id // Include the actual user ObjectId in the payload
+        _id: user._id, // Include the actual user ObjectId in the payload
       },
       JWT_SECRET,
       { expiresIn: "6h" } // Token expiry time
@@ -103,7 +103,6 @@ export const loginUser = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
-
 
 //Controller for forgot password
 export const forgotPassword = async (req, res) => {
@@ -137,8 +136,8 @@ export const forgotPassword = async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
+      port: 587, // Port for STARTTLS
+      secure: false,
       auth: {
         user: process.env.EMAIL_USERNAME,
         pass: process.env.EMAIL_PASSWORD,
@@ -234,7 +233,7 @@ export const setNewPassword = async (req, res) => {
   }
 };
 
-//Get all user 
+//Get all user
 export const fetchAllUsers = async (req, res) => {
   try {
     const { page = 1, pageSize = 10, sort, keyword } = req.query;
@@ -244,8 +243,15 @@ export const fetchAllUsers = async (req, res) => {
     const sizePerPage = parseInt(pageSize, 10);
 
     // Validate page number and page size
-    if (isNaN(pageNumber) || pageNumber < 1 || isNaN(sizePerPage) || sizePerPage < 1) {
-      return res.status(400).json({ message: "Invalid page or pageSize parameter" });
+    if (
+      isNaN(pageNumber) ||
+      pageNumber < 1 ||
+      isNaN(sizePerPage) ||
+      sizePerPage < 1
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid page or pageSize parameter" });
     }
 
     // Create the base query
@@ -261,10 +267,9 @@ export const fetchAllUsers = async (req, res) => {
     const sortQuery = (() => {
       switch (sort) {
         case "newlyadded":
-          return { createdAt: -1 }; 
+          return { createdAt: -1 };
         case "alllist":
-          return { createdAt: 1 }; 
-      
+          return { createdAt: 1 };
       }
     })();
 
@@ -317,13 +322,12 @@ export const deleteFields = async (req, res) => {
   }
 };
 
-
 export const getUserById = async (req, res) => {
   try {
     const { userId } = req.params;
 
     // Fetch the user by ID, excluding the password field
-    const user = await User.findById(userId).select('-password');
+    const user = await User.findById(userId).select("-password");
 
     // Check if the user exists
     if (!user) {
@@ -332,28 +336,21 @@ export const getUserById = async (req, res) => {
 
     // Return the user details
     res.status(200).json(user);
-
   } catch (error) {
     console.error("Error in fetching the data:", error); // Log error to console
     res.status(500).json({ message: "Server Error" });
   }
 };
 
-
-
-
-
 export const updateUser = async (req, res) => {
-
   try {
-
     console.log(req.body);
 
-    const {userId}=req.params;
+    const { userId } = req.params;
     const { userName, password, role } = req.body;
 
     // Check if user exists
-    const existingUser = await User.findOne({ _id:userId });
+    const existingUser = await User.findOne({ _id: userId });
 
     if (!existingUser) {
       return res.status(404).json({ message: "User not found" });

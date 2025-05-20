@@ -429,12 +429,8 @@ export const sendEmail = async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
-      },
+      port: 587, // Port for STARTTLS
+      secure: false,
     });
 
     // Check if the frontend already contains a placeholder for the form link
