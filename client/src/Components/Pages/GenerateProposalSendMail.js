@@ -26,7 +26,7 @@ const GenerateProposalSendMail = ({
     if (visible) {
       if (name == "proposal") {
         axios
-          .get("/api/setting/getSetting/66c41b85dedfff785c08df21")
+          .get("/api/setting/getSetting")
           .then((response) => {
             setCcmail(response.data.proposal_cc);
             // Initialize the message field with the fetched data

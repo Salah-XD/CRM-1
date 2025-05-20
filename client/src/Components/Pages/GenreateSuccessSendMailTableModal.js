@@ -20,7 +20,7 @@ const GenreateSuccessSendMailTableModal = ({ visible, onClose, id, onOk, title, 
 
       if (name == "proposal") {
         //Get The setting mail
-        axios.get("/api/setting/getSetting/66c41b85dedfff785c08df21")
+        axios.get("/api/setting/getSetting")
           .then((response) => {
             setCcmail(response.data.proposal_cc);
             // Initialize the message field with the fetched data
