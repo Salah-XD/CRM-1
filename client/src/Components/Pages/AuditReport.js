@@ -113,7 +113,7 @@ function AuditReport() {
       try {
         setLoading(true);
         const { data } = await axios.get(
-          `/api/auditor/fetchLabelsWithQuestions//${checklistId}`
+          `/api/auditor/fetchLabelsWithQuestions/${checklistId}`
         );
         console.log(data);
      setAuditItems(Array.isArray(data) ? data : []);
