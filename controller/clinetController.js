@@ -429,7 +429,7 @@ export const sendEmail = async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       host: "smtp.gmail.com",
-      port: 587, // Port for STARTTLS
+      port: 2525 , // Port for STARTTLS
       secure: false,
     });
 
