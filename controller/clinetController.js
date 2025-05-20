@@ -252,8 +252,10 @@ export const updateOutlet = async (req, res) => {
     if (gst_number) outlet.gst_number = gst_number;
     if (contact_number) outlet.contact_number = contact_number;
     if (contact_person) outlet.contact_person = contact_person;
-    if (fssai_license_number) outlet.fssai_license_number = fssai_license_number;
-    if (vertical_of_industry) outlet.vertical_of_industry = vertical_of_industry; // Corrected casing
+    if (fssai_license_number)
+      outlet.fssai_license_number = fssai_license_number;
+    if (vertical_of_industry)
+      outlet.vertical_of_industry = vertical_of_industry; // Corrected casing
 
     // Save the outlet
     await outlet.save();
@@ -428,6 +430,7 @@ export const sendEmail = async (req, res) => {
       service: "gmail",
       host: "smtp.gmail.com",
       port: 465,
+      secure: true,
       auth: {
         user: process.env.EMAIL_USERNAME,
         pass: process.env.EMAIL_PASSWORD,
@@ -572,7 +575,7 @@ export const getParticularOutletDetails = async (req, res) => {
       unit: outlet.unit,
       no_of_production_line: outlet.no_of_production_line,
       gst_number: outlet.gst_number,
-      vertical_of_industry:outlet.vertical_of_industry,
+      vertical_of_industry: outlet.vertical_of_industry,
     };
 
     return res.status(200).json(response);

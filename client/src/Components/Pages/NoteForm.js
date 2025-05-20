@@ -13,7 +13,7 @@ const NoteForm = () => {
     const fetchSettings = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('/api/setting/getSetting/66c41b85dedfff785c08df21');
+        const response = await axios.get('/api/setting/getSetting');
         form.setFieldsValue(response.data);
       } catch (error) {
         message.error('Failed to fetch settings');
@@ -32,7 +32,7 @@ const NoteForm = () => {
       // Validate only the field corresponding to the noteType
       const values = await form.validateFields([noteType]);
       setLoading(true);
-      await axios.put('/api/setting/updateSetting/66c41b85dedfff785c08df21', values);
+      await axios.post('/api/setting/updateSetting', values);
       message.success(`${noteType === 'proposal_note' ? 'Proposal' : 'Invoice'} note updated successfully`);
     } catch (error) {
       message.error('Failed to update settings');

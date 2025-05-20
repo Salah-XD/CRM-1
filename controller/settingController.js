@@ -24,64 +24,79 @@ export const createSetting = async (req, res) => {
   }
 };
 
-// Get all settings
-export const getSettings = async (req, res) => {
-  try {
-    const settings = await Setting.find();
-    res.status(200).json(settings);
-  } catch (error) {
-    res.status(500).json({ message: "Failed to retrieve settings", error });
-  }
-};
+
 
 // Get a specific setting by ID
-export const getSettingById = async (req, res) => {
+export const getSetting = async (req, res) => {
   try {
-    const { id } = req.params;
-    const setting = await Setting.findById(id);
+    let setting = await Setting.findOne();
 
     if (!setting) {
-      return res.status(404).json({ message: "Setting not found" });
+      // Only create if no record exists
+      setting = new Setting({
+        proposal_note: "",
+        invoice_note: "",
+        proposal_email: "",
+        invoice_email: "",
+        agreement_email: "",
+        proposal_cc: [],
+        invoice_cc: [],
+        agreement_cc: [],
+        formlink_email: "",
+      });
+
+      await setting.save();
     }
 
     res.status(200).json(setting);
   } catch (error) {
-    res.status(500).json({ message: "Failed to retrieve setting", error });
+    res.status(500).json({ message: "Failed to retrieve or create setting", error });
   }
 };
 
+
+
 // Update a setting by ID
 export const updateSetting = async (req, res) => {
-  console.log(req.body);
   try {
-    const { id } = req.params;
-    const { proposal_note, invoice_note, proposal_email, invoice_email,agreement_email,  proposal_cc,invoice_cc, agreement_cc,formlink_email} = req.body;
+    const {
+      proposal_note,
+      invoice_note,
+      proposal_email,
+      invoice_email,
+      agreement_email,
+      proposal_cc,
+      invoice_cc,
+      agreement_cc,
+      formlink_email,
+    } = req.body;
 
-    const updatedSetting = await Setting.findByIdAndUpdate(
-      id,
-      {
-        proposal_note,
-        invoice_note,
-        proposal_email,
-        invoice_email,
-        agreement_email,
-        proposal_cc,
-        invoice_cc,
-        agreement_cc,
-        formlink_email
-      },
-      { new: true }
-    );
+    const setting = await Setting.findOne();
 
-    if (!updatedSetting) {
-      return res.status(404).json({ message: "Setting not found" });
+    if (!setting) {
+      return res.status(404).json({ message: "No setting found to update" });
     }
 
-    res.status(200).json(updatedSetting);
+    if (proposal_note !== undefined) setting.proposal_note = proposal_note;
+    if (invoice_note !== undefined) setting.invoice_note = invoice_note;
+    if (proposal_email !== undefined) setting.proposal_email = proposal_email;
+    if (invoice_email !== undefined) setting.invoice_email = invoice_email;
+    if (agreement_email !== undefined) setting.agreement_email = agreement_email;
+    if (proposal_cc !== undefined) setting.proposal_cc = proposal_cc;
+    if (invoice_cc !== undefined) setting.invoice_cc = invoice_cc;
+    if (agreement_cc !== undefined) setting.agreement_cc = agreement_cc;
+    if (formlink_email !== undefined) setting.formlink_email = formlink_email;
+
+    await setting.save();
+
+    res.status(200).json(setting);
   } catch (error) {
     res.status(500).json({ message: "Failed to update setting", error });
   }
 };
+
+
+
 
 // Delete a setting by ID
 export const deleteSetting = async (req, res) => {

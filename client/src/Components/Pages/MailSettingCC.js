@@ -14,7 +14,7 @@ const MailSettingCC = () => {
     const fetchSettings = async () => {
       setLoading(true);
       try {
-        const response = await axios.get('/api/setting/getSetting/66c41b85dedfff785c08df21');
+        const response = await axios.get('/api/setting/getSetting');
         const settings = response.data;
         // Join array of emails into a string separated by commas for display in input fields
         settings.proposal_cc = settings.proposal_cc?.join(', ') || '';
@@ -42,7 +42,7 @@ const MailSettingCC = () => {
       };
 
       setLoading(true);
-      await axios.put('/api/setting/updateSetting/66c41b85dedfff785c08df21', updatedField);
+      await axios.post('/api/setting/updateSetting', updatedField);
       message.success(`${fieldName.replace('_cc', '')} CC updated successfully`);
     } catch (error) {
       message.error(`Failed to update ${fieldName}`);

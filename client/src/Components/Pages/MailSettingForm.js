@@ -21,10 +21,11 @@ const MailSettingForm = () => {
       setLoading(true);
       try {
         const response = await axios.get(
-          "/api/setting/getSetting/66c41b85dedfff785c08df21"
+          "/api/setting/getSetting"
         );
         const settings = response.data;
 
+        console.log("this is ",response);
         setFormValues({
           ...settings,
         });
@@ -50,8 +51,8 @@ const MailSettingForm = () => {
         [name]: formValues[name],
       };
 
-      await axios.put(
-        `/api/setting/updateSetting/66c41b85dedfff785c08df21`,
+      await axios.post(
+        `/api/setting/updateSetting`,
         updatedValues
       );
       message.success(`${name.replace("_", " ")} updated successfully`);

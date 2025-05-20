@@ -3,9 +3,8 @@ import { verifyToken } from "../middleware/auth.js";
 
 import {
   createSetting,
-  getSettings,
-  getSettingById,
-  updateSetting,
+ getSetting,
+ updateSetting,
   deleteSetting,
   saveOrUpdateProfile,
   getCompanyDetail,
@@ -19,13 +18,11 @@ const router = express.Router();
 router.post("/createSetting", verifyToken, createSetting);
 
 // Get all settings
-router.get("/getSettings", verifyToken, getSettings);
+router.get("/getSetting", getSetting);
 
-// Get a specific setting by ID
-router.get("/getSetting/:id", getSettingById);
 
 // Update a setting by ID
-router.put("/updateSetting/:id", updateSetting);
+router.post("/updateSetting", updateSetting);
 
 // Delete a setting by ID
 router.delete("/deleteSetting/:id", verifyToken, deleteSetting);
