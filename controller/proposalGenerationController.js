@@ -227,7 +227,7 @@ export const generateProposal = async (req, res) => {
     });
 
     const mailOptions = {
-      from: `"Your Company" <unavar>`,
+      from: `"Your Company" <unavar@gmail.com>`,
       to,
       cc,
       subject: "Proposal Document",
