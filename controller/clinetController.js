@@ -419,7 +419,7 @@ export const deleteFields = async (req, res) => {
 
 //Controller to send logic to
 export const sendEmail = async (req, res) => {
-  const { to, message, formLink } = req.body; // Expect 'message' to hold the full HTML content, including the form link placeholder.
+  const { to, message, formLink } = req.body;
 
   try {
     if (!to || !message || !formLink) {
@@ -427,20 +427,22 @@ export const sendEmail = async (req, res) => {
     }
 
     const transporter = nodemailer.createTransport({
-      service: "gmail",
-      host: "smtp.gmail.com",
-      port: 2525 , // Port for STARTTLS
-      secure: false,
+      host: "smtp-relay.brevo.com",
+      port: 2525, // Port 2525 (STARTTLS)
+      secure: false, // No SSL for port 2525
+      auth: {
+        user: process.env.BREVO_SMTP_USER,
+        pass: process.env.BREVO_SMTP_PASSWORD,
+      },
     });
 
-    // Check if the frontend already contains a placeholder for the form link
-    const emailContent = message.replace("{formlink}", formLink); // Dynamically replace the placeholder in the message with the actual form link
+    const emailContent = message.replace("{formlink}", formLink);
 
     const mailOptions = {
-      from: `<${process.env.EMAIL_USERNAME}>`,
+      from: `"Your Company" <8d87d1001@smtp-brevo.com>`,
       to,
       subject: "Client Onboarding Process",
-      html: emailContent, // Use the content from the frontend with dynamically inserted form link
+      html: emailContent,
     };
 
     const info = await transporter.sendMail(mailOptions);
