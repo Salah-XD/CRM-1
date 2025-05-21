@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import puppeteer from 'puppeteer'; // Import Puppeteer
+import puppeteer from "puppeteer"; // Import Puppeteer
 import AuditResponse1 from "../models/auditReponseModel.js";
 import AuditManagement from "../models/auditMangement.js";
 import Label from "../models/labelModel.js";
@@ -14,7 +14,7 @@ export const generateAuditReport = async (req, res) => {
   let browser;
   try {
     console.log(req.body);
-    const { audit_id,checkListId} = req.body;
+    const { audit_id, checkListId } = req.body;
 
     if (!audit_id) {
       return res.status(400).json({ message: "Audit ID is required" });
@@ -78,10 +78,10 @@ export const generateAuditReport = async (req, res) => {
 
     // Generate dynamic sections HTML
     const sectionsHTML = sections
-    .map((section) => {
-      const questionsHTML = section.questions
-        .map(
-          (q, index) => `
+      .map((section) => {
+        const questionsHTML = section.questions
+          .map(
+            (q, index) => `
         <tr class="text-xs">
           <td class="border px-2 py-1">${index + 1}</td>
           <td class="border px-2 py-1">${q.description}</td>
@@ -89,10 +89,10 @@ export const generateAuditReport = async (req, res) => {
           <td class="border px-2 py-1 text-center">${q.mark}</td>
           <td class="border px-2 py-1 text-center">${q.marks}</td>
         </tr>`
-        )
-        .join("");
-  
-      return `
+          )
+          .join("");
+
+        return `
       <h2 class="text-sm font-semibold my-2">${section.title}</h2>
       <table class="w-full text-xs border border-gray-300">
         <thead>
@@ -108,15 +108,15 @@ export const generateAuditReport = async (req, res) => {
           ${questionsHTML}
         </tbody>
       </table>`;
-    })
-    .join("");
-  
+      })
+      .join("");
 
     htmlTemplate = htmlTemplate.replace("{{AUDIT_SECTIONS}}", sectionsHTML);
 
     // Generate the PDF using Puppeteer
     browser = await puppeteer.launch({
-      headless: true, // Puppeteer runs in headless mode by default
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
 
     const page = await browser.newPage();
@@ -148,10 +148,14 @@ export const generateAuditReport = async (req, res) => {
       `attachment; filename=audit-report-${fbo_name}-${outlet_name}.pdf`
     );
     res.send(pdfBuffer);
-
   } catch (error) {
     console.error("Error generating audit report:", error);
-    res.status(500).json({ message: "An error occurred while generating the audit report" });
+    console.error("Puppeteer error:", error.message);
+    console.error("Stack trace:", error.stack);
+
+    res
+      .status(500)
+      .json({ message: "An error occurred while generating the audit report" });
   } finally {
     if (browser) {
       await browser.close();
