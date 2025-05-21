@@ -154,6 +154,7 @@ export const generateInvoice = async (req, res) => {
     // Launch Puppeteer using Chromium
     browser = await puppeteer.launch({
       headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
     });
 
     const page = await browser.newPage();
@@ -175,7 +176,6 @@ export const generateInvoice = async (req, res) => {
         pass: process.env.BREVO_SMTP_PASSWORD,
       },
     });
-
 
     const mailOptions = {
       from: `"Your Company" <unavar>`,

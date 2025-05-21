@@ -37,7 +37,7 @@ const ViewAgreement = () => {
     const fetchNoteContent = async () => {
       try {
         const response = await axios.get(
-          `/api/setting/getSetting/66c41b85dedfff785c08df21`
+          `/api/setting/getSetting`
         );
         console.log("Fetched note content:", response.data);
         const formattedNote = response.data.agreement_note.split("\n");

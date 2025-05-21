@@ -47,7 +47,7 @@ const ViewProposal = () => {
     const fetchNoteContent = async () => {
       try {
         const response = await axios.get(
-          `/api/setting/getSetting/66c41b85dedfff785c08df21`
+          `/api/setting/getSetting`
         );
         const formattedNote = response.data.proposal_note.split("\n");
         setNoteContent(formattedNote);
