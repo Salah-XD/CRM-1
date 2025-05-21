@@ -36,7 +36,7 @@ export const generateProposal = async (req, res) => {
       return res.status(404).send("Proposal not found");
     }
 
-    if (!BankDetail || !CompanyDetail) {
+    if (!bankDetails || !companyDetails) {
       return res.status(500).send("Company or Bank details not found");
     }
 
@@ -69,7 +69,7 @@ export const generateProposal = async (req, res) => {
     // Calculate totals
     const total = outlets.reduce(
       (acc, outlet) =>
-        acc + parseFloat(outlet.amount.$numberInt || outlet.amount),
+        acc + parseFloat(outlet.amount?.$numberInt ?? outlet.amount ?? 0),
       0
     );
 
@@ -204,11 +204,10 @@ export const generateProposal = async (req, res) => {
       .replace(/{{ifsc_code}}/g, ifsc_code);
 
     // Launch Puppeteer using Chromium
-  browser = await puppeteer.launch({
-  headless: true,
-  args: ['--no-sandbox', '--disable-setuid-sandbox']
-});
-
+    browser = await puppeteer.launch({
+      headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
 
     const page = await browser.newPage();
     await page.setContent(dynamicContent, { waitUntil: "networkidle0" });
@@ -252,6 +251,9 @@ export const generateProposal = async (req, res) => {
     res.status(200).json({ message: "Email sent successfully" });
   } catch (error) {
     console.error("Error generating PDF or sending email:", error);
+    console.error("Puppeteer error:", error.message);
+    console.error("Stack trace:", error.stack);
+
     res.status(500).send("Internal Server Error");
   } finally {
     if (browser) {
