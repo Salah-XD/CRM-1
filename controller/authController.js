@@ -133,19 +133,19 @@ export const forgotPassword = async (req, res) => {
     );
 
     // Send OTP via email
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      host: "smtp.gmail.com",
-      port: 587, // Port for STARTTLS
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
+   const transporter = nodemailer.createTransport({
+        host: "smtp-relay.brevo.com",
+        port: 2525, // Port 2525 (STARTTLS)
+        secure: false, // No SSL for port 2525
+        auth: {
+          user: process.env.BREVO_SMTP_USER,
+          pass: process.env.BREVO_SMTP_PASSWORD,
+        },
+      });
+  
 
     const mailOptions = {
-      from: `<${process.env.EMAIL_USERNAME}>`,
+      from: `"Your Company" <unavar>`,
       to: userId,
       subject: "Password Reset OTP",
       text: `Your OTP for password reset is: ${OTP}.`,

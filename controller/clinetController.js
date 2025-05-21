@@ -439,7 +439,7 @@ export const sendEmail = async (req, res) => {
     const emailContent = message.replace("{formlink}", formLink);
 
     const mailOptions = {
-      from: `"Your Company" <8d87d1001@smtp-brevo.com>`,
+      from: `"Your Company" <unavar>`,
       to,
       subject: "Client Onboarding Process",
       html: emailContent,
