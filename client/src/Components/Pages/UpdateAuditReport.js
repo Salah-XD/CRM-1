@@ -60,6 +60,7 @@ function AuditReport() {
           `/api/auditor/fetchingQuestionAnswer/${params.audit_id}?checkListId=${checklistId}` // Add checklistId to the query string
         );
         setSections(data);
+        console.log("this is the data sdfsdf",data);
       } catch (error) {
         message.error("Failed to fetch section data.");
       } finally {
@@ -78,6 +79,7 @@ function AuditReport() {
       section.questions.forEach((question) => {
         if (question.image_url) {
           images[question.questionId] = question.image_url;
+          console.log( "thsi is the",question.image_url);
         }
       });
     });
