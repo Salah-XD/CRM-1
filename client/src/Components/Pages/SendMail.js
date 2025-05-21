@@ -32,7 +32,7 @@ const SendMailModal = ({ visible, onCancel, onSuccess }) => {
     setLoading(true);
     try {
       const response = await axios.get(
-        "api/setting/getSetting/66c41b85dedfff785c08df21"
+        "api/setting/getSetting"
       );
       const formLinkEmail = response.data.formlink_email;
       if (formLinkEmail) {

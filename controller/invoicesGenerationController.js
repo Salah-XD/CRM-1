@@ -178,7 +178,7 @@ export const generateInvoice = async (req, res) => {
     });
 
     const mailOptions = {
-      from: `"Your Company" <unavar>`,
+    from: '"Unavar Food Inspection and Certification Private Limited " <unavar.steamtroops@gmail.com>',
       to,
       cc,
       subject: "Invoice Document",

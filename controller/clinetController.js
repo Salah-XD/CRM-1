@@ -439,7 +439,7 @@ export const sendEmail = async (req, res) => {
     const emailContent = message.replace("{formlink}", formLink);
 
     const mailOptions = {
-      from: `"Your Company" <unavar>`,
+    from: '"Unavar Food Inspection and Certification Private Limited " <unavar.steamtroops@gmail.com>',
       to,
       subject: "Client Onboarding Process",
       html: emailContent,
